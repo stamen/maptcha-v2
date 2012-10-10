@@ -34,6 +34,9 @@ def populate_atlas(atlas_dom, map_dom, bucket, id):
         key.set_contents_from_string(body, headers=head, policy='public-read')
         
         map.save()
+    
+    atlas['status'] = 'uploaded'
+    atlas.save()
 
 if __name__ == '__main__':
 

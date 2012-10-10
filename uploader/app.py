@@ -3,16 +3,15 @@ from uuid import uuid1
 from urllib import urlopen
 from csv import DictReader
 
-from flask import Flask, request, render_template
+from flask import Flask, request, redirect, render_template
 
 from util import connect_domain, connect_queue
 
 app = Flask(__name__)
 
-def post_atlas(domain, queue, url):
+def create_atlas(domain, queue, url):
     '''
     '''
-    print 'fuck'
     row = DictReader(urlopen(url)).next()
     
     if 'address' not in row:
@@ -31,6 +30,8 @@ def post_atlas(domain, queue, url):
     #
     message = queue.new_message('populate atlas %s' % atlas.name)
     queue.write(message)
+    
+    return atlas.name
 
 @app.route('/')
 def index():
@@ -39,17 +40,26 @@ def index():
     return render_template('index.html')
 
 @app.route('/atlas', methods=['POST'])
-def atlas():
+def post_atlas(id=None):
     '''
     '''
     key, secret, prefix = environ['key'], environ['secret'], environ['prefix']
     dom = connect_domain(key, secret, prefix+'atlases')
     queue = connect_queue(key, secret, prefix+'jobs')
 
-    post_atlas(dom, queue, request.form['url'])
+    id = create_atlas(dom, queue, request.form['url'])
     
-    return 'buuh'
+    return redirect('/atlas/%s' % id, code=303)
+
+@app.route('/atlas/<id>')
+def get_atlas(id):
+    '''
+    '''
+    key, secret, prefix = environ['key'], environ['secret'], environ['prefix']
+    dom = connect_domain(key, secret, prefix+'atlases')
+    
+    return repr(dom.get_item(id))
 
 if __name__ == '__main__':
     app.debug = True
-    app.run(host='0.0.0.0', port=8080)
+    app.run(host='127.0.0.1', port=8080)
