@@ -1,37 +1,11 @@
 from os import environ
-from uuid import uuid1
-from urllib import urlopen
-from csv import DictReader
 
 from flask import Flask, request, redirect, render_template
 
 from util import connect_domain, connect_queue
+from data import create_atlas
 
 app = Flask(__name__)
-
-def create_atlas(domain, queue, url):
-    '''
-    '''
-    row = DictReader(urlopen(url)).next()
-    
-    if 'address' not in row:
-        raise ValueError('Missing "address" in %(url)s' % locals())
-    
-    #
-    # Add an entry for the atlas to the atlases table.
-    #
-    atlas = domain.new_item(str(uuid1()))
-    atlas['href'] = url
-    atlas['status'] = 'empty'
-    atlas.save()
-    
-    #
-    # Queue the atlas for processing.
-    #
-    message = queue.new_message('populate atlas %s' % atlas.name)
-    queue.write(message)
-    
-    return atlas.name
 
 @app.route('/')
 def index():
