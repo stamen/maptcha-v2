@@ -39,15 +39,22 @@ def index():
     '''
     return render_template('index.html')
 
+@app.route('/thing/<path:path>')
+def thing(path):
+    '''
+    '''
+    bucket = environ['prefix']+'stuff'
+    return redirect('http://%(bucket)s.s3.amazonaws.com/%(path)s' % locals())
+
 @app.route('/atlas', methods=['POST'])
 def post_atlas(id=None):
     '''
     '''
     key, secret, prefix = environ['key'], environ['secret'], environ['prefix']
-    dom = connect_domain(key, secret, prefix+'atlases')
+    atlas_dom = connect_domain(key, secret, prefix+'atlases')
     queue = connect_queue(key, secret, prefix+'jobs')
 
-    id = create_atlas(dom, queue, request.form['url'])
+    id = create_atlas(atlas_dom, queue, request.form['url'])
     
     return redirect('/atlas/%s' % id, code=303)
 
@@ -56,9 +63,13 @@ def get_atlas(id):
     '''
     '''
     key, secret, prefix = environ['key'], environ['secret'], environ['prefix']
-    dom = connect_domain(key, secret, prefix+'atlases')
+    atlas_dom = connect_domain(key, secret, prefix+'atlases')
+    map_dom = connect_domain(key, secret, prefix+'maps')
+
+    atlas = atlas_dom.get_item(id)
+    maps = map_dom.select("select * from `%s` where atlas = '%s'" % (map_dom.name, atlas.name))
     
-    return repr(dom.get_item(id))
+    return render_template('atlas.html', atlas=atlas, maps=maps)
 
 if __name__ == '__main__':
     app.debug = True
