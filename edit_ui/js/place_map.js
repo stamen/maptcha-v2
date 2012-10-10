@@ -313,10 +313,10 @@
             slider.attr("value",oldmap.opacity * 100);
             
             slider.on("change",function(e){  
-                
-                //console.log(e,this.value);
-                //updateSlider(this.value) 
                 changeOverlay(this.value/100)
+            });
+            slider.on("mousedown",function(){
+                oldmap.untouched = false;
             });
             
         }
@@ -399,9 +399,9 @@
             center = latlon(matrix.transform({x: image.width/2, y: image.height/2})),
             footprint = [latlon(ul), latlon(ur), latlon(lr), latlon(ll), latlon(ul)];
 
-        //document.getElementById('origin-wkt').value = 'POINT('+point(origin)+')';
-        //document.getElementById('center-wkt').value = 'POINT('+point(center)+')';
-        //document.getElementById('footprint-wkt').value = 'POLYGON(('+footprint.map(point).join(',')+'))';
+        document.getElementById('origin-wkt').value = 'POINT('+point(origin)+')';
+        document.getElementById('center-wkt').value = 'POINT('+point(center)+')';
+        document.getElementById('footprint-wkt').value = 'POLYGON(('+footprint.map(point).join(',')+'))';
     }
     
     function updateImageGeography(image, matrix, scale)
@@ -424,8 +424,70 @@
         }
     }  
     
+      
     
-    exports.YTOB = YTOB;   
     
     
+    /// GEOCODER 
+    var geocoder = null;
+    YTOB.Geocoder = function(){  
+        if(geocoder)return geocoder;
+        
+        
+        this.init(); 
+        geocoder = this;
+    }
+    
+    YTOB.Geocoder.prototype = {
+        geocoder: null,
+        southwest: null,
+        northeast: null,
+        bounds: null,
+        input:null,
+        
+        init: function(){ 
+            var self = this; 
+            
+            this.geocoder = new google.maps.Geocoder();
+            this.southwest = new google.maps.LatLng(37.7077, -122.5169);
+            this.northeast = new google.maps.LatLng(37.8153, -122.3559);
+            this.bounds = new google.maps.LatLngBounds(this.southwest, this.northeast); 
+            this.input = $("#address-search").find('input');
+            
+            this.input.on("change",function(e){
+                e.preventDefault();
+                self.jumpAddress(this.value);
+            });
+        },
+        onGeocoded: function(results, status){
+            if(status != google.maps.GeocoderStatus.OK){
+                alert('No such address.');
+                return;
+            }
+            if(!map){
+                
+            }else{ 
+                $("#address-search").removeClass('no-map');
+                var viewport = results[0].geometry.viewport,
+                    ne = viewport.getNorthEast(),
+                    sw = viewport.getSouthWest(),
+                    locations = [{lat: ne.lat(), lon: ne.lng()}, {lat: sw.lat(), lon: sw.lng()}];
+
+                map.setExtent(locations);
+                map.zoomBy(1);
+            } 
+            
+        },
+        jumpAddress: function(address){   
+            console.log(this)
+            this.geocoder.geocode({address: address, bounds: this.bounds}, this.onGeocoded);
+
+            return false;
+        }
+    } 
+  
+    
+    
+    
+    exports.YTOB = YTOB;
 })(this)

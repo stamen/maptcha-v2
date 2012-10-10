@@ -25,8 +25,105 @@
     left: 10px;
 }
 #zoom-controls img { border: none; }
-#slider{
-    position:absolute;
-    left:10px;
-    bottom:10px;
+
+#address-search
+{
+    position: absolute;
+    top: 15px;
+    left: 100px;  
+    background: #DDD;
+    z-index: 2; 
+    display:block; 
+    text-align:center;
+} 
+#address-search-form{
+    top:0;
+    margin:5px;
 }
+
+#address-search.no-map
+{
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 550px;
+    
+   
+}
+#address-search.no-map #address-search-form{
+    position: relative;
+    top: 45%;  
+    margin:0;
+}
+
+    #address-search.no-map label
+    {
+        float: none;
+        margin: 10px 0;
+        padding-top: 6px;
+        padding-bottom: 6px;
+    }
+    
+    #address-search.no-map .explain
+    {
+        display: block;
+        margin-left: 10px;
+        white-space: nowrap;
+    }
+
+    #address-search input { width: 200px; }
+    #address-search.no-map input { width: 300px; }
+    #address-search .explain { display: none; }
+    
+    
+#slider{
+    position: absolute;
+    left: 10px;
+    bottom: 10px;
+    background: #DDD;
+    padding: 5px 5px 0;
+}
+#slider label{
+    position: relative;
+    top: -5px;
+    margin-right: 5px;
+} 
+
+form#complete
+{
+    text-align: center;
+    clear: both;
+}
+
+form#complete input[type=submit]
+{
+    cursor: pointer;
+    font: bold 24px Helvetica, Arial, sans-serif;
+    background-color: #999;
+    color: white;
+
+    padding: 10px 20px;
+    border: 1px solid black;
+    border-radius: 6px;
+    -moz-border-radius: 6px;
+    -webkit-border-radius: 6px;
+}
+
+form#complete input.action-no
+{
+    background-color: white;
+    border-color: #c00;
+    color: #c00;
+    font: normal 16px Helvetica, Arial, sans-serif;
+    padding: 5px 20px;
+    margin-top: 5px;
+}
+
+form#complete input.action-no:hover
+{
+    background-color: #f30;
+    border-color: black;
+    color: white;
+}
+
+form#complete input#action-ok { background-color: #090; }
