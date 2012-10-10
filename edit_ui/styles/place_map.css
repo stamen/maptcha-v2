@@ -1,7 +1,11 @@
 #scan-wrap{position:relative;width:100%;}
-#scan{position:relative;width:450;height:550;} 
-#map-box{position:relative;}
-#map-pane{height:550px;} 
+#scan{position:relative;width:480;height:550;} 
+#map-box{
+    position:relative;  
+    background-color: #ddd; 
+    border: 1px solid black;
+}
+#map-pane{width:480px;height:550px;} 
 #map-box canvas
 {
     position: absolute;
