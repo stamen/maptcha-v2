@@ -1,14 +1,14 @@
 from sys import argv
 
-from boto.sdb import regions
+#from boto.sdb import regions
 from boto import connect_sdb, connect_s3, connect_sqs
 
 if __name__ == '__main__':
 
     key, secret, prefix = argv[1:]
 
-    reg = [reg for reg in regions() if reg.name == 'us-west-1'][0]
-    sdb = connect_sdb(key, secret, region=reg)
+    #reg = [reg for reg in regions() if reg.name == 'us-west-1'][0]
+    sdb = connect_sdb(key, secret) #, region=reg)
     sqs = connect_sqs(key, secret)
     s3 = connect_s3(key, secret)
     
