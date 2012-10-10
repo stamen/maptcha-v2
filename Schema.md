@@ -1,3 +1,6 @@
+SimpleDB
+========
+
 Atlases
 -------
 
@@ -15,3 +18,14 @@ Maps
  * `thumb`: S3 object ID of thumbnail-sized image.
 
 SimpleDB domain: *prefix* + “-maps”
+
+Task Queue
+==========
+
+Queue name: *prefix* + “jobs”
+
+`populate atlas nnnnnn`
+-------------------------------
+
+Causes a CSV to be retrieved from the atlas `href` and converted to a set of
+maps. Atlas is identified by name (*nnnnnn*).
