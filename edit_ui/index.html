@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <title>Year of the Bay</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta name="description" content="">
+        <meta name="author" content=""> 
+        <link href="styles/vendor/bootstrap-responsive.min.css" rel="stylesheet"> 
+        <link href="styles/place_map.css" rel="stylesheet"> 
+        
+        <!-- js -->
+        <script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>  
+        <script type="text/javascript" src="js/vendor/modestmaps.min.js"></script>
+        <script type="text/javascript" src="http://maps.stamen.com/js/tile.stamen.js?v1.2.0"></script> 
+        <script type="text/javascript" src="js/vendor/paper.js"></script>   
+        
+    </head> 
+    <body> 
+        <div class="container-fluid"> 
+            <div class="row-fluid">
+                <div id="scan-box" class="span6">
+                    <canvas id="scan"  width="480" height="550"></canvas>
+                    <img id="scan_img" src="http://studio.stamen.com/~seanc/yearofthebay/edit_ui/maps_temp/5850030-s2R.jpeg" style="display: none;"> 
+                </div>
+                <div id="map-box" class="span6"> 
+                    <div id="map-pane"></div>
+                </div>
+            </div>
+        </div> 
+        
+        <script type="text/javascript" src="js/place_map.js"></script> 
+         <script type="text/paperscript" canvas="scan">
+            var bg = new Path.Rectangle(view.bounds),
+             image = new Raster('scan_img'); 
+             
+             console.log(image)
+        </script>
+        <script>
+            $(function(){
+                    
+                 
+                 
+                 
+                 YTOB.PlaceMap.initMap("map-pane");
+            })
+        </script>
+    </body>
+</html>
+   
