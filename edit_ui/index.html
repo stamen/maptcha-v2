@@ -20,30 +20,37 @@
         <div class="container-fluid"> 
             <div class="row-fluid">
                 <div id="scan-box" class="span6">
-                    <canvas id="scan"  width="480" height="550"></canvas>
-                    <img id="scan_img" src="http://studio.stamen.com/~seanc/yearofthebay/edit_ui/maps_temp/5850030-s2R.jpeg" style="display: none;"> 
+                        <div id="scan-wrap">
+                            <canvas id="scan" width='450' height='550'></canvas>
+                            <img id="scan_img" src="http://studio.stamen.com/~seanc/yearofthebay/edit_ui/maps_temp/5850030-s2R.jpeg" style="display: none;">  
+                        </div>
                 </div>
                 <div id="map-box" class="span6"> 
-                    <div id="map-pane"></div>
+                    <div id="map-pane"></div> 
+                    
+                    <div id="zoom-controls">
+                        <a href="#" id="zoom-out" style="display: none;"><img id="zoom-out-img" src="styles/imgs/zoom-out.png" alt="–" width="38" height="44"></a>
+                        <a href="#" id="zoom-in" style="display: none;"><img id="zoom-in-img" src="styles/imgs/zoom-in.png" alt="+" width="38" height="44"></a>
+                    </div> 
+                    
+                    <div id="slider">
+                        <input id="slide" type="range" min="0" max="100" step="1" value="100"/>
+                    </div>
                 </div>
             </div>
         </div> 
         
         <script type="text/javascript" src="js/place_map.js"></script> 
-         <script type="text/paperscript" canvas="scan">
-            var bg = new Path.Rectangle(view.bounds),
-             image = new Raster('scan_img'); 
-             
-             console.log(image)
-        </script>
-        <script>
-            $(function(){
-                    
+         
+        <script type="text/javascript" >
+                 window.onload = function(){
+                     YTOB.PlaceMap.initCanvas();
+                     YTOB.PlaceMap.initMap("map-pane");
+                 }
                  
                  
                  
-                 YTOB.PlaceMap.initMap("map-pane");
-            })
+          
         </script>
     </body>
 </html>
