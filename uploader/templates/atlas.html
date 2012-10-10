@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8" />
+	<title>(Atlas)</title>
+</head>
+<body>
+
+    <h1>{{ atlas.name }}</h1>
+    
+    {{ atlas.status }}
+    
+    <ul>
+        {% for map in maps %}
+            <li>
+                <a href="/thing/{{ map.image }}"><img src="/thing/{{ map.large }}"></a>
+            </li>
+        {% endfor %}
+    </ul>
+
+</body>
+</html>
