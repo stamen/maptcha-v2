@@ -6,38 +6,9 @@ from os.path import basename
 from urlparse import urljoin, urlparse
 from mimetypes import guess_type
 
-from boto import connect_s3, connect_sdb, connect_sqs
-from boto.exception import SDBResponseError
+from util import connect_domain, connect_queue, connect_bucket
 
-def connect_domain(key, secret, name):
-    ''' Return a connection to a simpledb domain for atlases.
-    '''
-    sdb = connect_sdb(key, secret)
-    
-    try:
-        domain = sdb.get_domain(name)
-    except SDBResponseError:
-        domain = sdb.create_domain(name)
-    
-    return domain
-
-def connect_queue(key, secret, name):
-    '''
-    '''
-    sqs = connect_sqs(key, secret)
-    queue = sqs.get_queue(name)
-    
-    return queue
-
-def connect_bucket(key, secret, name):
-    '''
-    '''
-    s3 = connect_s3(key, secret)
-    bucket = s3.get_bucket(name)
-    
-    return bucket
-
-def create_atlas(atlas_dom, map_dom, bucket, id):
+def populate_atlas(atlas_dom, map_dom, bucket, id):
     '''
     '''
     atlas = atlas_dom.get_item(id)
@@ -79,12 +50,12 @@ if __name__ == '__main__':
         pass
 
     else:
-        if msg.startswith('create atlas '):
+        if msg.startswith('populate atlas '):
             print msg
             
             map_dom = connect_domain(key, secret, prefix+'maps')
             atlas_dom = connect_domain(key, secret, prefix+'atlases')
 
-            create_atlas(atlas_dom, map_dom, bucket, msg[len('create atlas '):])
+            populate_atlas(atlas_dom, map_dom, bucket, msg[len('populate atlas '):])
         
         queue.delete_message(message)

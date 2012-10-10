@@ -2,7 +2,7 @@ Atlases
 -------
 
  * `href`: Original source URL of uploaded CSV file.
- * `progress`: Numeric percentage progress indicator.
+ * `status`: currently just *empty*.
 
 SimpleDB domain: *prefix* + “-atlases”
 
