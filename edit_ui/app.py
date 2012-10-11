@@ -1,7 +1,8 @@
 from os import environ
 from os.path import dirname
+from mimetypes import guess_type
 
-from flask import Flask, request, redirect, render_template, jsonify, config
+from flask import Flask, request, redirect, render_template, jsonify, make_response
 
 from util import connect_domain, connect_queue, get_config_vars
 
@@ -14,6 +15,14 @@ def thing(path):
     '''
     bucket = aws_prefix+'stuff'
     return redirect('http://%(bucket)s.s3.amazonaws.com/%(path)s' % locals())
+
+def static(filename):
+    '''
+    '''
+    body = open('static/'+filename).read()
+    resp = make_response(body, 200)
+    resp.headers['Content-Type'] = guess_type(filename)[0]
+    return resp
 
 def place_rough_map(id):
     '''
@@ -43,6 +52,7 @@ def get_atlases():
 app = Flask(__name__)
 
 app.add_url_rule('/thing/<path:path>', 'thing', thing)
+app.add_url_rule('/static/<path:path>', 'static', static)
 app.add_url_rule('/place-rough/map/<id>', 'get map rough placement', place_rough_map)
 app.add_url_rule('/place-rough/atlas/<id>', 'get atlas rough placement', place_rough_atlas)
 app.add_url_rule('/atlases', 'get atlases', get_atlases)
