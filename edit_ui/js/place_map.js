@@ -243,14 +243,15 @@
         var vec = subtractPoints(handle.position , pin.position);
         var scale = vec.length / armLength;
         updateImageGeography(image.image, _xform, scale);
-    } 
+    }    
     
     
     /* PUBLIC */
     YTOB.PlaceMap.updatePaperViewSize = function(w,h){ 
         if(!paper)return; 
-
+        
         paper.view.viewSize = new paper.Size(w,h); 
+        
         
         paper.view.draw();
     } 
@@ -259,11 +260,15 @@
         mapSize.w = w;
         mapSize.h = h;
         
-         
         var cx = (w/2) - paper.view.center._x;
         var cy = (h/2) - paper.view.center._y;
         var pt = new paper.Point(cx,cy); 
-         
+        
+        
+        //pt.x *= xform.scaleX;
+        //pt.y *= xform.scaleY;
+        
+        
         YTOB.PlaceMap.updatePaperViewSize(w,h);    
         
         xform.translate(pt);
@@ -271,7 +276,7 @@
         
         pin.position = paper.view.center;
         
-        handle.position.x += cx;
+        handle.position.x += pt.x;
         
         updateArmAndCircle();
         updateImagePosition();
@@ -281,9 +286,9 @@
             updateOldMap();
         }
         
-        
     }
-      
+    
+    
     YTOB.PlaceMap.showRotator = function()
     {
         rotator.visible = true;
