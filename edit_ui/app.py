@@ -49,4 +49,4 @@ app.add_url_rule('/atlases', 'get atlases', get_atlases)
 
 if __name__ == '__main__':
     app.debug = True
-    app.run(host='127.0.0.1', port=8080)
+    app.run(host='0.0.0.0', port=8080)
