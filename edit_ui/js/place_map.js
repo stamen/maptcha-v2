@@ -258,7 +258,9 @@
     YTOB.PlaceMap.resize = function(w,h){
         mapSize.w = w;
         mapSize.h = h; 
-        YTOB.PlaceMap.updatePaperViewSize(w,h); 
+        YTOB.PlaceMap.updatePaperViewSize(w,h);
+
+
         updateImagePosition();
         updateArmAndCircle(); 
         paper.view.draw();
