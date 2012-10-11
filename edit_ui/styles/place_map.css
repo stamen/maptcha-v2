@@ -125,4 +125,37 @@ form#complete input.action-no:hover
     color: white;
 }
 
-form#complete input#action-ok { background-color: #090; }
+form#complete input#action-ok { background-color: #090; }   
+
+
+
+/* Large desktop */
+@media (min-width: 980px) {     
+    .row-fluid [class*="span"] {
+        display: block;
+        float: left;
+        width: 100%;
+        min-height: 30px;
+        margin-left: 2.564102564102564%;
+        -webkit-box-sizing: border-box;
+        -moz-box-sizing: border-box;
+        box-sizing: border-box;    
+    }
+    .row-fluid .span6 {
+        width: 48.717948717948715%;
+    }
+    
+    .row-fluid [class*="span"]:first-child {
+        margin-left: 0;
+    }
+    
+}
+ 
+/* Portrait tablet to landscape and desktop */
+@media (min-width: 768px) and (max-width: 979px) { }
+ 
+/* Landscape phone to portrait tablet */
+@media (max-width: 767px) {  }
+ 
+/* Landscape phones and down */
+@media (max-width: 480px) {  }
