@@ -22,7 +22,13 @@
           },
         map = null,
         mapCanvas = null,
-        slider = null; 
+        slider = null;  
+        
+        
+    var mapSize = {
+        w:480,
+        h:550
+    }
                       
     
     function setCanvasObjects(){
@@ -241,8 +247,26 @@
     
     
     /* PUBLIC */
-    YTOB.PlaceMap.updatePaperViewSize = function(w,h){
+    YTOB.PlaceMap.updatePaperViewSize = function(w,h){ 
+        if(!paper)return; 
+
         paper.view.viewSize = new paper.Size(w,h); 
+        
+        paper.view.draw();
+    } 
+    
+    YTOB.PlaceMap.resize = function(w,h){
+        mapSize.w = w;
+        mapSize.h = h; 
+        YTOB.PlaceMap.updatePaperViewSize(w,h); 
+        updateImagePosition();
+        updateArmAndCircle(); 
+        paper.view.draw();
+        if(map){
+            map.setSize(new MM.Point(mapSize.w,mapSize.h)); 
+            updateOldMap();
+        }
+        
         
     }
       
@@ -254,9 +278,10 @@
     
     YTOB.PlaceMap.initCanvas = function(){ 
         canvas = document.getElementById('scan');
-        paper.setup(canvas);  
+        paper.setup(canvas);   
+        mapSize.w = $("#scan-box").width();
         
-        //YTOB.PlaceMap.updatePaperViewSize(480,550);
+        YTOB.PlaceMap.updatePaperViewSize(mapSize.w,mapSize.h);
         
         xform = paper.Matrix.getTranslateInstance(paper.view.center);
         xform.scale(baseScale);
@@ -295,7 +320,11 @@
     
     YTOB.PlaceMap.initMap = function(selector){
         var layer = new MM.StamenTileLayer("toner-lite");
-        map = new MM.Map(selector, layer);
+        map = new MM.Map(selector, layer); 
+        
+        mapSize.w = $("#scan-box").width();
+
+        map.setSize(new MM.Point(mapSize.w,mapSize.h));
         map.setCenterZoom(new MM.Location(37.7, -122.4), 12); 
         
         document.getElementById('zoom-out').style.display = 'inline';
@@ -345,8 +374,10 @@
         var dest = mapCanvas.getContext('2d'),
             matrix = oldmap.matrix,
             image = oldmap.image;
-
-        dest.clearRect(0, 0, 480, 550);
+        
+        mapCanvas.width = mapSize.w;
+        mapCanvas.height = mapSize.h;
+        dest.clearRect(0, 0, mapSize.w, mapSize.h);
 
         dest.save();
         //dest.transform(matrix._m00, matrix._m10, matrix._m01, matrix._m11, matrix._m02, matrix._m12);

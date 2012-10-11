@@ -84,8 +84,12 @@
                      YTOB.PlaceMap.initCanvas();
                      YTOB.PlaceMap.initMap("map-pane"); 
                      
-                     var geo = new YTOB.Geocoder()  
-                     console.log("G: ",geo)
+                     var geo = new YTOB.Geocoder();
+                     
+                     $(window).on("resize",function(){
+                         //YTOB.PlaceMap.resize($("#scan-box").width(),550)
+                     })
+                     //$(window).trigger("resize");  
                  }
                  
                  

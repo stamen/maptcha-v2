@@ -5,7 +5,7 @@
     background-color: #ddd; 
     border: 1px solid black;
 }
-#map-pane{width:480px;height:550px;} 
+#map-pane{position:relative;width:100%;height:550px;} 
 #map-box canvas
 {
     position: absolute;
@@ -47,7 +47,6 @@
     left: 0;
     width: 100%;
     height: 550px;
-    
    
 }
 #address-search.no-map #address-search-form{
