@@ -1,3 +1,5 @@
+from os.path import realpath, dirname, join, exists
+
 #from boto.sdb import regions
 from boto import connect_sdb, connect_sqs
 
@@ -17,3 +19,21 @@ def connect_queue(key, secret, name):
     queue = sqs.get_queue(name)
     
     return queue
+
+def find_config_file(dir):
+    '''
+    '''
+    dir = realpath(dir)
+    
+    while True:
+        path = join(dir, 'config.ini')
+        
+        if exists(path):
+            return path
+        
+        if dir == '/':
+            break
+        
+        dir = dirname(dir)
+    
+    return None
