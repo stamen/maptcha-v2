@@ -257,13 +257,25 @@
     
     YTOB.PlaceMap.resize = function(w,h){
         mapSize.w = w;
-        mapSize.h = h; 
-        YTOB.PlaceMap.updatePaperViewSize(w,h);
-
-
+        mapSize.h = h;
+        
+         
+        var cx = (w/2) - paper.view.center._x;
+        var cy = (h/2) - paper.view.center._y;
+        var pt = new paper.Point(cx,cy); 
+         
+        YTOB.PlaceMap.updatePaperViewSize(w,h);    
+        
+        xform.translate(pt);
+        image.setMatrix(xform);   
+        
+        pin.position = paper.view.center;
+        
+        handle.position.x += cx;
+        
+        updateArmAndCircle();
         updateImagePosition();
-        updateArmAndCircle(); 
-        paper.view.draw();
+ 
         if(map){
             map.setSize(new MM.Point(mapSize.w,mapSize.h)); 
             updateOldMap();

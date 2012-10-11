@@ -34,7 +34,7 @@
     background: #DDD;
     z-index: 2; 
     display:block; 
-    text-align:center;
+    text-align:center; 
 } 
 #address-search-form{
     top:0;
