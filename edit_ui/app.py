@@ -1,5 +1,5 @@
-from os import environ
-from os.path import dirname
+from os import environ, chdir
+from os.path import dirname, abspath
 from mimetypes import guess_type
 
 from flask import Flask, request, redirect, render_template, jsonify, make_response
@@ -58,5 +58,8 @@ app.add_url_rule('/place-rough/atlas/<id>', 'get atlas rough placement', place_r
 app.add_url_rule('/atlases', 'get atlases', get_atlases)
 
 if __name__ == '__main__':
+
+    chdir(dirname(abspath(__file__)))
+
     app.debug = True
     app.run(host='0.0.0.0', port=8080)
