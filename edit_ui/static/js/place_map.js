@@ -522,12 +522,15 @@
         dest.lineWidth = 1;
         dest.fillStyle = '#f1e6c8';
         dest.strokeStyle = 'black';
+                             
 
-        dest.moveTo(mapCanvas.width/2 + 4, mapCanvas.height/2);
+        var centerX = mapCanvas.width/2 + mapSize.w/2,
+            centerY = mapCanvas.height/2;
+        dest.moveTo(centerX  + 4, centerY);
 
         for(var t = Math.PI/16; t <= Math.PI*2; t += Math.PI/16)
         {
-            dest.lineTo(mapCanvas.width/2 + 4 * Math.cos(t), mapCanvas.height/2 + 4 * Math.sin(t));
+            dest.lineTo(centerX + 4 * Math.cos(t), centerY + 4 * Math.sin(t));
         }
 
         dest.closePath();
