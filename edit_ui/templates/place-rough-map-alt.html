@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 	<meta charset="utf-8" />
-	<title>Year of the Bay (Map)</title>
+	<title>[alt] Year of the Bay (Map)</title>
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="">
     <meta name="author" content=""> 
@@ -20,51 +20,67 @@
 <body>
     
     <div class="container-fluid">
+        
+        <!--
         <div class="row-fluid">
             <div class="span12">
-                <h1>Working on map -- {{ map.name }}</h1>
+                <h1>Positioning map: <a href="/thing/{{ map.large }}" target="_blank" title="view">{{ map.name }}</a></h1>
             </div>
-        </div>
+        </div>  
+        --> 
+        
+        <div id="background-map-wrap">
+             <div id="background-map"></div> 
+        </div>  
+        
         <div class="row-fluid">
-            <div id="scan-box" class="span6">
-                    <div id="scan-wrap">
-                        <canvas id="scan" width='480' height='550'></canvas>
-                        <img id="scan_img" src="/thing/{{ map.large }}" style="display: none;">
-                         
-                        <div id="zoom-controls-canvas" class="zoom-controls">  
-                            <a href="#" class="zoom-in">+</a> 
-                            <a href="#" class="zoom-out">&ndash;</a>
-                        </div> 
-                    </div>
-            </div>
-            <div id="map-box" class="span6"> 
-                <div id="map-pane"></div> 
+            <div id="box-wrap" class="cf span12"> 
                 
-                <div id="zoom-controls-mm" class="zoom-controls">   
-                    <a href="#" class="zoom-in">+</a> 
-                    <a href="#" class="zoom-out">&ndash;</a>
+                <!-- original map -->
+                <div id="scan-box">
+                        <div id="scan-wrap">
+                            <canvas id="scan" width='480' height='550'></canvas>
+                            <img id="scan_img" src="/thing/{{ map.large }}" style="display: none;">
+
+                            <div id="zoom-controls-canvas" class="zoom-controls">  
+                                <a href="#" class="zoom-in">+</a> 
+                                <a href="#" class="zoom-out">&ndash;</a>
+                            </div> 
+                        </div>
                 </div>
                 
-                <div id="address-search" class="no-map">  
-                    <div id="address-search-form">
-                        <div class="explain">Search for a cross street you can see on the old map…</div>
-                        <label><input type="search" name="geocode" size="28" placeholder="16th St &amp; Mission St"> Find</label>
-                        <div class="explain"><small>You only have to type the names, like “Milton &amp; Bosworth”</small></div> 
+                <!-- modestmap positioner -->
+                <div id="map-box"> 
+                    <div id="map-pane"></div> 
+                
+                    <div id="zoom-controls-mm" class="zoom-controls">   
+                        <a href="#" class="zoom-in">+</a> 
+                        <a href="#" class="zoom-out">&ndash;</a>
                     </div>
-                </div> 
                 
-                <!-- polyfill: http://www.frequency-decoder.com/2010/11/18/unobtrusive-slider-control-html5-input-range-polyfill -->
-                <div id="slider">
-                    <label>Show old map</label>
-                    <input id="slide" type="range" min="0" max="100" step="1" value="100"/>
-                </div> 
+                    <div id="address-search" class="no-map">  
+                        <div id="address-search-form">
+                            <div class="explain">Search for a cross street you can see on the old map…</div>
+                            <label><input type="search" name="geocode" size="28" placeholder="16th St &amp; Mission St"> Find</label>
+                            <div class="explain"><small>You only have to type the names, like “Milton &amp; Bosworth”</small></div> 
+                        </div>
+                    </div> 
                 
-                
-                
-            </div>
+                    <!-- polyfill: http://www.frequency-decoder.com/2010/11/18/unobtrusive-slider-control-html5-input-range-polyfill -->
+                    <div id="slider">
+                        <label>Show old map</label>
+                        <input id="slide" type="range" min="0" max="100" step="1" value="100"/>
+                    </div>  
+                </div>
+            </div> 
+            
         </div> 
         
+        <div id="form-fields">
+            
+        </div>
         
+        <!--
         <div class="row-fluid">
             <div class="span12"> 
                 <form id="complete" action="post-placement.php" method="post">
@@ -86,7 +102,8 @@
                     </p>
                 </form>
              </div>
-        </div> 
+        </div>
+        --> 
     </div>
     
     

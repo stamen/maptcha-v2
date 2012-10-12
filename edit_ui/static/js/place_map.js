@@ -4,7 +4,8 @@
     if(typeof YTOB === "undefined")YTOB = {};
     YTOB.PlaceMap = {}; 
     
-    var xform,canvas,image,zoomout,zoomin,arm,circle,pin,handle,imageHint,handleHint,canvasBg;
+    var xform,canvas,image,arm,circle,pin,handle,imageHint,handleHint,canvasBg;  
+    
     var armLength = 250,
         baseScale = 1,
         padding = 10;
@@ -15,14 +16,14 @@
         lastClick = false; 
         
     var oldmap = {
-            opacity: .05,
+            opacity: 0,
             untouched: true,
             image: null,
             matrix: null
           },
         map = null,
         mapCanvas = null,
-        slider = null;  
+        slider = null;
         
         
     var mapSize = {
@@ -31,10 +32,21 @@
     }
                       
     
-    function setCanvasObjects(){
-        zoomout.position = new paper.Point(10 + zoomout.size.width/2, 10 + zoomout.size.height/2);
-        zoomin.position = new paper.Point(10 + zoomout.size.width + zoomin.size.width/2, 10 + zoomin.size.height/2);
-
+    function setCanvasObjects(){ 
+        
+        $("#zoom-controls-canvas").find('.zoom-in').on('click',function(e){
+            e.preventDefault();
+            zoomInAbout(paper.view.center); 
+        });
+        $("#zoom-controls-canvas").find('.zoom-out').on('click',function(e){
+            e.preventDefault();
+            zoomOutAbout(paper.view.center); 
+        });
+        
+        canvasBg.fillColor = null;
+        canvasBg.strokeColor = "black";
+        canvasBg.strokeWidth = 1; 
+        
         pin.fillColor = '#f3f0ec';
         pin.strokeColor = 'black';
         pin.strokeWidth = 1;
@@ -96,12 +108,6 @@
             handleHint.visible = false; 
             
 
-        } else if(event.point.isInside(zoomout.bounds)) {
-            activeDrag = zoomout;
-
-        } else if(event.point.isInside(zoomin.bounds)) {
-            activeDrag = zoomin;
-
         } else {
             activeDrag = image;
             imageHint.visible = false;
@@ -122,8 +128,6 @@
         
         
         cursor = event.point.isInside(handle.bounds) ? 'pointer' : cursor;
-        cursor = event.point.isInside(zoomout.bounds) ? 'pointer' : cursor;
-        cursor = event.point.isInside(zoomin.bounds) ? 'pointer' : cursor;
         canvas.style.cursor = cursor;
 
         if(!activeDrag) {
@@ -212,13 +216,7 @@
 
     function onMouseUp(event)
     {
-        if(activeDrag == zoomout) {
-            zoomOutAbout(paper.view.center);
-
-        } else if(activeDrag == zoomin) {
-            zoomInAbout(paper.view.center);
-
-        } else if(event.delta.length < 3) {
+        if(event.delta.length < 3) {
             var click = {point: event.point, time: (new Date()).getTime()};
 
             if(lastClick && (lastClick.time + 150) > click.time)
@@ -256,34 +254,47 @@
         paper.view.draw();
     } 
     
-    YTOB.PlaceMap.resize = function(w,h){
-        mapSize.w = w;
-        mapSize.h = h;
+    YTOB.PlaceMap.resize = function(){
+        getContainerSizes(); 
         
-        var cx = (w/2) - paper.view.center._x;
-        var cy = (h/2) - paper.view.center._y;
+        
+        
+        var cx = (mapSize.w/2) - paper.view.center._x;
+        var cy = (mapSize.h/2) - paper.view.center._y;
         var pt = new paper.Point(cx,cy); 
         
+        var lft = (windowSize.w - (mapSize.w * 2)) /2;
+        $("#scan-box").css({
+            'margin-left':lft + "px"
+        })
         
         //pt.x *= xform.scaleX;
         //pt.y *= xform.scaleY;
         
+        if(image){
+            YTOB.PlaceMap.updatePaperViewSize(mapSize.w,mapSize.h);    
         
-        YTOB.PlaceMap.updatePaperViewSize(w,h);    
+            xform.translate(pt);
+            image.setMatrix(xform);   
         
-        xform.translate(pt);
-        image.setMatrix(xform);   
+            pin.position = paper.view.center;
         
-        pin.position = paper.view.center;
+            handle.position.x += pt.x;
         
-        handle.position.x += pt.x;
+            updateArmAndCircle();
+            updateImagePosition(); 
+        }
         
-        updateArmAndCircle();
-        updateImagePosition();
+        innerMapOffset = $("#map-box").offset();
+        
+        if(backgroundMap){
+            backgroundMap.setSize(new MM.Point(windowSize.w,windowSize.h))
+        }
  
         if(map){
-            map.setSize(new MM.Point(mapSize.w,mapSize.h)); 
-            updateOldMap();
+            map.setSize(new MM.Point(mapSize.w,mapSize.h));
+            updateBackgroundMap(); 
+            updateOldMap();  
         }
         
     }
@@ -298,7 +309,6 @@
     YTOB.PlaceMap.initCanvas = function(){ 
         canvas = document.getElementById('scan');
         paper.setup(canvas);   
-        mapSize.w = $("#scan-box").width();
         
         YTOB.PlaceMap.updatePaperViewSize(mapSize.w,mapSize.h);
         
@@ -306,12 +316,10 @@
         xform.scale(baseScale);
          
         canvasBg = new paper.Path.Rectangle(paper.view.bounds);
-        canvasBg.fillColor = 'silver';
+        
         image = new paper.Raster('scan_img'); 
         image.setMatrix(xform); 
-        
-        zoomout = new paper.Raster('zoom-out-img');
-        zoomin = new paper.Raster('zoom-in-img');
+
         pin = new paper.Path.Oval(new paper.Rectangle(paper.view.center.x - 4, paper.view.center.y - 4, 8, 8));
         handle = new paper.Path.Oval(new paper.Rectangle(paper.view.center.x - 8, paper.view.center.y - 8, 16, 16));
         imageHint = new paper.PointText(new paper.Point(10, 80));
@@ -335,26 +343,67 @@
         
         paper.view.draw();  
 
+    } 
+    
+    
+    
+    var backgroundMap = null,
+        backgroundMapLayer = null, 
+        backgroundMapProviderBasic = null,
+        backgroundMapProviderComplete = null;  
+        
+    YTOB.PlaceMap.initBackgroundMap = function(selector){
+        backgroundMapLayer = new MM.StamenTileLayer("terrain-background");   
+        
+        backgroundMapProviderBasic = backgroundMapLayer.provider;  
+        backgroundMapProviderComplete = new MM.StamenTileLayer("terrain").provider;
+        
+        backgroundMap = new MM.Map(selector, backgroundMapLayer); 
+
+        backgroundMap.setSize(new MM.Point(windowSize.w,windowSize.h));
+        backgroundMap.setCenterZoom(new MM.Location(37.7, -122.4), 12); 
+        
+        
     }
     
     YTOB.PlaceMap.initMap = function(selector){
-        var layer = new MM.StamenTileLayer("toner-lite");
-        map = new MM.Map(selector, layer); 
+        var layer = new MM.StamenTileLayer("terrain-background"); 
         
-        mapSize.w = $("#scan-box").width();
+        
+        map = new MM.Map(selector, layer); 
 
         map.setSize(new MM.Point(mapSize.w,mapSize.h));
-        map.setCenterZoom(new MM.Location(37.7, -122.4), 12); 
+        map.setCenterZoom(new MM.Location(37.7, -122.4), 12);   
+
+        $(layer.parent).css("opacity",0);
         
-        document.getElementById('zoom-out').style.display = 'inline';
-        document.getElementById('zoom-in').style.display = 'inline'; 
-        document.getElementById('zoom-out').onclick = function() { map.zoomOut(); return false; };
-        document.getElementById('zoom-in').onclick = function() { map.zoomIn(); return false; };
+        $("#zoom-controls-mm").find('.zoom-in').on('click',function(e){
+            e.preventDefault();
+            map.zoomIn();
+        });
+        $("#zoom-controls-mm").find('.zoom-out').on('click',function(e){
+            e.preventDefault();
+            map.zoomOut();
+        });   
+        
+        
+        map.addCallback('panned', function(m,offset) { 
+            if(backgroundMap){
+               backgroundMap.panBy(offset[0], offset[1]); 
+            }
+        
+        });    
+        
+        map.addCallback("zoomed", mainMapZoomed);
+        map.addCallback("extentset", updateBackgroundMap);
+        map.addCallback("centered", updateBackgroundMap);
+
+        
          
         mapCanvas = document.createElement('canvas');
-        mapCanvas.width = map.dimensions.x;
-        mapCanvas.height = map.dimensions.y;
-        map.parent.appendChild(mapCanvas);  
+        mapCanvas.width = backgroundMap.dimensions.x;
+        mapCanvas.height = backgroundMap.dimensions.y;
+        backgroundMap.parent.appendChild(mapCanvas);  
         
         if(!slider){
             slider = $("#slide");
@@ -368,11 +417,34 @@
             });
             
         }
-        
+         
+        mainMapZoomed();
         updateOldMap();
-        YTOB.PlaceMap.showRotator();
-        
+        YTOB.PlaceMap.showRotator();  
+
         return map;
+    }
+    
+    
+    var windowSize = {
+        w:null,
+        h:null
+    }
+    
+    function getContainerSizes(){
+        windowSize.w = window.innerWidth,
+        windowSize.h = window.innerHeight;
+        
+        mapSize.w = windowSize.w * .40;
+        mapSize.h = windowSize.h - 40;
+    }
+    
+    YTOB.PlaceMap.init = function(selector){ 
+        getContainerSizes();
+        YTOB.PlaceMap.initBackgroundMap('background-map');
+        YTOB.PlaceMap.initCanvas();
+        YTOB.PlaceMap.initMap(selector);  
+     
     } 
     
     function changeOverlay(value)
@@ -380,27 +452,66 @@
         oldmap.opacity = value;
         updateOldMap();
         return false;
+    } 
+    
+    function mainMapZoomed(){    
+
+        if(!backgroundMap)return;
+        if(map.getZoom() >= 12){   
+            backgroundMapLayer.setProvider(backgroundMapProviderComplete);   
+        }else{
+            backgroundMapLayer.setProvider(backgroundMapProviderBasic); 
+        } 
+        
+        updateBackgroundMap();
     }
     
+    var innerMapOffset = null;
+    function updateBackgroundMap(){
+        if(!backgroundMap)return; 
+        if(!innerMapOffset)innerMapOffset = $("#map-box").offset(); 
+        
+        var oft = innerMapOffset,
+            centerPt = map.locationPoint(map.getCenter());        
+            
+        backgroundMap.setCenterZoom(backgroundMap.pointLocation(centerPt),map.getZoom());  
+        
+        var backgroundMapCenterPt = backgroundMap.locationPoint(map.getCenter());  
+            
+        var ofx = (oft.left + mapSize.w/2) - windowSize.w/2 ; 
+        var ofy = (oft.top + mapSize.h/2) - windowSize.h/2; 
+                
+        backgroundMapCenterPt.x -= ofx; 
+        backgroundMapCenterPt.y -= ofy; 
+        
+        backgroundMap.setCenterZoom(backgroundMap.pointLocation(backgroundMapCenterPt),map.getZoom());   
+        var dest = mapCanvas.getContext('2d');
+        
+        
+    }
     
     function updateOldMap()
     {
         if(!mapCanvas)
         {
             return;
-        }
+        } 
+        
+        if(!innerMapOffset)innerMapOffset = $("#map-box").offset();
         
         var dest = mapCanvas.getContext('2d'),
             matrix = oldmap.matrix,
             image = oldmap.image;
         
-        mapCanvas.width = mapSize.w;
-        mapCanvas.height = mapSize.h;
-        dest.clearRect(0, 0, mapSize.w, mapSize.h);
+        mapCanvas.width = windowSize.w;
+        mapCanvas.height = windowSize.h;
+        dest.clearRect(0, 0, windowSize.w, windowSize.h);
 
         dest.save();
-        //dest.transform(matrix._m00, matrix._m10, matrix._m01, matrix._m11, matrix._m02, matrix._m12);
+        
+        dest.translate(innerMapOffset.left,20);
         dest.transform(matrix._a, matrix._c, matrix._b, matrix._d, matrix._tx, matrix._ty);
+        
         dest.globalAlpha = oldmap.opacity;
         dest.drawImage(image, 0, 0);
 
@@ -430,8 +541,8 @@
             ll = matrix.transform({x: 0, y: image.height});
  
         dest.beginPath();
-        dest.lineWidth = 2;
-        dest.strokeStyle = 'rgba(0, 0, 0, 0.35)';
+        dest.lineWidth = 0;
+        dest.strokeStyle = 'rgba(0, 0, 0, 0)';
 
         dest.moveTo(ul.x, ul.y);
         dest.lineTo(ur.x, ur.y);
@@ -449,9 +560,9 @@
             center = latlon(matrix.transform({x: image.width/2, y: image.height/2})),
             footprint = [latlon(ul), latlon(ur), latlon(lr), latlon(ll), latlon(ul)];
 
-        document.getElementById('origin-wkt').value = 'POINT('+point(origin)+')';
-        document.getElementById('center-wkt').value = 'POINT('+point(center)+')';
-        document.getElementById('footprint-wkt').value = 'POLYGON(('+footprint.map(point).join(',')+'))';
+        //document.getElementById('origin-wkt').value = 'POINT('+point(origin)+')';
+        //document.getElementById('center-wkt').value = 'POINT('+point(center)+')';
+        //document.getElementById('footprint-wkt').value = 'POLYGON(('+footprint.map(point).join(',')+'))';
     }
     
     function updateImageGeography(image, matrix, scale)
@@ -529,9 +640,7 @@
             
         },
         jumpAddress: function(address){   
-            console.log(this)
             this.geocoder.geocode({address: address, bounds: this.bounds}, this.onGeocoded);
-
             return false;
         }
     } 

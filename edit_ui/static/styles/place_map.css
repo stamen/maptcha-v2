@@ -1,30 +1,87 @@
-#scan-wrap{position:relative;width:100%;}
-#scan{position:relative;width:480;height:550;} 
+body{
+    margin:0;
+    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; 
+}
+.row-fluid [class*="span"] {
+    margin-left:0 !important;
+} 
+#background-map-wrap{
+    position:fixed;
+    width:100%;
+    height:100%;
+}
+#background-map{
+    position:relative;
+} 
+
+#box-wrap{
+    margin:20px auto 0 auto;
+}
+ 
+#scan-box{
+    position:relative;
+    float:left; 
+    z-index:10;
+}
+#scan-wrap{
+    position:relative;
+    width:100%;
+}
+#scan{
+    position:relative;
+    width:480;
+    height:550;
+}  
+
 #map-box{
     position:relative;  
-    background-color: #ddd; 
-    border: 1px solid black;
+    float:left;
 }
-#map-pane{position:relative;width:100%;height:550px;} 
-#map-box canvas
+#map-pane{
+    position:relative;
+    width:100%;
+    height:550px; 
+}  
+
+#background-map-wrap canvas
 {
     position: absolute;
     top: 0;
     left: 0;
 }
-#map-box a
-{
-    display: block;
-    float: left;
-    margin: 0;
-}    
-#zoom-controls
+   
+.zoom-controls
 {
     position: absolute;
     top: 10px;
     left: 10px;
+} 
+#map-box #zoom-controls-mm
+{
+    right:10px;
+    left:auto;
 }
-#zoom-controls img { border: none; }
+.zoom-controls a
+{
+    display: block;
+    width: 33px;
+    height: 33px;
+    background: #E30079;
+    color: white;
+    text-align: center;
+    line-height: 29px;
+    text-decoration: none;
+    font-size: 24px;
+    font-weight: bold;
+    margin-bottom: 5px;
+    
+}
+.zoom-controls a.zoom-out{line-height:30px}
+.zoom-controls img { border: none; }  
+
+.zoom-controls a:hover{
+    color:black;
+}               
 
 #address-search
 {
@@ -34,7 +91,8 @@
     background: #DDD;
     z-index: 2; 
     display:block; 
-    text-align:center; 
+    text-align:center;  
+    display:none;
 } 
 #address-search-form{
     top:0;
@@ -46,7 +104,7 @@
     top: 0;
     left: 0;
     width: 100%;
-    height: 550px;
+    height: 100%;
    
 }
 #address-search.no-map #address-search-form{
@@ -77,10 +135,12 @@
     
 #slider{
     position: absolute;
-    left: 10px;
+    right: 10px;
     bottom: 10px;
-    background: #DDD;
-    padding: 5px 5px 0;
+    background: rgba(255, 255, 255, .8);
+    padding: 10px 10px 5px;
+    border-radius: 10px;
+    border: 2px solid #CCC;
 }
 #slider label{
     position: relative;
@@ -127,7 +187,24 @@ form#complete input.action-no:hover
 
 form#complete input#action-ok { background-color: #090; }   
 
+/* clear fix */
+.cf:before,
+.cf:after {
+    content: " "; 
+    display: table; 
+}
 
+.cf:after {
+    clear: both;
+}
+
+/**
+ * For IE 6/7 only
+ * Include this rule to trigger hasLayout and contain floats.
+ */
+.cf {
+    *zoom: 1;
+}
 
 /* Large desktop */
 @media (min-width: 980px) {     
@@ -141,8 +218,10 @@ form#complete input#action-ok { background-color: #090; }
         -moz-box-sizing: border-box;
         box-sizing: border-box;    
     }
+
+    
     .row-fluid .span6 {
-        width: 48.717948717948715%;
+        width: 49.8%;
     }
     
     .row-fluid [class*="span"]:first-child {

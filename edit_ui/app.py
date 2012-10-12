@@ -31,7 +31,7 @@ def place_rough_map(id):
     '''
     map = map_dom.get_item(id)
     
-    return render_template('place-rough-map.html', map=map)
+    return render_template('place-rough-map-alt.html', map=map)
 
 def place_rough_atlas(id):
     '''
