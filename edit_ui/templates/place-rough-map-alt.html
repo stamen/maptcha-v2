@@ -34,23 +34,22 @@
         </div>  
         
         <div class="row-fluid">
-            <div id="box-wrap" class="cf span12"> 
+            <div class="cf span10 box-wrap"> 
                 
                 <!-- original map -->
-                <div id="scan-box">
-                        <div id="scan-wrap">
-                            <canvas id="scan" width='480' height='550'></canvas>
-                            <img id="scan_img" src="/thing/{{ map.large }}" style="display: none;">
+                <div id="scan-box" class="box left-box">
+                    <canvas id="scan" width='480' height='550'></canvas>
+                    <img id="scan_img" src="/thing/{{ map.large }}" style="display: none;">
 
-                            <div id="zoom-controls-canvas" class="zoom-controls">  
-                                <a href="#" class="zoom-in">+</a> 
-                                <a href="#" class="zoom-out">&ndash;</a>
-                            </div> 
-                        </div>
+                    <div id="zoom-controls-canvas" class="zoom-controls">  
+                        <a href="#" class="zoom-in">+</a> 
+                        <a href="#" class="zoom-out">&ndash;</a>
+                    </div> 
+                    
                 </div>
                 
                 <!-- modestmap positioner -->
-                <div id="map-box"> 
+                <div id="map-box" class="box right-box"> 
                     <div id="map-pane"></div> 
                 
                     <div id="zoom-controls-mm" class="zoom-controls">   
@@ -70,15 +69,28 @@
                     <div id="slider">
                         <label>Show old map</label>
                         <input id="slide" type="range" min="0" max="100" step="1" value="100"/>
-                    </div>  
+                    </div>
+                    
                 </div>
-            </div> 
+                
+                <!--
+                <div id="footer" class="cf span10 box-wrap">
+                     <div class="box left-box">
+                     </div> 
+                     <div class="box right-box">
+                     </div>
+                </div> 
+                
+                --> 
+                
+            </div> <!-- end #box-wrap -->
+            
+            
+            
             
         </div> 
         
-        <div id="form-fields">
-            
-        </div>
+        
         
         <!--
         <div class="row-fluid">

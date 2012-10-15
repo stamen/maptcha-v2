@@ -263,14 +263,16 @@
         var cy = (mapSize.h/2) - paper.view.center._y;
         var pt = new paper.Point(cx,cy); 
         
-        var lft = (windowSize.w - (mapSize.w * 2)) /2;
+        var lft = (windowSize.w - (mapSize.w * 2)) /2;  
+        /*
         $("#scan-box").css({
             'margin-left':lft + "px"
-        })
+        })*/
         
         //pt.x *= xform.scaleX;
         //pt.y *= xform.scaleY;
         
+       // $(".box").css("width",mapSize.w+"px");
         if(image){
             YTOB.PlaceMap.updatePaperViewSize(mapSize.w,mapSize.h);    
         
@@ -436,7 +438,7 @@
         windowSize.h = window.innerHeight;
         
         mapSize.w = windowSize.w * .40;
-        mapSize.h = windowSize.h - 40;
+        mapSize.h = windowSize.h - 90;
     }
     
     YTOB.PlaceMap.init = function(selector){ 

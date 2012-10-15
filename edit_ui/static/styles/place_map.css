@@ -2,9 +2,7 @@ body{
     margin:0;
     font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; 
 }
-.row-fluid [class*="span"] {
-    margin-left:0 !important;
-} 
+
 #background-map-wrap{
     position:fixed;
     width:100%;
@@ -14,13 +12,17 @@ body{
     position:relative;
 } 
 
-#box-wrap{
-    margin:20px auto 0 auto;
+body .row-fluid [class*="span"].box-wrap{
+    margin:20px auto 0 auto; 
+    float:none;
+} 
+
+.box{
+    position:relative;  
+    float:left;
 }
  
 #scan-box{
-    position:relative;
-    float:left; 
     z-index:10;
 }
 #scan-wrap{
@@ -34,8 +36,6 @@ body{
 }  
 
 #map-box{
-    position:relative;  
-    float:left;
 }
 #map-pane{
     position:relative;
@@ -132,7 +132,16 @@ body{
     #address-search.no-map input { width: 300px; }
     #address-search .explain { display: none; }
     
-    
+#footer{
+    height:50px;
+    background:white; 
+    margin-top:0;
+}
+#footer div{
+    height:100%;
+    background:white;
+} 
+   
 #slider{
     position: absolute;
     right: 10px;
@@ -146,7 +155,15 @@ body{
     position: relative;
     top: -5px;
     margin-right: 5px;
-} 
+}
+
+.test{
+    height:50px;
+    background:white;
+    width:100%;
+}
+
+ 
 
 form#complete
 {
@@ -211,7 +228,7 @@ form#complete input#action-ok { background-color: #090; }
     .row-fluid [class*="span"] {
         display: block;
         float: left;
-        width: 100%;
+        width: 82.90598290598291%;
         min-height: 30px;
         margin-left: 2.564102564102564%;
         -webkit-box-sizing: border-box;
