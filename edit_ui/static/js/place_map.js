@@ -424,17 +424,19 @@
         if(!slider){
             slider = $("#slide");
             slider.attr("value",oldmap.opacity * 100); 
-            var sliderOutput = slider.parent().find("span");
+            var sliderOutput = $("#slider-output-value");
+            var sliderOverlay = $("#slideOverlay");
             
             slider.on("change",function(e){ 
                 this.value = this.value; // wierd  
-                sliderOutput.text(this.value + "%");
+                sliderOutput.text(this.value + "%"); 
+                sliderOverlay.css("width",(this.value + "%"));
                 changeOverlay(this.value/100);
             });
             slider.on("mousedown",function(){
                 oldmap.untouched = false;
-            });
-            sliderOutput.text(slider.attr('value') + "%");
+            }); 
+            slider.trigger("change");
         }
          
         mainMapZoomed();

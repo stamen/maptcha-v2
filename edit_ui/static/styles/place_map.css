@@ -155,15 +155,13 @@ body .row-fluid [class*="span"].box-wrap{
 }
 
 
-
-   
 #slider{
     position: absolute;
     left: 20px;
     top: 0px;
     margin: 12px 0 0; 
     width:50%;
-}
+}  
 #slider label{
     position: relative;
     top: 0;
@@ -174,13 +172,26 @@ body .row-fluid [class*="span"].box-wrap{
 #slider label span{
     font-weight:normal;
 }
+#slider #slide-wrap{
+    position:relative;
+}
 #slider #slide{
     width:100%;
+} 
+#slideOverlay{
+    position:absolute;
+    z-index:2;
+    background:blue;
+    height:10px; 
+    width:80%;
+    top:6px;
+    left:0; 
+    background-color: #6D6153;
 }
 
 input[type="range"] {
     -webkit-appearance: none;
-    background-color: #6D6153;
+    background-color: #EEEEE9; 
     height: 10px;
     border-radius:2px;
 }
@@ -189,7 +200,7 @@ input[type="range"]::-webkit-slider-thumb {
     -webkit-appearance: none;
     position: relative;
     top: -1px;
-    z-index: 1;
+    z-index: 3;
     width: 20px;
     height: 20px;
     background:#F8F7F7; 

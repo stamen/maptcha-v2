@@ -86,8 +86,12 @@
                      
                       <!-- polyfill: http://www.frequency-decoder.com/2010/11/18/unobtrusive-slider-control-html5-input-range-polyfill -->
                          <div id="slider">
-                             <label>Old Map Overlay <span></span></label>
-                             <input id="slide" type="range" min="0" max="100" step="1" value="100"/>
+                             <label>Old Map Overlay <span id="slider-output-value"></span></label> 
+                             <div id="slide-wrap">
+                                 <input id="slide" type="range" min="0" max="100" step="1" value="100"/>
+                                 <div id="slideOverlay"></div>     
+                             </div>
+                             
                          </div>
                          <form id="complete" action="/place-rough/map/{{ map.name }}" method="post">
                              <input name="ul_lat" id="ul_lat" type="hidden">
