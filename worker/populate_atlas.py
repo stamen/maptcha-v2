@@ -56,7 +56,7 @@ def create_atlas_map(map_dom, bucket, atlas_id, map_url, map_name):
     head = {'Content-Type': 'image/jpeg'}
     body = StringIO()
 
-    image.thumbnail((800, 800), Image.ANTIALIAS)
+    image.thumbnail((2048, 2048), Image.ANTIALIAS)
     image.save(body, 'JPEG')
     key.set_contents_from_string(body.getvalue(), headers=head, policy='public-read')
 
