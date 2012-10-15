@@ -12,6 +12,11 @@ if __name__ == '__main__':
     sqs = connect_sqs(key, secret)
     s3 = connect_s3(key, secret)
     
+    # table = prefix+'rough_placements'
+    # print 'Creating simpleDB domain', table
+    # sdb.create_domain(table)
+    # exit()
+    
     print 'Cleaning out s3', prefix+'stuff'
     
     try:
