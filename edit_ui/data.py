@@ -53,16 +53,18 @@ def update_map_rough_consensus(map_dom, place_dom, map):
     # Get all other existing placements and fresh version of the map.
     #
     q = 'select * from `%s` where map = "%s"' % (place_dom.name, map.name)
-    placements = list(place_dom.select(q))
-    map = map_dom.get_item(map.name)
+    placements = list(place_dom.select(q), consistent_read=True)
+    map = map_dom.get_item(map.name, consistent_read=True)
     
-    if len(placements):
-        #### combine the placements to come up with consensus
-        ul_lat = '%.8f' % (sum([float(p['ul_lat']) for p in placements]) / len(placements))
-        ul_lon = '%.8f' % (sum([float(p['ul_lon']) for p in placements]) / len(placements))
-        lr_lat = '%.8f' % (sum([float(p['lr_lat']) for p in placements]) / len(placements))
-        lr_lon = '%.8f' % (sum([float(p['lr_lon']) for p in placements]) / len(placements))
+    if len(placements) == 0:
+        raise Exception("Got no placements - why?")
     
+    #### combine the placements to come up with consensus
+    ul_lat = '%.8f' % (sum([float(p['ul_lat']) for p in placements]) / len(placements))
+    ul_lon = '%.8f' % (sum([float(p['ul_lon']) for p in placements]) / len(placements))
+    lr_lat = '%.8f' % (sum([float(p['lr_lat']) for p in placements]) / len(placements))
+    lr_lon = '%.8f' % (sum([float(p['lr_lon']) for p in placements]) / len(placements))
+
     consensus = dict(ul_lat=ul_lat, ul_lon=ul_lon, lr_lat=lr_lat, lr_lon=lr_lon)
     
     #
