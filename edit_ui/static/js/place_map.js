@@ -241,7 +241,20 @@
         var vec = subtractPoints(handle.position , pin.position);
         var scale = vec.length / armLength;
         updateImageGeography(image.image, _xform, scale);
-    }    
+    } 
+    
+    var windowSize = {
+        w:null,
+        h:null
+    }
+    
+    function getContainerSizes(){
+        windowSize.w = window.innerWidth,
+        windowSize.h = window.innerHeight;
+        
+        mapSize.w = Math.floor(windowSize.w * .40);
+        mapSize.h = Math.floor(windowSize.h - 90);
+    }   
     
     
     /* PUBLIC */
@@ -272,7 +285,8 @@
         //pt.x *= xform.scaleX;
         //pt.y *= xform.scaleY;
         
-       // $(".box").css("width",mapSize.w+"px");
+       $(".box").css("width",mapSize.w+"px");  
+       $("#scan-box").css("height",mapSize.h+"px");
         if(image){
             YTOB.PlaceMap.updatePaperViewSize(mapSize.w,mapSize.h);    
         
@@ -409,15 +423,18 @@
         
         if(!slider){
             slider = $("#slide");
-            slider.attr("value",oldmap.opacity * 100);
+            slider.attr("value",oldmap.opacity * 100); 
+            var sliderOutput = slider.parent().find("span");
             
-            slider.on("change",function(e){  
-                changeOverlay(this.value/100)
+            slider.on("change",function(e){ 
+                this.value = this.value; // wierd  
+                sliderOutput.text(this.value + "%");
+                changeOverlay(this.value/100);
             });
             slider.on("mousedown",function(){
                 oldmap.untouched = false;
             });
-            
+            sliderOutput.text(slider.attr('value') + "%");
         }
          
         mainMapZoomed();
@@ -428,18 +445,7 @@
     }
     
     
-    var windowSize = {
-        w:null,
-        h:null
-    }
     
-    function getContainerSizes(){
-        windowSize.w = window.innerWidth,
-        windowSize.h = window.innerHeight;
-        
-        mapSize.w = windowSize.w * .40;
-        mapSize.h = windowSize.h - 90;
-    }
     
     YTOB.PlaceMap.init = function(selector){ 
         getContainerSizes();

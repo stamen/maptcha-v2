@@ -24,6 +24,7 @@ body .row-fluid [class*="span"].box-wrap{
  
 #scan-box{
     z-index:10;
+    overflow:hidden;
 }
 #scan-wrap{
     position:relative;
@@ -35,7 +36,8 @@ body .row-fluid [class*="span"].box-wrap{
     height:550;
 }  
 
-#map-box{
+#map-box{ 
+    overflow:hidden; 
 }
 #map-pane{
     position:relative;
@@ -133,37 +135,69 @@ body .row-fluid [class*="span"].box-wrap{
     #address-search .explain { display: none; }
     
 #footer{
-    height:50px;
-    background:white; 
-    margin-top:0;
+    height:60px; 
+    overflow:hidden;
+    margin-top:0;  
 }
-#footer div{
+#footer .box{
     height:100%;
     background:white;
-} 
+}
+#footer button{
+    float: right;
+    position: relative;
+    top: 11px;
+    margin-right: 8px;
+}  
+
+#footer .left-box{
+    background:transparent url('imgs/logo-maptcha-transparent-long.png') 0 0 no-repeat;
+}
+
+
+
    
 #slider{
     position: absolute;
-    right: 10px;
-    bottom: 10px;
-    background: rgba(255, 255, 255, .8);
-    padding: 10px 10px 5px;
-    border-radius: 10px;
-    border: 2px solid #CCC;
+    left: 20px;
+    top: 0px;
+    margin: 12px 0 0; 
+    width:50%;
 }
 #slider label{
     position: relative;
-    top: -5px;
-    margin-right: 5px;
+    top: 0;
+    line-height: 14px;
+    font-weight: bold; 
+    margin-bottom:3px;
 }
-
-.test{
-    height:50px;
-    background:white;
+#slider label span{
+    font-weight:normal;
+}
+#slider #slide{
     width:100%;
 }
 
+input[type="range"] {
+    -webkit-appearance: none;
+    background-color: #6D6153;
+    height: 10px;
+    border-radius:2px;
+}
  
+input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    position: relative;
+    top: -1px;
+    z-index: 1;
+    width: 20px;
+    height: 20px;
+    background:#F8F7F7; 
+    border-radius:5px; 
+    border:1px solid #C8CCCC;            
+    cursor:ew-resize;
+}
+
 
 form#complete
 {
