@@ -16,7 +16,7 @@
         lastClick = false; 
         
     var oldmap = {
-            opacity: 0,
+            opacity: 0.3,
             untouched: true,
             image: null,
             matrix: null
@@ -497,7 +497,7 @@
         
         
     }
-    
+    var ul_lat,ul_lon,lr_lat,lr_lon;
     function updateOldMap()
     {
         if(!mapCanvas)
@@ -563,14 +563,31 @@
 
         dest.closePath();
         dest.stroke();
+         
 
         var latlon = function(p) { return map.pointLocation(p) },
             point = function(l) { return l.lon.toFixed(8) + ' ' + l.lat.toFixed(8) };
-
+        
+        /*
         var origin = latlon(ul),
             center = latlon(matrix.transform({x: image.width/2, y: image.height/2})),
             footprint = [latlon(ul), latlon(ur), latlon(lr), latlon(ll), latlon(ul)];
-
+        */
+        
+        var bds = {
+            'ul':latlon(ul),
+            'lr':latlon(lr)
+        };
+        
+        if(!ul_lat)ul_lat = $("#ul_lat");
+        if(!ul_lon)ul_lon = $("#ul_lon");
+        if(!lr_lat)lr_lat = $("#lr_lat");
+        if(!lr_lon)lr_lon = $("#lr_lon"); 
+        
+        ul_lat.attr("value",bds.ul.lat);
+        ul_lon.attr("value",bds.ul.lon);
+        lr_lat.attr("value",bds.lr.lat);
+        lr_lon.attr("value",bds.lr.lon);
         //document.getElementById('origin-wkt').value = 'POINT('+point(origin)+')';
         //document.getElementById('center-wkt').value = 'POINT('+point(center)+')';
         //document.getElementById('footprint-wkt').value = 'POLYGON(('+footprint.map(point).join(',')+'))';

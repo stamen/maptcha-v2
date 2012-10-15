@@ -88,8 +88,14 @@
                          <div id="slider">
                              <label>Old Map Overlay <span></span></label>
                              <input id="slide" type="range" min="0" max="100" step="1" value="100"/>
-                         </div>  
-                         <button class="btn btn-large btn-success" type="button">Finished</button>
+                         </div>
+                         <form id="complete" action="/place-rough/map/{{ map.name }}" method="post">
+                             <input name="ul_lat" id="ul_lat" type="hidden">
+                             <input name="ul_lon" id="ul_lon" type="hidden">
+                             <input name="lr_lat" id="lr_lat" type="hidden"> 
+                             <input name="lr_lon" id="lr_lon" type="hidden"> 
+                             <button class="btn btn-large btn-success" type="submit">Finished</button>
+                         </form>
                  </div>
             </div>
         </div>
