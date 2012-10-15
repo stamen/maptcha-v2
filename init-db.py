@@ -31,8 +31,9 @@ if __name__ == '__main__':
         for key in bucket.list():
             key.delete()
     
-    for table in (prefix+'maps', prefix+'atlases'):
+    for suffix in ('maps', 'atlases', 'rough_placements'):
     
+        table = prefix+suffix
         print 'Cleaning out simpleDB', table
         
         try:
