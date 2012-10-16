@@ -13,17 +13,26 @@
     <div class="page-header"><a href="http://maptcha.org">maptcha.org</a> / <a href="index.html">{CLIENT_NAME}</a></div>
     <h1>my-maps.csv</h1>
    
-    <form class="form-actions"> 
-                
-        <p>Please note any cities or towns noted on the maps in this upload:</p>
-        
-        <p><input type="text" /></p>
-        <p><input type="text" /></p>
-        <p><input type="text" /></p>
-        <p><input type="text" /></p>
-        <p><input type="text" /></p>
-        <p><input type="text" /></p>        
-		<button>Save</button>
+    <form> 
+
+    <div class="row">
+		<div class="span4 twenty">       
+            <p>Here are the places you noted in your CSV. </p>
+            
+            <p><input type="text" value="San Francisco" /></p>
+            <p><input type="text" value="Oakland" /></p>
+            <p><input type="text" /></p>
+            <p><input type="text" /></p>
+            <p><input type="text" /></p>
+            <p><input type="text" /></p>
+            
+            <button>Refresh Map</button>
+        </div>
+        <div class="span8 twenty">
+        	<p>Does the area in this map look about right? (Add more cities to improve it...)</p>
+            <iframe width="600" height="420" src="http://maps.stamen.com/toner-lite/embed#12/37.7706/-122.3782"></iframe>
+        </div>
+	</div>           
     </form>
         
     <table class="table-striped table">
