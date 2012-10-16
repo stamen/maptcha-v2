@@ -56,12 +56,7 @@ def place_rough_atlas(id):
     map = choose_map(map_dom, atlas_id=id)
     
     return redirect('/place-rough/map/%s' % map.name)    
-    
-<<<<<<< Updated upstream
-=======
-    return redirect('/place-rough/map/%s' % map.name)    
-    
->>>>>>> Stashed changes
+
 def get_atlases():
     '''
     '''
