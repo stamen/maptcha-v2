@@ -5,7 +5,7 @@ from mimetypes import guess_type
 from flask import Flask, request, redirect, render_template, jsonify, make_response
 
 from util import connect_queue, get_config_vars
-from data import connect_domains, place_roughly
+from data import connect_domains, place_roughly, choose_map
 
 aws_key, aws_secret, aws_prefix = get_config_vars(dirname(__file__))
 
@@ -46,15 +46,16 @@ def place_rough_map(id):
         lr_lon = float(request.form.get('lr_lon', None))
     
         place_roughly(map_dom, roughplace_dom, map, ul_lat, ul_lon, lr_lat, lr_lon)
-        return redirect('/place-rough/map/%s' % map.name, code=303)
+        
+        next_map = choose_map(map_dom, atlas_id=map['atlas'], skip_map_id=map.name)
+        return redirect('/place-rough/map/%s' % next_map.name, code=303)
 
     return render_template('place-rough-map-alt.html', map=map)
 
 def place_rough_atlas(id):
     '''
     '''
-    q = 'select * from `%s` where atlas = "%s" limit 1' % (map_dom.name, id)
-    map = map_dom.select(q).next()
+    map = choose_map(map_dom, atlas_id=id)
     
     return redirect('/place-rough/map/%s' % map.name)
 

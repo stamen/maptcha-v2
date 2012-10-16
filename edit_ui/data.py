@@ -1,5 +1,6 @@
 from uuid import uuid1
 from time import time
+from random import choice
 
 from util import connect_domain
 
@@ -17,6 +18,22 @@ def connect_domains(key, secret, prefix):
     domains = [connect_domain(key, secret, prefix+suffix) for suffix in suffixes]
     
     return domains
+
+def choose_map(map_dom, atlas_id=None, skip_map_id=None):
+    '''
+    '''
+    q = ['select * from `%s`' % (map_dom.name), 'limit 100']
+    
+    if atlas_id:
+        q.insert(1, 'where atlas = "%s"' % atlas_id)
+    
+    maps = list(map_dom.select(' '.join(q)))
+    map = choice(maps)
+    
+    while map.name == skip_map_id and len(maps) > 1:
+        map = choice(maps)
+        
+    return map
 
 def place_roughly(map_dom, place_dom, map, ul_lat, ul_lon, lr_lat, lr_lon):
     '''
