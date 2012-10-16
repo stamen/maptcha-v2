@@ -16,9 +16,22 @@ dd {
 }
 
 .twenty {
-	padding-top: 20px;
+	margin-top: 20px;
 }
 
+.submit {
+	text-align: right;
+}
+td.mapThumb {
+	text-align: center;
+} 
+.mapThumb img {
+	margin-left: auto; margin-right: auto;
+}
+
+.bigMap {
+	width: 100%;
+}
 
 .footer {
   padding-top: 17px;
