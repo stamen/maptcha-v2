@@ -30,7 +30,8 @@
         w:480,
         h:550
     }
-                      
+    
+    var lastRot;
     
     function setCanvasObjects(){ 
         
@@ -46,7 +47,7 @@
         canvasBg.fillColor = '#ccc';
         canvasBg.strokeColor = "black";
         canvasBg.strokeWidth = 1;   
-        canvasBg.opacity = .4;
+        canvasBg.opacity = .5;
         
         pin.fillColor = '#F8F801';
         pin.strokeColor = '#F8F801';
@@ -62,8 +63,13 @@
         handleHint.content = '(Rotate & scale)';
         handleHint.characterStyle = { fillColor: 'black', fontSize: '16', font: 'Helvetica, Arial, sans-serif' };
 
-        pin.position = paper.view.center;
+        pin.position = paper.view.center;   
+        
+        lastRot = handle.position.angle;
+        
         handle.position = addPoints(paper.view.center , new paper.Point(armLength * Math.cos(-Math.PI/3), armLength * Math.sin(-Math.PI/3)));
+        
+        
     } 
     
     
@@ -77,17 +83,37 @@
             circle.remove();
         }
         
-        
+     
         var lenAB = Math.sqrt(Math.pow((pin.position.x - handle.position.x),2) + Math.pow((pin.position.y - handle.position.y),2)); 
         var newLength = 40;
         var C = {x:0,y:0};
         C.x = handle.position.x + (handle.position.x - pin.position.x) / lenAB * newLength;
         C.y = handle.position.y + (handle.position.y - pin.position.y) / lenAB * newLength;    
-        var angle =  Math.atan2((C.y - pin.position.y), (C.x - pin.position.x)) *(180/Math.PI);
+        var angle =  Math.atan2((C.y - pin.position.y), (C.x - pin.position.x)) * (180/Math.PI);
+        //angle += 360;
+        //angle %= 360;                    
+        
         arm = new paper.Path.Line(new paper.Point(C.x,C.y), pin.position) 
-         
        
-        //handle.rotate(-1,new paper.Point(handle.position.x-13,handle.position.y-13))
+        console.log("D: ",handle.position.angle,lastRot)
+        //handle.rotate( lastRot - handle.position.angle );
+        lastRot = handle.position.angle;
+        
+        //var vec = subtractPoints(handle.position,lastHandlePos);
+        //var rot = vec.angle;
+       // handle.rotate(rot - lastRot);
+        //lastRot = rot;
+        //lastHandlePos = handle.position;
+        
+        
+        //handle.rotate((rotator.position.angle - angle))
+        
+        //handle.angle = 45 + angle; 
+        //var aa = pin.position.getAngle(handle.position);
+        //var adjAngle = 45 - aa;  
+        //console.log(aa,adjAngle,handle.position.angle)  
+        //var h = handle.rotate(45,pin.position);
+        //console.log(aa,handle.position.angle)
         
         rotator.insertChild(0, arm);
 
@@ -104,13 +130,12 @@
         rotator.insertChild(0, circle);
 
         circle.strokeColor = '#F8F801';
-        circle.strokeWidth = 5;
+        circle.strokeWidth = 7;
         circle.opacity = 1;
         circle.dashArray = [14, 7];
 
 
-        handleHint.position = addPoints(handle.position , new paper.Point(-170, 5));
-        imageHint.position.x = handleHint.position.x;  
+        handleHint.position = addPoints(handle.position , new paper.Point(-170, 5)); 
     }
     
     function onMouseDown(event)
@@ -135,7 +160,8 @@
     function addPoints(pt1,pt2){
           return new paper.Point(pt1.x + pt2.x, pt1.y + pt2.y);
     }
-
+    
+    var lastAngle;
     function onMouseMove(event)
     {
         var cursor = 'auto';
@@ -161,16 +187,18 @@
         } else if(activeDrag == handle) {
             canvas.style.cursor = 'pointer';
 
+
             handle.position = new paper.Point(x, y);
 
             updateArmAndCircle();
             
-            
             var currentVector = subtractPoints(handle.position,pin.position),
-                lastVector = subtractPoints(downHandle, pin.position),
-                angle = currentVector.angle - lastVector.angle,
-                scale = currentVector.length / lastVector.length;
-     
+            lastVector = subtractPoints(downHandle, pin.position),
+            angle = currentVector.angle - lastVector.angle,
+            scale = currentVector.length / lastVector.length;   
+
+
+            //handle.rotate( angle)
             if(scale > 0)
             {
                 xform = downMatrix.clone();
@@ -207,6 +235,8 @@
         xform.preConcatenate(paper.Matrix.getTranslateInstance(point.x, point.y));
 
         image.setMatrix(xform);
+        paper.view.draw(); 
+        updateImagePosition();
     }
 
     function zoomInAbout(point)
@@ -224,7 +254,10 @@
         xform.preConcatenate(paper.Matrix.getScaleInstance(1.4142, 1.4142));
         xform.preConcatenate(paper.Matrix.getTranslateInstance(point.x, point.y));
 
-        image.setMatrix(xform);
+        image.setMatrix(xform);  
+        
+        paper.view.draw();
+        updateImagePosition();
     }
 
     function onMouseUp(event)
@@ -263,9 +296,12 @@
     
     function getContainerSizes(){
         windowSize.w = window.innerWidth,
-        windowSize.h = window.innerHeight;
+        windowSize.h = window.innerHeight; 
         
-        mapSize.w = Math.floor(windowSize.w * .40);
+        var inner = $(".box-wrap").width();
+        
+        //mapSize.w = Math.floor(windowSize.w * .40);   
+        mapSize.w = inner/2;
         mapSize.h = Math.floor(windowSize.h - 90);
     }   
     
@@ -298,7 +334,7 @@
         //pt.x *= xform.scaleX;
         //pt.y *= xform.scaleY;
         
-       $(".box").css("width",mapSize.w+"px");  
+       //$(".box").css("width",mapSize.w+"px");  
        $("#scan-box").css("height",mapSize.h+"px");   
        
         if(image){
@@ -359,7 +395,7 @@
         pin = new paper.Path.Oval(new paper.Rectangle(paper.view.center.x - 10, paper.view.center.y - 10, 20, 20));  
         var handleSq = new paper.Path.Rectangle(paper.view.center.x - 13, paper.view.center.y - 13, 26, 26)
         //handle = new paper.Path.Oval(new paper.Rectangle(paper.view.center.x - 8, paper.view.center.y - 8, 16, 16));
-        imageHint = new paper.PointText(new paper.Point(paper.view.center.x - 40, 30));
+        imageHint = new paper.PointText(new paper.Point(60, 25));
         handleHint = new paper.PointText(paper.view.center); 
         
         var lineSize = 7;
@@ -388,12 +424,15 @@
         linBottom.add(pt5)
         linBottom.add(pt6)
         
-        handle = new paper.Group([handleSq,lin,linBottom])
+        handle = new paper.Group([handleSq,lin,linBottom]);
+        
         
         rotator = new paper.Group([pin, handle, handleHint]);
         rotator.visible = false;
 
-
+        console.log("D****: ",handle.position.angle,(45 - handle.position.angle))
+        handle.rotate(45 - handle.position.angle);
+        
         setCanvasObjects();
         
         

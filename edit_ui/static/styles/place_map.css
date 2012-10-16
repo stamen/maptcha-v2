@@ -6,16 +6,16 @@ body{
 #background-map-wrap{
     position:fixed;
     width:100%;
-    height:100%;
+    height:100%; 
+    top:0;
 }
 #background-map{
     position:relative;
-} 
+}   
+.container{
+    margin-top:20px;
+}
 
-body .row-fluid [class*="span"].box-wrap{
-    margin:20px auto 0 auto; 
-    float:none;
-} 
 
 .box{
     position:relative;  
@@ -137,11 +137,17 @@ body .row-fluid [class*="span"].box-wrap{
 #footer{
     height:60px; 
     overflow:hidden;
-    margin-top:0;  
+    margin-top:0; 
+    position:relative; 
 }
-#footer .box{
+/* #footer [class*="span"] */
+#footer .footer-section { 
     height:100%;
     background:white;
+    position:relative;
+    margin: 0; 
+    width:33%; 
+    float:left;
 }
 #footer button{
     float: right;
@@ -150,17 +156,21 @@ body .row-fluid [class*="span"].box-wrap{
     margin-right: 8px;
 }  
 
-#footer .left-box{
+#footer .logo{ 
+    height:60px;
     background:transparent url('imgs/logo-maptcha-transparent-long.png') 0 0 no-repeat;
+} 
+#footer #placement-actions{
+    
 }
 
 
 #slider{
-    position: absolute;
-    left: 20px;
+    position: relative;
+    left: 0px;
     top: 0px;
     margin: 12px 0 0; 
-    width:50%;
+    width:90%;
 }  
 #slider label{
     position: relative;
@@ -191,7 +201,8 @@ body .row-fluid [class*="span"].box-wrap{
 
 input[type="range"] {
     -webkit-appearance: none;
-    background-color: #EEEEE9; 
+    background-color: #EEEEE9;
+    border:1px solid #C8CCCC; 
     height: 10px;
     border-radius:2px;
 }
@@ -247,7 +258,9 @@ form#complete input.action-no:hover
     color: white;
 }
 
-form#complete input#action-ok { background-color: #090; }   
+form#complete input#action-ok { background-color: #090; }     
+
+
 
 /* clear fix */
 .cf:before,
@@ -266,31 +279,12 @@ form#complete input#action-ok { background-color: #090; }
  */
 .cf {
     *zoom: 1;
-}
+}    
+
+
 
 /* Large desktop */
-@media (min-width: 980px) {     
-    .row-fluid [class*="span"] {
-        display: block;
-        float: left;
-        width: 82.90598290598291%;
-        min-height: 30px;
-        margin-left: 2.564102564102564%;
-        -webkit-box-sizing: border-box;
-        -moz-box-sizing: border-box;
-        box-sizing: border-box;    
-    }
-
-    
-    .row-fluid .span6 {
-        width: 49.8%;
-    }
-    
-    .row-fluid [class*="span"]:first-child {
-        margin-left: 0;
-    }
-    
-}
+@media (min-width: 980px) {  }
  
 /* Portrait tablet to landscape and desktop */
 @media (min-width: 768px) and (max-width: 979px) { }
