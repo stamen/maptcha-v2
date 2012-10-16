@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 	<meta charset="utf-8" />
-	<title>[alt] Year of the Bay (Map)</title>
+	<title>Year of the Bay (Map)</title>
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="">
     <meta name="author" content=""> 
@@ -19,7 +19,6 @@
     
 </head>
 <body>
-    
     <div id="background-map-wrap">
          <div id="background-map"></div> 
     </div>
@@ -59,7 +58,8 @@
                 </div>
             </div> <!-- end #box-wrap -->
             
-        </div> 
+        </div>  
+        
         <div class="row">
             <div id="footer" class="cf span12"> 
                 
@@ -72,7 +72,7 @@
                          <label>Old Map Overlay <span id="slider-output-value"></span></label> 
                          <div id="slide-wrap">
                              <input id="slide" type="range" min="0" max="100" step="1" value="100"/>
-                             <div id="slideOverlay"></div>     
+                             <div id="slide-overlay"></div>     
                          </div>
                      </div>
                 </div>
@@ -98,8 +98,7 @@
     <script type="text/javascript" >
          window.onload = function(){ 
              
-             YTOB.PlaceMap.init("map-pane");
-             var geo = new YTOB.Geocoder();
+             YTOB.PlaceMap.init();
              
              $(window).on("resize",function(){
                  YTOB.PlaceMap.resize()
