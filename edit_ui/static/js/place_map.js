@@ -43,17 +43,18 @@
             zoomOutAbout(paper.view.center); 
         });
         
-        canvasBg.fillColor = null;
+        canvasBg.fillColor = '#ccc';
         canvasBg.strokeColor = "black";
-        canvasBg.strokeWidth = 1; 
+        canvasBg.strokeWidth = 1;   
+        canvasBg.opacity = .4;
         
-        pin.fillColor = '#f3f0ec';
-        pin.strokeColor = 'black';
+        pin.fillColor = '#F8F801';
+        pin.strokeColor = '#F8F801';
         pin.strokeWidth = 1;
 
-        handle.fillColor = 'white';
-        handle.strokeColor = 'black';
-        handle.strokeWidth = 2;
+        handle.fillColor = '#F8F801';
+        //handle.strokeColor = '#F8F801';
+        //handle.strokeWidth = 2;
 
         imageHint.content = '(Drag to move)';
         imageHint.characterStyle = { fillColor: 'black', fontSize: '16', font: 'Helvetica, Arial, sans-serif' };
@@ -75,28 +76,41 @@
         if(circle) {
             circle.remove();
         }
-
-        arm = new paper.Path.Line(handle.position, pin.position);
+        
+        
+        var lenAB = Math.sqrt(Math.pow((pin.position.x - handle.position.x),2) + Math.pow((pin.position.y - handle.position.y),2)); 
+        var newLength = 40;
+        var C = {x:0,y:0};
+        C.x = handle.position.x + (handle.position.x - pin.position.x) / lenAB * newLength;
+        C.y = handle.position.y + (handle.position.y - pin.position.y) / lenAB * newLength;    
+        var angle =  Math.atan2((C.y - pin.position.y), (C.x - pin.position.x)) *(180/Math.PI);
+        arm = new paper.Path.Line(new paper.Point(C.x,C.y), pin.position) 
+         
+       
+        //handle.rotate(-1,new paper.Point(handle.position.x-13,handle.position.y-13))
+        
         rotator.insertChild(0, arm);
 
-        arm.strokeColor = 'black';
-        arm.strokeWidth = 2;
-        arm.opacity = 0.35;
-        arm.dashArray = [3, 3];
+        arm.strokeColor = '#F8F801'; // yellow
+        arm.strokeWidth = 5;
+        arm.opacity = 1;
+        arm.dashArray = [14, 6];
 
-        var s = handle.position.rotate(10, pin.position),
+        var s = handle.position.rotate(1, pin.position),
             c = handle.position.rotate(180, pin.position),
-            e = handle.position.rotate(-10, pin.position);
+            e = handle.position.rotate(-1, pin.position);
 
         circle = new paper.Path.Arc(s, c, e);
         rotator.insertChild(0, circle);
 
-        circle.strokeColor = 'black';
-        circle.strokeWidth = 2;
-        circle.opacity = 0.35;
-        circle.dashArray = [3, 3];
+        circle.strokeColor = '#F8F801';
+        circle.strokeWidth = 5;
+        circle.opacity = 1;
+        circle.dashArray = [14, 7];
 
-        handleHint.position = addPoints(handle.position , new paper.Point(-170, 5));  
+
+        handleHint.position = addPoints(handle.position , new paper.Point(-170, 5));
+        imageHint.position.x = handleHint.position.x;  
     }
     
     function onMouseDown(event)
@@ -156,8 +170,7 @@
                 lastVector = subtractPoints(downHandle, pin.position),
                 angle = currentVector.angle - lastVector.angle,
                 scale = currentVector.length / lastVector.length;
-          
-           
+     
             if(scale > 0)
             {
                 xform = downMatrix.clone();
@@ -286,10 +299,12 @@
         //pt.y *= xform.scaleY;
         
        $(".box").css("width",mapSize.w+"px");  
-       $("#scan-box").css("height",mapSize.h+"px");
+       $("#scan-box").css("height",mapSize.h+"px");   
+       
         if(image){
-            YTOB.PlaceMap.updatePaperViewSize(mapSize.w,mapSize.h);    
-        
+            YTOB.PlaceMap.updatePaperViewSize(mapSize.w,mapSize.h);
+
+            canvasBg.setBounds(paper.view.bounds);
             xform.translate(pt);
             image.setMatrix(xform);   
         
@@ -298,7 +313,9 @@
             handle.position.x += pt.x;
         
             updateArmAndCircle();
-            updateImagePosition(); 
+            updateImagePosition();
+              
+            paper.view.draw();
         }
         
         innerMapOffset = $("#map-box").offset();
@@ -322,6 +339,7 @@
         paper.view.draw();
     }
     
+    var handleGroup = null;
     YTOB.PlaceMap.initCanvas = function(){ 
         canvas = document.getElementById('scan');
         paper.setup(canvas);   
@@ -331,15 +349,46 @@
         xform = paper.Matrix.getTranslateInstance(paper.view.center);
         xform.scale(baseScale);
          
-        canvasBg = new paper.Path.Rectangle(paper.view.bounds);
+        canvasBg = new paper.Path.Rectangle(paper.view.bounds);  
+        
+        
         
         image = new paper.Raster('scan_img'); 
         image.setMatrix(xform); 
 
-        pin = new paper.Path.Oval(new paper.Rectangle(paper.view.center.x - 4, paper.view.center.y - 4, 8, 8));
-        handle = new paper.Path.Oval(new paper.Rectangle(paper.view.center.x - 8, paper.view.center.y - 8, 16, 16));
-        imageHint = new paper.PointText(new paper.Point(10, 80));
+        pin = new paper.Path.Oval(new paper.Rectangle(paper.view.center.x - 10, paper.view.center.y - 10, 20, 20));  
+        var handleSq = new paper.Path.Rectangle(paper.view.center.x - 13, paper.view.center.y - 13, 26, 26)
+        //handle = new paper.Path.Oval(new paper.Rectangle(paper.view.center.x - 8, paper.view.center.y - 8, 16, 16));
+        imageHint = new paper.PointText(new paper.Point(paper.view.center.x - 40, 30));
         handleHint = new paper.PointText(paper.view.center); 
+        
+        var lineSize = 7;
+        var pt1 = new paper.Point(paper.view.center.x ,paper.view.center.y - lineSize);
+        var pt2 = new paper.Point(paper.view.center.x + lineSize,paper.view.center.y - lineSize); 
+        var pt3 = new paper.Point(paper.view.center.x + lineSize,paper.view.center.y );
+        
+        var pt4 = new paper.Point(paper.view.center.x - lineSize ,paper.view.center.y);
+        var pt5 = new paper.Point(paper.view.center.x - lineSize ,paper.view.center.y + lineSize);
+        var pt6 = new paper.Point(paper.view.center.x ,paper.view.center.y + lineSize); 
+        var lin = new paper.Path();
+        var linBottom = new paper.Path();
+        
+
+        lin.strokeColor = "black";
+        lin.strokeWidth = 2;
+        lin.fillColor = "black";
+        linBottom.strokeColor = "black";
+        linBottom.strokeWidth = 2;
+        linBottom.fillColor = "black";
+        
+        lin.add(pt1)
+        lin.add(pt2)
+        lin.add(pt3)
+        linBottom.add(pt4)
+        linBottom.add(pt5)
+        linBottom.add(pt6)
+        
+        handle = new paper.Group([handleSq,lin,linBottom])
         
         rotator = new paper.Group([pin, handle, handleHint]);
         rotator.visible = false;
@@ -529,18 +578,18 @@
 
 
         dest.beginPath();
-        dest.lineWidth = 1;
-        dest.fillStyle = '#f1e6c8';
-        dest.strokeStyle = 'black';
+        dest.lineWidth = 2;
+        dest.fillStyle = '#F8F801';
+        dest.strokeStyle = '#333';
                              
 
         var centerX = mapCanvas.width/2 + mapSize.w/2,
             centerY = mapCanvas.height/2;
-        dest.moveTo(centerX  + 4, centerY);
+        dest.moveTo(centerX  + 10, centerY);
 
         for(var t = Math.PI/16; t <= Math.PI*2; t += Math.PI/16)
         {
-            dest.lineTo(centerX + 4 * Math.cos(t), centerY + 4 * Math.sin(t));
+            dest.lineTo(centerX + 10 * Math.cos(t), centerY + 10 * Math.sin(t));
         }
 
         dest.closePath();

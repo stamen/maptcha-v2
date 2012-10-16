@@ -68,8 +68,8 @@ body .row-fluid [class*="span"].box-wrap{
     display: block;
     width: 33px;
     height: 33px;
-    background: #E30079;
-    color: white;
+    background: #F8F801;
+    color: black;
     text-align: center;
     line-height: 29px;
     text-decoration: none;
@@ -82,7 +82,7 @@ body .row-fluid [class*="span"].box-wrap{
 .zoom-controls img { border: none; }  
 
 .zoom-controls a:hover{
-    color:black;
+    color:white;
 }               
 
 #address-search
