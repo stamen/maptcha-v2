@@ -50,6 +50,7 @@ def place_rough_map(id):
         next_map = choose_map(map_dom, atlas_id=map['atlas'], skip_map_id=map.name)
         return redirect('/place-rough/map/%s' % next_map.name, code=303)
 
+
     return render_template('place-rough-map-alt.html', map=map)
 
 def place_rough_atlas(id):
@@ -57,8 +58,8 @@ def place_rough_atlas(id):
     '''
     map = choose_map(map_dom, atlas_id=id)
     
-    return redirect('/place-rough/map/%s' % map.name)
-
+    return redirect('/place-rough/map/%s' % map.name)    
+    
 def get_atlases():
     '''
     '''
