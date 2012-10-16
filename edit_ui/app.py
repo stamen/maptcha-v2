@@ -34,18 +34,25 @@ def place_rough_map(id):
     map = map_dom.get_item(id)
     
     if request.method == 'POST':
-        #
-        # Expect four floating point values from a submitted form: ul_lat,
-        # ul_lon, lr_lat, and lr_lon corresponding to the four corners of the
-        # roughly-placed map. Make a note of the new placement and respond
-        # with a 303 redirect to send the submitter someplace useful.
-        #
-        ul_lat = float(request.form.get('ul_lat', None))
-        ul_lon = float(request.form.get('ul_lon', None))
-        lr_lat = float(request.form.get('lr_lat', None))
-        lr_lon = float(request.form.get('lr_lon', None))
-    
-        place_roughly(map_dom, roughplace_dom, map, ul_lat, ul_lon, lr_lat, lr_lon)
+        if request.form.get('action', None) == 'place':
+            #
+            # Expect four floating point values from a submitted form: ul_lat,
+            # ul_lon, lr_lat, and lr_lon corresponding to the four corners of the
+            # roughly-placed map. Make a note of the new placement and respond
+            # with a 303 redirect to send the submitter someplace useful.
+            #
+            ul_lat = float(request.form.get('ul_lat', None))
+            ul_lon = float(request.form.get('ul_lon', None))
+            lr_lat = float(request.form.get('lr_lat', None))
+            lr_lon = float(request.form.get('lr_lon', None))
+            
+            place_roughly(map_dom, roughplace_dom, map, ul_lat, ul_lon, lr_lat, lr_lon)
+        
+        elif request.form.get('action', None) == 'skip':
+            pass
+        
+        else:
+            raise Exception('Mission or invalid "action"')
         
         next_map = choose_map(map_dom, atlas_id=map['atlas'], skip_map_id=map.name)
         return redirect('/place-rough/map/%s' % next_map.name, code=303)
