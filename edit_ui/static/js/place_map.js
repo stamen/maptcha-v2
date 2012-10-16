@@ -16,7 +16,7 @@
         lastClick = false; 
         
     var oldmap = {
-            opacity: 0.3,
+            opacity: 0.4,
             untouched: true,
             image: null,
             matrix: null
@@ -170,7 +170,7 @@
         rotator.insertChild(0, circle);
 
         circle.strokeColor = '#F8F801';
-        circle.strokeWidth = 7;
+        circle.strokeWidth = 8;
         circle.opacity = 1;
         circle.dashArray = [14, 7];
 
@@ -363,10 +363,6 @@
         var pt = new paper.Point(cx,cy); 
         
         var lft = (windowSize.w - (mapSize.w * 2)) /2;  
-        /*
-        $("#scan-box").css({
-            'margin-left':lft + "px"
-        })*/
         
         //pt.x *= xform.scaleX;
         //pt.y *= xform.scaleY;
@@ -429,7 +425,7 @@
         image = new paper.Raster(options['old-map']['ref-image-id']); 
         image.setMatrix(xform); 
 
-        pin = new paper.Path.Oval(new paper.Rectangle(paper.view.center.x - 10, paper.view.center.y - 10, 20, 20));  
+        pin = new paper.Path.Oval(new paper.Rectangle(paper.view.center.x - 13, paper.view.center.y - 13, 26, 26));  
         var handleSq = new paper.Path.Rectangle(paper.view.center.x - 13, paper.view.center.y - 13, 26, 26)
         //handle = new paper.Path.Oval(new paper.Rectangle(paper.view.center.x - 8, paper.view.center.y - 8, 16, 16));
         imageHint = new paper.PointText(new paper.Point(60, 25));
