@@ -1,0 +1,25 @@
+/* CSS Document */
+
+
+
+
+
+dl .example { font-style: italic; color: #black;}
+dd {
+	margin: 20px;
+}
+
+.required {
+	background-color: #F30;
+	color: white;
+	padding: 3px;
+}
+
+
+
+
+.footer {
+  padding-top: 17px;
+  margin: 18px 0;
+  border-top: 1px solid #eeeeee;
+}
