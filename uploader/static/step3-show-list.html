@@ -13,46 +13,68 @@
     <div class="page-header"><a href="http://maptcha.org">maptcha.org</a> / <a href="index.html">{CLIENT_NAME}</a></div>
     <h1>my-maps.csv</h1>
    
+	<h3>Maptcha calls the contents of this CSV an <strong>Atlas</strong>.</h3>
+    
+    <p>Please spend a moment giving people some clues about the area that this atlas covers.</p>
+   
     <form> 
 
     <div class="row">
 		<div class="span4 twenty">       
-            <p>Here are the places you noted in your CSV. </p>
             
-            <p><input type="text" value="San Francisco" /></p>
+            <p>Help define a bounding box for all the maps <br />
+in this atlas. Add a few places you know <br />
+are on the maps, then hit refresh below.</p>
+            <p class="twenty"><input type="text" value="San Francisco" /></p>
             <p><input type="text" value="Oakland" /></p>
             <p><input type="text" /></p>
             <p><input type="text" /></p>
             <p><input type="text" /></p>
             <p><input type="text" /></p>
             
-            <button>Refresh Map</button>
+            <button class="btn-primary">Refresh Map</button>
         </div>
         <div class="span8 twenty">
-        	<p>Does the area in this map look about right? (Add more cities to improve it...)</p>
-            <iframe width="600" height="420" src="http://maps.stamen.com/toner-lite/embed#12/37.7706/-122.3782"></iframe>
+        	<p>Does the area contain all your maps, do you think?</p>
+            <iframe width="100%" height="420" src="http://maps.stamen.com/toner-lite/embed#12/37.7706/-122.3782"></iframe>
         </div>
-	</div>           
+	</div>    
+    
+    <div class="row twenty submit">
+    	<button class="btn-success btn-large">Save</button>
+    </div>
+    
+           
     </form>
+
+
+	<h3>Here are all the maps:</h3>
+
         
-    <table class="table-striped table">
+    <table class="table-striped table twenty">
     	<tr>
+        	<th>Thumbnail</th>
         	<th>Title</th>
         	<th>Year</th>
         	<th>Dropbox Image URL</th>
-        	<th>Thumbnail</th>
         </tr>        
     	<tr>
+        	<td class="mapThumb"><a href="map.html"><img src="http://farm9.staticflickr.com/8467/8075467309_88767d8259_m.jpg" /></a></td>
         	<td>Entrance to San Francisco Bay California.</td>
         	<td>1859</td>
         	<td><a href="http://dropbox.com/123">http://dropbox.com/123</a></td>
-        	<td><a href="map.html"><img src="http://farm9.staticflickr.com/8467/8075467309_88767d8259_m.jpg" /></a></td>
         </tr>    
     	<tr>
+        	<td class="mapThumb"><a href="map.html"><img src="http://farm9.staticflickr.com/8048/8075463122_40aa991c18_m.jpg" width="180" height="240" alt="5817000-1867"></a></td>
+        	<td>Entrance to San Francisco Bay California.</td>
+        	<td>1859</td>
+        	<td><a href="http://dropbox.com/123">http://dropbox.com/123</a></td>
+        </tr>  
+       	<tr>
+        	<td class="mapThumb"><div class="progress"></div></td>
         	<td>San Francisco Entrance, California.</td>
         	<td>1907</td>
         	<td><a href="http://dropbox.com/456">http://dropbox.com/456</a></td>
-        	<td><div class="progress"></div></td>
         </tr>    
 	</table>        
         
