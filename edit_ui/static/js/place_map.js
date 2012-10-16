@@ -30,6 +30,35 @@
         w:480,
         h:550
     }
+      
+   
+    var options = {
+        'zoom-out-class':'zoom-out',
+        'zoom-in-class':'zoom-in',
+        'slider':{
+            'id':'slide',
+            'output':'slider-output-value',
+            'overlay':'slide-overlay'
+        },
+        'background-map-id':'background-map',
+        'background-map':{
+            'id':'background-map',
+            'provider':'terrain-background',
+            'provider-alt':'terrain',
+            'provider-alt-zoom-switch':12
+        },
+        'placement-map':{
+            'map-id':'map-pane',
+            'controls-id':'zoom-controls-mm'
+        },
+        'old-map':{
+            'canvas-id':'scan',
+            'ref-image-id':'scan_img'
+        }
+
+    }
+    
+   
     
     var lastRot;
     
@@ -373,11 +402,12 @@
     {
         rotator.visible = true;
         paper.view.draw();
-    }
-    
+    } 
+
+
     var handleGroup = null;
     YTOB.PlaceMap.initCanvas = function(){ 
-        canvas = document.getElementById('scan');
+        canvas = document.getElementById(options['old-map']['canvas-id']);
         paper.setup(canvas);   
         
         YTOB.PlaceMap.updatePaperViewSize(mapSize.w,mapSize.h);
@@ -389,7 +419,7 @@
         
         
         
-        image = new paper.Raster('scan_img'); 
+        image = new paper.Raster(options['old-map']['ref-image-id']); 
         image.setMatrix(xform); 
 
         pin = new paper.Path.Oval(new paper.Rectangle(paper.view.center.x - 10, paper.view.center.y - 10, 20, 20));  
@@ -448,72 +478,74 @@
         paper.view.draw();  
 
     } 
-    
-    
-    
+
+
     var backgroundMap = null,
         backgroundMapLayer = null, 
         backgroundMapProviderBasic = null,
         backgroundMapProviderComplete = null;  
-        
+    
+    
     YTOB.PlaceMap.initBackgroundMap = function(selector){
-        backgroundMapLayer = new MM.StamenTileLayer("terrain-background");   
+        backgroundMapLayer = new MM.StamenTileLayer(options['background-map']['provider']);   
         
-        backgroundMapProviderBasic = backgroundMapLayer.provider;  
-        backgroundMapProviderComplete = new MM.StamenTileLayer("terrain").provider;
+        backgroundMapProviderBasic = backgroundMapLayer.provider; 
         
+        if(options['background-map']['provider-alt']){
+            backgroundMapProviderComplete = new MM.StamenTileLayer(options['background-map']['provider-alt']).provider;
+        } 
+
         backgroundMap = new MM.Map(selector, backgroundMapLayer); 
 
         backgroundMap.setSize(new MM.Point(windowSize.w,windowSize.h));
         backgroundMap.setCenterZoom(new MM.Location(37.7, -122.4), 12); 
-        
-        
     }
     
-    YTOB.PlaceMap.initMap = function(selector){
+    
+    YTOB.PlaceMap.initMap = function(){
         var layer = new MM.StamenTileLayer("terrain-background"); 
         
-        
-        map = new MM.Map(selector, layer); 
+        map = new MM.Map(options['placement-map']['map-id'], layer); 
 
         map.setSize(new MM.Point(mapSize.w,mapSize.h));
         map.setCenterZoom(new MM.Location(37.7, -122.4), 12);   
 
         $(layer.parent).css("opacity",0);
         
-        $("#zoom-controls-mm").find('.zoom-in').on('click',function(e){
+        $("#"+options['placement-map']['controls-id']).find('.' + options['zoom-in-class']).on('click',function(e){
             e.preventDefault();
             map.zoomIn();
         });
-        $("#zoom-controls-mm").find('.zoom-out').on('click',function(e){
+        $("#"+options['placement-map']['controls-id']).find('.' + options['zoom-out-class']).on('click',function(e){
             e.preventDefault();
             map.zoomOut();
         });   
-        
-        
+
+
         map.addCallback('panned', function(m,offset) { 
             if(backgroundMap){
                backgroundMap.panBy(offset[0], offset[1]); 
             }
         
-        });    
+        });
         
         map.addCallback("zoomed", mainMapZoomed);
         map.addCallback("extentset", updateBackgroundMap);
         map.addCallback("centered", updateBackgroundMap);
 
-        
-         
+
+
         mapCanvas = document.createElement('canvas');
         mapCanvas.width = backgroundMap.dimensions.x;
         mapCanvas.height = backgroundMap.dimensions.y;
         backgroundMap.parent.appendChild(mapCanvas);  
         
         if(!slider){
-            slider = $("#slide");
-            slider.attr("value",oldmap.opacity * 100); 
-            var sliderOutput = $("#slider-output-value");
-            var sliderOverlay = $("#slideOverlay");
+            slider = $("#"+options['slider']['id']);
+            slider.attr("value",oldmap.opacity * 100);  
+            
+            var sliderOutput = $("#"+options['slider']['output']);
+            var sliderOverlay = $("#"+options['slider']['overlay']);
             
             slider.on("change",function(e){ 
                 this.value = this.value; // wierd  
@@ -536,12 +568,11 @@
     
     
     
-    
-    YTOB.PlaceMap.init = function(selector){ 
+    YTOB.PlaceMap.init = function(){ 
         getContainerSizes();
-        YTOB.PlaceMap.initBackgroundMap('background-map');
+        YTOB.PlaceMap.initBackgroundMap(options['background-map']['id']);
         YTOB.PlaceMap.initCanvas();
-        YTOB.PlaceMap.initMap(selector);  
+        YTOB.PlaceMap.initMap();  
      
     } 
     
@@ -555,7 +586,7 @@
     function mainMapZoomed(){    
 
         if(!backgroundMap)return;
-        if(map.getZoom() >= 12){   
+        if(map.getZoom() >= options['background-map']['provider-alt-zoom-switch']){   
             backgroundMapLayer.setProvider(backgroundMapProviderComplete);   
         }else{
             backgroundMapLayer.setProvider(backgroundMapProviderBasic); 
@@ -615,7 +646,8 @@
 
         dest.restore();
 
-
+        // draw center dot
+        /*
         dest.beginPath();
         dest.lineWidth = 2;
         dest.fillStyle = '#F8F801';
@@ -634,7 +666,7 @@
         dest.closePath();
         dest.fill();
         dest.stroke();
-      
+        */
         
         var ul = matrix.transform({x: 0, y: 0}),
             ur = matrix.transform({x: image.width, y: 0}),

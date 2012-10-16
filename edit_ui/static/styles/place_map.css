@@ -188,7 +188,7 @@ body{
 #slider #slide{
     width:100%;
 } 
-#slideOverlay{
+#slide-overlay{
     position:absolute;
     z-index:2;
     background:blue;

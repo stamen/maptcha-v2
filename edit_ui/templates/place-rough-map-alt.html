@@ -19,21 +19,10 @@
     
 </head>
 <body>
-    
     <div id="background-map-wrap">
          <div id="background-map"></div> 
     </div>
     <div class="container">
-        
-        <!--
-        <div class="row-fluid">
-            <div class="span12">
-                <h1>Positioning map: <a href="/thing/{{ map.large }}" target="_blank" title="view">{{ map.name }}</a></h1>
-            </div>
-        </div>  
-        --> 
-        
-          
         
         <div id="main" class="row">
             <div class="cf span12 box-wrap"> 
@@ -67,17 +56,10 @@
                         </div>
                     </div> 
                 </div>
-                
-              
-                
-                
-                
-                
             </div> <!-- end #box-wrap -->
-
             
-            
-        </div> 
+        </div>  
+        
         <div class="row">
             <div id="footer" class="cf span12"> 
                 
@@ -90,7 +72,7 @@
                          <label>Old Map Overlay <span id="slider-output-value"></span></label> 
                          <div id="slide-wrap">
                              <input id="slide" type="range" min="0" max="100" step="1" value="100"/>
-                             <div id="slideOverlay"></div>     
+                             <div id="slide-overlay"></div>     
                          </div>
                      </div>
                 </div>
@@ -101,40 +83,13 @@
                          <input name="ul_lon" id="ul_lon" type="hidden">
                          <input name="lr_lat" id="lr_lat" type="hidden"> 
                          <input name="lr_lon" id="lr_lon" type="hidden">
-                         <button class="btn btn-large btn-success" type="submit">Finished</button>        
-                         <button class="btn btn-large" type="button">Skip This Map</button> 
+                         <button name="action" id="action-skip" value="place" class="btn btn-large btn-success" type="submit">Finished</button>        
+                         <button name="action" id="action-place" value="skip" class="btn btn-large" type="button">Skip This Map</button> 
                      </form>
                 </div>
                 
             </div>
         </div>
-        
-        
-        
-        <!--
-        <div class="row-fluid">
-            <div class="span12"> 
-                <form id="complete" action="post-placement.php" method="post">
-                    <p>
-                        <input name="image-id" type="hidden" value="">
-                        <input name="user-id" type="hidden" value="">
-
-                        <input name="action" id="action-skip" type="submit" value="Skip This Map">
-                        <input name="action" id="action-ok" type="submit" value="All Finished" style="display: none;">
-                        <br>
-                        Bad map:
-                        <input name="action" class="action-no" type="submit" value="Page too damaged">
-                        <input name="action" class="action-no" type="submit" value="More than one map on this page">
-                        <input name="action" class="action-no" type="submit" value="Can't find street names">
-
-                        <input name="origin-wkt" id="origin-wkt" type="hidden">
-                        <input name="center-wkt" id="center-wkt" type="hidden">
-                        <input name="footprint-wkt" id="footprint-wkt" type="hidden">
-                    </p>
-                </form>
-             </div>
-        </div>
-        --> 
     </div>
     
     
@@ -143,9 +98,8 @@
     <script type="text/javascript" >
          window.onload = function(){ 
              
-             YTOB.PlaceMap.init("map-pane");
+             YTOB.PlaceMap.init();
              var geo = new YTOB.Geocoder();
-             
              
              $(window).on("resize",function(){
                  YTOB.PlaceMap.resize()
