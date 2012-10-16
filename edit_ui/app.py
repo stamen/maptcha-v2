@@ -44,7 +44,7 @@ def place_rough_map(id):
         ul_lon = float(request.form.get('ul_lon', None))
         lr_lat = float(request.form.get('lr_lat', None))
         lr_lon = float(request.form.get('lr_lon', None))
-    
+
         place_roughly(map_dom, roughplace_dom, map, ul_lat, ul_lon, lr_lat, lr_lon)
 
         next_map = choose_map(map_dom, atlas_id=map['atlas'], skip_map_id=map.name)

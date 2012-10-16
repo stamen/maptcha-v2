@@ -1,5 +1,5 @@
 (function(exports){
-    
+
 
     if(typeof YTOB === "undefined")YTOB = {};
     YTOB.PlaceMap = {}; 
@@ -29,8 +29,9 @@
     var mapSize = {
         w:480,
         h:550
-    }
-      
+    } 
+    var geocoder = null;
+    var ul_lat,ul_lon,lr_lat,lr_lon;
    
     var options = {
         'zoom-out-class':'zoom-out',
@@ -55,12 +56,22 @@
             'canvas-id':'scan',
             'ref-image-id':'scan_img'
         }
-
     }
     
-   
+    var windowSize = {
+        w:null,
+        h:null
+    }
     
-    var lastRot;
+    var backgroundMap = null,
+        backgroundMapLayer = null, 
+        backgroundMapProviderBasic = null,
+        backgroundMapProviderComplete = null;
+
+
+
+
+    var lastRot;     
     
     function setCanvasObjects(){ 
         
@@ -318,10 +329,7 @@
         updateImageGeography(image.image, _xform, scale);
     } 
     
-    var windowSize = {
-        w:null,
-        h:null
-    }
+    
     
     function getContainerSizes(){
         windowSize.w = window.innerWidth,
@@ -418,7 +426,6 @@
         canvasBg = new paper.Path.Rectangle(paper.view.bounds);  
         
         
-        
         image = new paper.Raster(options['old-map']['ref-image-id']); 
         image.setMatrix(xform); 
 
@@ -480,13 +487,7 @@
     } 
 
 
-    var backgroundMap = null,
-        backgroundMapLayer = null, 
-        backgroundMapProviderBasic = null,
-        backgroundMapProviderComplete = null;  
-    
-    
-    YTOB.PlaceMap.initBackgroundMap = function(selector){
+    YTOB.PlaceMap.initBackgroundMap = function(){
         backgroundMapLayer = new MM.StamenTileLayer(options['background-map']['provider']);   
         
         backgroundMapProviderBasic = backgroundMapLayer.provider; 
@@ -495,7 +496,7 @@
             backgroundMapProviderComplete = new MM.StamenTileLayer(options['background-map']['provider-alt']).provider;
         } 
 
-        backgroundMap = new MM.Map(selector, backgroundMapLayer); 
+        backgroundMap = new MM.Map(options['background-map']['id'], backgroundMapLayer); 
 
         backgroundMap.setSize(new MM.Point(windowSize.w,windowSize.h));
         backgroundMap.setCenterZoom(new MM.Location(37.7, -122.4), 12); 
@@ -569,10 +570,13 @@
     
     
     YTOB.PlaceMap.init = function(){ 
-        getContainerSizes();
-        YTOB.PlaceMap.initBackgroundMap(options['background-map']['id']);
+        getContainerSizes(); 
+        
+        YTOB.PlaceMap.initBackgroundMap();
         YTOB.PlaceMap.initCanvas();
-        YTOB.PlaceMap.initMap();  
+        YTOB.PlaceMap.initMap();
+        
+        geocoder = new YTOB.Geocoder();
      
     } 
     
@@ -585,12 +589,15 @@
     
     function mainMapZoomed(){    
 
-        if(!backgroundMap)return;
-        if(map.getZoom() >= options['background-map']['provider-alt-zoom-switch']){   
-            backgroundMapLayer.setProvider(backgroundMapProviderComplete);   
-        }else{
-            backgroundMapLayer.setProvider(backgroundMapProviderBasic); 
-        } 
+        if(!backgroundMap)return; 
+        
+        if(backgroundMapProviderComplete){
+            if(map.getZoom() >= options['background-map']['provider-alt-zoom-switch']){   
+                backgroundMapLayer.setProvider(backgroundMapProviderComplete);   
+            }else{
+                backgroundMapLayer.setProvider(backgroundMapProviderBasic); 
+            }
+         }
         
         updateBackgroundMap();
     }
@@ -618,7 +625,8 @@
         
         
     }
-    var ul_lat,ul_lon,lr_lat,lr_lon;
+    
+    
     function updateOldMap()
     {
         if(!mapCanvas)
@@ -646,46 +654,12 @@
 
         dest.restore();
 
-        // draw center dot
-        /*
-        dest.beginPath();
-        dest.lineWidth = 2;
-        dest.fillStyle = '#F8F801';
-        dest.strokeStyle = '#333';
-                             
-
-        var centerX = mapCanvas.width/2 + mapSize.w/2,
-            centerY = mapCanvas.height/2;
-        dest.moveTo(centerX  + 10, centerY);
-
-        for(var t = Math.PI/16; t <= Math.PI*2; t += Math.PI/16)
-        {
-            dest.lineTo(centerX + 10 * Math.cos(t), centerY + 10 * Math.sin(t));
-        }
-
-        dest.closePath();
-        dest.fill();
-        dest.stroke();
-        */
         
         var ul = matrix.transform({x: 0, y: 0}),
             ur = matrix.transform({x: image.width, y: 0}),
             lr = matrix.transform({x: image.width, y: image.height}),
             ll = matrix.transform({x: 0, y: image.height});
- 
-        dest.beginPath();
-        dest.lineWidth = 0;
-        dest.strokeStyle = 'rgba(0, 0, 0, 0)';
 
-        dest.moveTo(ul.x, ul.y);
-        dest.lineTo(ur.x, ur.y);
-        dest.lineTo(lr.x, lr.y);
-        dest.lineTo(ll.x, ll.y);
-        dest.lineTo(ul.x, ul.y);
-
-        dest.closePath();
-        dest.stroke();
-         
 
         var latlon = function(p) { return map.pointLocation(p) },
             point = function(l) { return l.lon.toFixed(8) + ' ' + l.lat.toFixed(8) };
@@ -696,7 +670,7 @@
             footprint = [latlon(ul), latlon(ur), latlon(lr), latlon(ll), latlon(ul)];
         */
         
-        var bds = {
+        var corners = {
             'ul':latlon(ul),
             'lr':latlon(lr)
         };
@@ -706,13 +680,11 @@
         if(!lr_lat)lr_lat = $("#lr_lat");
         if(!lr_lon)lr_lon = $("#lr_lon"); 
         
-        ul_lat.attr("value",bds.ul.lat);
-        ul_lon.attr("value",bds.ul.lon);
-        lr_lat.attr("value",bds.lr.lat);
-        lr_lon.attr("value",bds.lr.lon);
-        //document.getElementById('origin-wkt').value = 'POINT('+point(origin)+')';
-        //document.getElementById('center-wkt').value = 'POINT('+point(center)+')';
-        //document.getElementById('footprint-wkt').value = 'POLYGON(('+footprint.map(point).join(',')+'))';
+        ul_lat.attr("value",corners.ul.lat);
+        ul_lon.attr("value",corners.ul.lon);
+        lr_lat.attr("value",corners.lr.lat);
+        lr_lon.attr("value",corners.lr.lon);
+
     }
     
     function updateImageGeography(image, matrix, scale)
@@ -720,27 +692,13 @@
         oldmap.image = image;
         oldmap.matrix = matrix;
 
-        if(!slider)
-        {
-            return updateOldMap();
-        }
-
-        if(oldmap.untouched) {
-            //var opacity = Math.max(0, Math.min((1/scale - 1) / 4)); 
-            //slider.attr("value",opacity * 100)
-            //changeOverlay(opacity);
-            updateOldMap(); 
-        } else {
-            updateOldMap();
-        }
-    }  
+        updateOldMap();
+    }
     
-      
     
     
     
     /// GEOCODER 
-    var geocoder = null;
     YTOB.Geocoder = function(){  
         if(geocoder)return geocoder;
         
