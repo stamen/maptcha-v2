@@ -45,11 +45,8 @@ def place_rough_map(id):
         lr_lat = float(request.form.get('lr_lat', None))
         lr_lon = float(request.form.get('lr_lon', None))
     
-        place_roughly(map_dom, roughplace_dom, map, ul_lat, ul_lon, lr_lat, lr_lon)
-        
-        next_map = choose_map(map_dom, atlas_id=map['atlas'], skip_map_id=map.name)
-        return redirect('/place-rough/map/%s' % next_map.name, code=303)
-
+        place_roughly(map_dom, roughplace_dom, map, ul_lat, ul_lon, lr_lat, lr_lon)  
+        return redirect('/place-rough/map/%s' % map.name, code=303)
 
     return render_template('place-rough-map-alt.html', map=map)
 
@@ -60,6 +57,11 @@ def place_rough_atlas(id):
     
     return redirect('/place-rough/map/%s' % map.name)    
     
+<<<<<<< Updated upstream
+=======
+    return redirect('/place-rough/map/%s' % map.name)    
+    
+>>>>>>> Stashed changes
 def get_atlases():
     '''
     '''
