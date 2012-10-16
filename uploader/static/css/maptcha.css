@@ -4,7 +4,7 @@
 
 
 
-dl .example { font-style: italic; color: #black;}
+dl .example { color: black;}
 dd {
 	margin: 20px;
 }
