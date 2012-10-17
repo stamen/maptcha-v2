@@ -4,10 +4,11 @@ from mimetypes import guess_type
 
 from flask import Flask, request, redirect, render_template, make_response
 
-from util import connect_domain, connect_queue
+from util import connect_domain, connect_queue, get_config_vars
 from data import create_atlas
 
-app = Flask(__name__)
+app = Flask(__name__) 
+key, secret, prefix = get_config_vars(dirname(__file__))
 
 @app.route('/')
 def index():
@@ -19,14 +20,14 @@ def index():
 def thing(path):
     '''
     '''
-    bucket = environ['prefix']+'stuff'
+    bucket = prefix+'stuff'
     return redirect('http://%(bucket)s.s3.amazonaws.com/%(path)s' % locals())
 
 @app.route('/atlas', methods=['POST'])
 def post_atlas(id=None):
     '''
     '''
-    key, secret, prefix = environ['key'], environ['secret'], environ['prefix']
+    #key, secret, prefix = environ['key'], environ['secret'], environ['prefix']
     atlas_dom = connect_domain(key, secret, prefix+'atlases')
     queue = connect_queue(key, secret, prefix+'jobs')
 
@@ -37,8 +38,9 @@ def post_atlas(id=None):
 @app.route('/atlas/<id>')
 def get_atlas(id):
     '''
-    '''
-    key, secret, prefix = environ['key'], environ['secret'], environ['prefix']
+    ''' 
+    
+    #key, secret, prefix = environ['key'], environ['secret'], environ['prefix']
     atlas_dom = connect_domain(key, secret, prefix+'atlases')
     map_dom = connect_domain(key, secret, prefix+'maps')
 

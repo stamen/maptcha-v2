@@ -1,99 +1,101 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8" />
-<title>Step 1: Upload CSV to Maptcha</title>
-<link href="/static/css/bootstrap.css" rel="stylesheet" type="text/css" />
-<link href="/static/css/maptcha.css" rel="stylesheet" type="text/css" /> 
-
-
+    <meta charset="utf-8" />
+    <title>Step 1: Upload CSV to Maptcha</title>
+    <link href="/static/css/bootstrap.css" rel="stylesheet" type="text/css" />
+    <link href="/static/css/maptcha.css" rel="stylesheet" type="text/css" /> 
+     
 </head>
 
 <body>
-<a name="top"></a>
-<div class="container">
-    <div class="page-header"><a href="http://maptcha.org">maptcha.org</a> / <a href="index.html">{CLIENT_NAME}</a></div>
-    <h1>Upload </h1>
-    <form action="atlas" method="post">    
-        <p>Choose your Map CSV file:</p>
-        <p>
-            <input id="csv-file-selector" name="url" type="file" class="input-xxlarge" /> 
-        </p>
-        <p id="csv-submit-btn"><button class="btn btn-success disabled" disabled="disabled" type="submit">Submit</button></p>
-        <p><a href="step2-error-check.html">Pretend like you've hit upload</a></p>
-    </form>
-    <h2>How To</h2>
+    <a name="top"></a>
+    <div class="container">
+        <div class="page-header"><a href="http://maptcha.org">maptcha.org</a> / <a href="index.html">{CLIENT_NAME}</a></div>
+        <h1>Upload </h1>
+        <form action="atlas" method="post">    
+            <p>Choose your Map CSV file:</p>
+            <p>
+                <input id="csv-file-selector" name="url" type="file" class="input-xxlarge" /> 
+            </p>
+            <p id="csv-submit-btn">
+                <button class="btn btn-success disabled" disabled="disabled" type="submit">Submit</button>
+            </p> 
+            <p><a href="step2-error-check.html">Pretend like you've hit upload</a></p>
+        </form>
+        <h2>How To</h2>
     
-    <div class="row">
-    	<div class="span4">
-            <p>To upload a series of maps into Maptcha, you need to upload a CSV that contains a row for each map. There are 4 required fields, but more is encouraged.</p>
-            <p>Here's <a href="maptcha-example-csv-file.csv">an example CSV file</a> to get you started.</p>
-        </div>
-        <div class="span8">
-            <h3>Map Metadata Fields <small>Red means <span class="required">required</span></small></h3>
+        <div class="row">
+        	<div class="span4">
+                <p>To upload a series of maps into Maptcha, you need to upload a CSV that contains a row for each map. There are 4 required fields, but more is encouraged.</p>
+                <p>Here's <a href="maptcha-example-csv-file.csv">an example CSV file</a> to get you started.</p>
+            </div>
+            <div class="span8">
+                <h3>Map Metadata Fields <small>Red means <span class="required">required</span></small></h3>
             
-            <dl>
-                <dt><span class="required">Title</span></dt>
-                <dd> A name for each map.<br />
-                    <code class="example">Entrance to San Francisco Bay California.</code> </dd>
-                <dt><span class="required">Date</span></dt>
-                <dd>When the map was made. A year is enough information.<br />
-                    <code class="example">1859</code></dd>
-                <dt><span class="required">Dropbox_Image_URL</span></dt>
-                <dd>This must be a fully qualified URL (with the http://) to a <strong>public</strong> <a href="https://www.dropbox.com/">DropBox</a> repository where Maptcha can access an actual image file. That means the URL needs to point at a .jpg or .tif. Please link to the largest possible image size.<br />
-                    <code class="example">http://dropbox.com/8467/8075467309_d1eb3cee97_o.jpg</code></dd>
+                <dl>
+                    <dt><span class="required">Title</span></dt>
+                    <dd> A name for each map.<br />
+                        <code class="example">Entrance to San Francisco Bay California.</code> </dd>
+                    <dt><span class="required">Date</span></dt>
+                    <dd>When the map was made. A year is enough information.<br />
+                        <code class="example">1859</code></dd>
+                    <dt><span class="required">Dropbox_Image_URL</span></dt>
+                    <dd>This must be a fully qualified URL (with the http://) to a <strong>public</strong> <a href="https://www.dropbox.com/">DropBox</a> repository where Maptcha can access an actual image file. That means the URL needs to point at a .jpg or .tif. Please link to the largest possible image size.<br />
+                        <code class="example">http://dropbox.com/8467/8075467309_d1eb3cee97_o.jpg</code></dd>
                 
-                <dt>Place_Names</dt>
-                <dd>Please note any cities or town names you can see on the map. Please separate each place name with a comma. The more the better!<br />
-                    <code class="example">San Francisco, Oakland, Sacramento</code></dd>
+                    <dt>Place_Names</dt>
+                    <dd>Please note any cities or town names you can see on the map. Please separate each place name with a comma. The more the better!<br />
+                        <code class="example">San Francisco, Oakland, Sacramento</code></dd>
                     
-                <dt>Scale</dt>
-                <dd>1: ??<br />
-                <code class="example">50,000</code></dd>
-                <dt>Latitude/Longitude</dt>
-                <dd>This is always useful. Even if it's just the lat/lon of an approximate center point on the map, that's very helpful. To 4 decimal points is perfecto!<br />
-                <code class="example">37.7706/-122.3782</code></dd>
-                <dt>Description</dt>
-                <dd>This may well come straight out of the catalog.<br />
-                    <code class="example">Entrance to San Francisco Bay California. From a Trigonometrical Survey under the direction of A.D. Bache Superintendent of the Survey Of The Coast Of The United States. Triangulation by R.D. Cutts Asst. & A.F. Rodgers Sub-Assts. Hydrography by the Party under the command of Lieut. Comdg. James Alden U.S.N. Asst. 1859. U.S. Coast Survey Office. Verified W.R. Palmer ... No. 36. Redd. Drng. by W.M.C. Fairfax, J. Lambert, & J.J. Ricketts. Engd. by J. Knight, A. Blondeau & G.B. Metzeroth. Electrotype Copy No. 2 by G. Mathiot U.S.C.S. (inset map) Sub-Sketch Of Entrance To San Francisco Bay. 1859.).</code> </dd>
-                <dt>Notes</dt>
-                <dd>You might like to describe the literal condition of the map, etc.<br />
-                    <code class="example">Light paper chart-full margins, shows plate marks. Map is without color.</code> </dd>
-                <dt>Keywords/Tags</dt>
-                <dd>There are no restrictions on which keywords or tags to use. The more the better! Please separate each keyword or tag with a comma. You can join two words together in a tag using quotes: "two words", one. You may also like to experiment with <a href="http://www.flickr.com/groups/mtags/" title="Find out what machine tags are, and what sort of groups/people are using them on Flickr">machine tags</a>.<br />
-                    <code class="example">chart map, publisher: U.S. Coast Survey Washington</code> </dd>
-                <dt>License</dt>
-                <dd>Make sure to let people know if/when/how they can share or reuse the map.<br />
-                    <code class="example">&copy; Copyright 1998 Cartography Associates</code> </dd>
-                <dt>Repository or Archive</dt>
-                <dd>Attribution to the correct source is very important to Maptcha. Please use the official name for the collecting institution.<br />
-                    <code class="example">David Rumsey Historical Map Collection</code> </dd>
-                <dt>Map Maker</dt>
-                <dd>This might be an individual, or an organization. Consider using machine tags above to include more detail.<br />
-                    <code class="example">United States Coast Survey</code> </dd>
-                <dt>Link</dt>
-                <dd>If this map has a home on the web, please link to it. Watch out for session-based URLs. They don't last very long.<br />
-                    <code class="example">http://www.davidrumsey.com/luna/servlet/detail/RUMSEY~8~1~207~20027:Entrance-to-San-Francisco-Bay-Calif?qvq=mgid:23358&mi=0&trs=15 </code> </dd>
-                <dt>Filename</dt>
-                <dd>Even though you've told us this in the URL above, this is a very useful reconciliation field for us.<br />
-                    <code class="example">8075467309_d1eb3cee97_o.jpg</code> </dd>
-                <dt>Identifier(s)</dt>
-                <dd>If this map has an identifier in your database, or other sites on the web, please add it here. URLs also work.<br />
-                    <code class="example">id:davidrumsey=20720027</code> </dd>
-                <dt>Map Width</dt>
-                <dd>Please include units. Please avoid abbreviations.<br />
-                    <code class="example">120 centimetres</code> </dd>
-                <dt>Map Height</dt>
-                <dd>Please include units. Please avoid abbreviations.<br />
-                    <code class="example">80 centimetres</code> </dd>                        
-            </dl>
-		</div>    
-    </div>
-    <div class="footer">
-    	<a href="#top" class='top-jumper'>Top &uarr;</a>
-    </div>
-</div>  
+                    <dt>Scale</dt>
+                    <dd>1: ??<br />
+                    <code class="example">50,000</code></dd>
+                    <dt>Latitude/Longitude</dt>
+                    <dd>This is always useful. Even if it's just the lat/lon of an approximate center point on the map, that's very helpful. To 4 decimal points is perfecto!<br />
+                    <code class="example">37.7706/-122.3782</code></dd>
+                    <dt>Description</dt>
+                    <dd>This may well come straight out of the catalog.<br />
+                        <code class="example">Entrance to San Francisco Bay California. From a Trigonometrical Survey under the direction of A.D. Bache Superintendent of the Survey Of The Coast Of The United States. Triangulation by R.D. Cutts Asst. & A.F. Rodgers Sub-Assts. Hydrography by the Party under the command of Lieut. Comdg. James Alden U.S.N. Asst. 1859. U.S. Coast Survey Office. Verified W.R. Palmer ... No. 36. Redd. Drng. by W.M.C. Fairfax, J. Lambert, & J.J. Ricketts. Engd. by J. Knight, A. Blondeau & G.B. Metzeroth. Electrotype Copy No. 2 by G. Mathiot U.S.C.S. (inset map) Sub-Sketch Of Entrance To San Francisco Bay. 1859.).</code> </dd>
+                    <dt>Notes</dt>
+                    <dd>You might like to describe the literal condition of the map, etc.<br />
+                        <code class="example">Light paper chart-full margins, shows plate marks. Map is without color.</code> </dd>
+                    <dt>Keywords/Tags</dt>
+                    <dd>There are no restrictions on which keywords or tags to use. The more the better! Please separate each keyword or tag with a comma. You can join two words together in a tag using quotes: "two words", one. You may also like to experiment with <a href="http://www.flickr.com/groups/mtags/" title="Find out what machine tags are, and what sort of groups/people are using them on Flickr">machine tags</a>.<br />
+                        <code class="example">chart map, publisher: U.S. Coast Survey Washington</code> </dd>
+                    <dt>License</dt>
+                    <dd>Make sure to let people know if/when/how they can share or reuse the map.<br />
+                        <code class="example">&copy; Copyright 1998 Cartography Associates</code> </dd>
+                    <dt>Repository or Archive</dt>
+                    <dd>Attribution to the correct source is very important to Maptcha. Please use the official name for the collecting institution.<br />
+                        <code class="example">David Rumsey Historical Map Collection</code> </dd>
+                    <dt>Map Maker</dt>
+                    <dd>This might be an individual, or an organization. Consider using machine tags above to include more detail.<br />
+                        <code class="example">United States Coast Survey</code> </dd>
+                    <dt>Link</dt>
+                    <dd>If this map has a home on the web, please link to it. Watch out for session-based URLs. They don't last very long.<br />
+                        <code class="example">http://www.davidrumsey.com/luna/servlet/detail/RUMSEY~8~1~207~20027:Entrance-to-San-Francisco-Bay-Calif?qvq=mgid:23358&mi=0&trs=15 </code> </dd>
+                    <dt>Filename</dt>
+                    <dd>Even though you've told us this in the URL above, this is a very useful reconciliation field for us.<br />
+                        <code class="example">8075467309_d1eb3cee97_o.jpg</code> </dd>
+                    <dt>Identifier(s)</dt>
+                    <dd>If this map has an identifier in your database, or other sites on the web, please add it here. URLs also work.<br />
+                        <code class="example">id:davidrumsey=20720027</code> </dd>
+                    <dt>Map Width</dt>
+                    <dd>Please include units. Please avoid abbreviations.<br />
+                        <code class="example">120 centimetres</code> </dd>
+                    <dt>Map Height</dt>
+                    <dd>Please include units. Please avoid abbreviations.<br />
+                        <code class="example">80 centimetres</code> </dd>                        
+                </dl>
+    		</div>    
+        </div>
+        <div class="footer">
+        	<a href="#top" class='top-jumper'>Top &uarr;</a>
+        </div>
+    </div>  
 
-<script type="text/javascript" src="/static/js/uploader.js"></script> 
+    <script type="text/javascript" src="/static/js/uploader.js"></script>   
+    
 </body>
 </html>
