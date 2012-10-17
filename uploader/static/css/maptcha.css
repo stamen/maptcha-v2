@@ -1,9 +1,5 @@
 /* CSS Document */
 
-
-
-
-
 dl .example { color: black;}
 dd {
 	margin: 20px;
@@ -37,4 +33,9 @@ td.mapThumb {
   padding-top: 17px;
   margin: 18px 0;
   border-top: 1px solid #eeeeee;
+}
+
+/**/
+#csv-submit-btn{
+    margin-top:-10px;
 }

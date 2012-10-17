@@ -1,6 +1,8 @@
 from os import environ
+from os.path import dirname, join
+from mimetypes import guess_type
 
-from flask import Flask, request, redirect, render_template
+from flask import Flask, request, redirect, render_template, make_response
 
 from util import connect_domain, connect_queue
 from data import create_atlas
@@ -45,6 +47,17 @@ def get_atlas(id):
     
     return render_template('atlas.html', atlas=atlas, maps=maps)
 
+@app.route('/static/<path:path>')
+def static(filename):
+    '''
+    '''
+    path = join(dirname(__file__), 'static')
+
+    body = open(path+'/'+filename).read()
+    resp = make_response(body, 200)
+    resp.headers['Content-Type'] = guess_type(filename)[0]
+    return resp  
+    
 if __name__ == '__main__':
     app.debug = True
     app.run(host='127.0.0.1', port=8080)
