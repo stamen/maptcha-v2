@@ -1,3 +1,4 @@
+var garm;
 (function(exports){
 
 
@@ -71,7 +72,7 @@
 
 
 
-    var lastRot;     
+    var lastRot = 0;     
     
     function setCanvasObjects(){ 
         
@@ -105,13 +106,8 @@
 
         pin.position = paper.view.center;   
         
-        lastRot = handle.position.angle;
-        
         handle.position = addPoints(paper.view.center , new paper.Point(armLength * Math.cos(-Math.PI/3), armLength * Math.sin(-Math.PI/3)));
-        
-        
     } 
-    
     
     function updateArmAndCircle()
     {
@@ -122,38 +118,26 @@
         if(circle) {
             circle.remove();
         }
-        
-     
+
+
         var lenAB = Math.sqrt(Math.pow((pin.position.x - handle.position.x),2) + Math.pow((pin.position.y - handle.position.y),2)); 
         var newLength = 40;
-        var C = {x:0,y:0};
-        C.x = handle.position.x + (handle.position.x - pin.position.x) / lenAB * newLength;
-        C.y = handle.position.y + (handle.position.y - pin.position.y) / lenAB * newLength;    
-        var angle =  Math.atan2((C.y - pin.position.y), (C.x - pin.position.x)) * (180/Math.PI);
+        var newEndPt = new paper.Point(0,0);
+        newEndPt.x = handle.position.x + (handle.position.x - pin.position.x) / lenAB * newLength;
+        newEndPt.y = handle.position.y + (handle.position.y - pin.position.y) / lenAB * newLength;    
+        var angle =  Math.atan2((newEndPt.y - pin.position.y), (newEndPt.x - pin.position.x)) * (180/Math.PI); 
+        
         //angle += 360;
         //angle %= 360;                    
         
-        arm = new paper.Path.Line(new paper.Point(C.x,C.y), pin.position) 
-       
-        console.log("D: ",handle.position.angle,lastRot)
-        //handle.rotate( lastRot - handle.position.angle );
-        lastRot = handle.position.angle;
+        arm = new paper.Path.Line(newEndPt, pin.position) 
         
-        //var vec = subtractPoints(handle.position,lastHandlePos);
-        //var rot = vec.angle;
-       // handle.rotate(rot - lastRot);
-        //lastRot = rot;
-        //lastHandlePos = handle.position;
+        var rot = xform.getRotation();
         
         
-        //handle.rotate((rotator.position.angle - angle))
-        
-        //handle.angle = 45 + angle; 
-        //var aa = pin.position.getAngle(handle.position);
-        //var adjAngle = 45 - aa;  
-        //console.log(aa,adjAngle,handle.position.angle)  
-        //var h = handle.rotate(45,pin.position);
-        //console.log(aa,handle.position.angle)
+        handle.rotate( rot - lastRot )
+        lastRot = rot; 
+
         
         rotator.insertChild(0, arm);
 
@@ -166,7 +150,9 @@
             c = handle.position.rotate(180, pin.position),
             e = handle.position.rotate(-1, pin.position);
 
-        circle = new paper.Path.Arc(s, c, e);
+        circle = new paper.Path.Arc(s, c, e); 
+
+        
         rotator.insertChild(0, circle);
 
         circle.strokeColor = '#F8F801';
@@ -176,6 +162,8 @@
 
 
         handleHint.position = addPoints(handle.position , new paper.Point(-170, 5)); 
+
+        garm = handle;
     }
     
     function onMouseDown(event)
@@ -227,7 +215,6 @@
         } else if(activeDrag == handle) {
             canvas.style.cursor = 'pointer';
 
-
             handle.position = new paper.Point(x, y);
 
             updateArmAndCircle();
@@ -236,7 +223,7 @@
             lastVector = subtractPoints(downHandle, pin.position),
             angle = currentVector.angle - lastVector.angle,
             scale = currentVector.length / lastVector.length;   
-
+            
 
             //handle.rotate( angle)
             if(scale > 0)
@@ -409,7 +396,6 @@
     } 
 
 
-    var handleGroup = null;
     YTOB.PlaceMap.initCanvas = function(){ 
         canvas = document.getElementById(options['old-map']['canvas-id']);
         paper.setup(canvas);   
@@ -421,16 +407,16 @@
          
         canvasBg = new paper.Path.Rectangle(paper.view.bounds);  
         
-        
         image = new paper.Raster(options['old-map']['ref-image-id']); 
         image.setMatrix(xform); 
 
         pin = new paper.Path.Oval(new paper.Rectangle(paper.view.center.x - 13, paper.view.center.y - 13, 26, 26));  
-        var handleSq = new paper.Path.Rectangle(paper.view.center.x - 13, paper.view.center.y - 13, 26, 26)
-        //handle = new paper.Path.Oval(new paper.Rectangle(paper.view.center.x - 8, paper.view.center.y - 8, 16, 16));
+        var handleBk = new paper.Path.Rectangle(paper.view.center.x - 13, paper.view.center.y - 13, 26, 26) 
+
         imageHint = new paper.PointText(new paper.Point(60, 25));
         handleHint = new paper.PointText(paper.view.center); 
-        
+         
+      
         var lineSize = 7;
         var pt1 = new paper.Point(paper.view.center.x ,paper.view.center.y - lineSize);
         var pt2 = new paper.Point(paper.view.center.x + lineSize,paper.view.center.y - lineSize); 
@@ -457,13 +443,11 @@
         linBottom.add(pt5)
         linBottom.add(pt6)
         
-        handle = new paper.Group([handleSq,lin,linBottom]);
-        
+        handle = new paper.Group([handleBk,lin,linBottom]);
         
         rotator = new paper.Group([pin, handle, handleHint]);
         rotator.visible = false;
 
-        console.log("D****: ",handle.position.angle,(45 - handle.position.angle))
         handle.rotate(45 - handle.position.angle);
         
         setCanvasObjects();
