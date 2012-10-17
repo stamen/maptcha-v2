@@ -1,48 +1,58 @@
 window.onload = function(){
     var fileSelector = document.getElementById('csv-file-selector');
-    var submitBtn = document.getElementById('csv-submit-btn').getElementsByTagName('button')[0];
+    var submitBtn = (document.getElementById('csv-submit-btn')) ? document.getElementById('csv-submit-btn').getElementsByTagName('button')[0] : null;
     var jumpers =  document.getElementsByClassName('top-jumper');
-    var aniId = null;
+    var aniId = null; 
+    var jumpStart = null;
+    var jumpMove = 0;
     
-    
-    fileSelector.onchange = function(){ 
-        if(this.value){
-            submitBtn.disabled = false;
-            submitBtn.classList.remove('disabled');
-        }else{
-            submitBtn.disabled = true;
-            submitBtn.classList.add('disabled');
-        } 
-    }
-    
-    for(var i=0;i<jumpers.length;i++){
-        jumpers[i].onclick = function(){ 
-            if(aniId)stopScrollPage();
-            scrollPage(window.scrollY);
-            
-            return false;
+    if(fileSelector && submitBtn){
+        fileSelector.onchange = function(){ 
+            if(this.value){
+                submitBtn.disabled = false;
+                submitBtn.classList.remove('disabled');
+            }else{
+                submitBtn.disabled = true;
+                submitBtn.classList.add('disabled');
+            } 
         }
+     }  
+     
+    if(jumpers){   
+         for(var i=0;i<jumpers.length;i++){
+             jumpers[i].onclick = function(){ 
+                 if(aniId)stopScrollPage();  
+                 jumpStart = new Date();
+                 jumpMove = window.scrollY;
+                 scrollPage();
+     
+                 return false;
+             }
+         } 
     } 
-    
+
     function stopScrollPage(){
         window.cancelAnimationFrame(aniId);
         aniId = null;
+        jumpStart = null;
+        jumpMove = 0;
     }
-    
-    function scrollPage(y){ 
-        if(y<1){
-            stopScrollPage();
+
+    function scrollPage(){ 
+        var elapsed = new Date() - jumpStart;
+        var progress = elapsed / 200;
+        if (progress > 1) progress = 1;
+        window.scrollTo(0,jumpMove - (jumpMove * progress)); 
+        
+        if (progress == 1){
+            stopScrollPage(); 
             return;
         }
-        aniId = window.requestAnimationFrame(function(){     
-            y -= 80; 
-            if(y<0)y=0;
-            window.scrollTo(0,y);
-            scrollPage(y); 
-        });
-
+        
+        aniId = window.requestAnimationFrame(scrollPage);
     }
-    
+
+
 } 
 
 // Erik Möller requestAnimation polyfill

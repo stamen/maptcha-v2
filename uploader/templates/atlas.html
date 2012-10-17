@@ -1,22 +1,49 @@
-<!DOCTYPE html>
-<html lang="en">
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
 <head>
-	<meta charset="utf-8" />
-	<title>(Atlas)</title>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<title>Maptcha!</title>
+<link href="/static/css/bootstrap.css" rel="stylesheet" type="text/css" />
+<link href="/static/css/maptcha.css" rel="stylesheet" type="text/css" />
 </head>
+
 <body>
+<a name="top"></a>
+<div class="container">
+    <div class="page-header"><a href="http://maptcha.org">maptcha.org</a> / <a href="index.html">{CLIENT_NAME}</a></div>
+    <h1><a href="{{ atlas.href }}">my-maps.csv</a></h1>
 
-    <h1>{{ atlas.name }}</h1>
-    
-    {{ atlas.status }}
-    
-    <ul>
+	<h3>This Atlas ({{ atlas.name }}) contains {{ maps|sumiter }} maps:</h3>
+
+    <h3>Status:{{ atlas.status }}</h3>
+    <table class="table-striped table twenty">
+    	<tr>
+        	<th>Thumbnail</th>
+        	<th>Title</th>
+        	<th>Year</th>
+        	<th>Dropbox Image URL</th>
+        </tr> 
         {% for map in maps %}
-            <li>
-                <a href="/thing/{{ map.image }}"><img src="/thing/{{ map.large }}"></a>
-            </li>
-        {% endfor %}
-    </ul>
-
+            <tr>
+            	<td class="mapThumb"><a href="/thing/{{ map.image }}"><img src="/thing/{{ map.thumb }}" /></a></td>
+            	<td></td>
+            	<td></td> 
+            	<td></td>
+            	<!--
+            	<td>Entrance to San Francisco Bay California.</td>
+            	<td>1859</td>
+            	<td><a href="http://dropbox.com/123">http://dropbox.com/123</a></td> 
+            	-->
+            </tr> 
+            
+        {% endfor %}       
+ 
+	</table>        
+        
+    <div class="footer">
+    	<a href="#top" class="top-jumper">Top &uarr;</a>
+    </div>
+</div> 
+<script type="text/javascript" src="/static/js/uploader.js"></script> 
 </body>
 </html>

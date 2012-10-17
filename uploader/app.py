@@ -65,6 +65,10 @@ def static(filename):
     resp = make_response(body, 200)
     resp.headers['Content-Type'] = guess_type(filename)[0]
     return resp  
+
+@app.template_filter('sumiter')
+def sumiter(s):
+    return sum(1 for _ in s)
     
 if __name__ == '__main__':
     app.debug = True
