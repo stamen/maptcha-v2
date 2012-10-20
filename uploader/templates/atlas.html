@@ -11,9 +11,9 @@
 <a name="top"></a>
 <div class="container">
     <div class="page-header"><a href="http://maptcha.org">maptcha.org</a> / <a href="index.html">{CLIENT_NAME}</a></div>
-    <h1><a href="{{ atlas.href }}">my-maps.csv</a></h1>
+    <h1><a href="{{ atlas.href }}">{{ atlas.name }}</a></h1>
 
-	<h3>This Atlas ({{ atlas.name }}) contains {{ maps|sumiter }} maps:</h3>
+	<h3>This Atlas contains {{ maps|sumiter }} maps:</h3>
 
     <h3>Status:{{ atlas.status }}</h3>
     <table class="table-striped table twenty">
@@ -21,19 +21,15 @@
         	<th>Thumbnail</th>
         	<th>Title</th>
         	<th>Year</th>
-        	<th>Dropbox Image URL</th>
+        	<th>Image URL</th>
         </tr> 
-        {% for map in maps %}
+        {% for map in maps %}  
+        
             <tr>
             	<td class="mapThumb"><a href="/thing/{{ map.image }}"><img src="/thing/{{ map.thumb }}" /></a></td>
-            	<td></td>
-            	<td></td> 
-            	<td></td>
-            	<!--
-            	<td>Entrance to San Francisco Bay California.</td>
-            	<td>1859</td>
-            	<td><a href="http://dropbox.com/123">http://dropbox.com/123</a></td> 
-            	-->
+            	<td>{{map.map_title}}</td>
+            	<td>{{map.date}}</td> 
+            	<td><a href="{{map.image_url}}" title='link to image'>{{map.image_url}}</a></td>
             </tr> 
             
         {% endfor %}       

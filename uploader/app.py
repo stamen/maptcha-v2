@@ -1,6 +1,7 @@
 from os import environ
 from os.path import dirname, join
-from mimetypes import guess_type
+from mimetypes import guess_type 
+
 
 from flask import Flask, request, redirect, render_template, make_response
 
@@ -14,7 +15,19 @@ key, secret, prefix = get_config_vars(dirname(__file__))
 def index():
     '''
     '''
-    return render_template('index.html') 
+    atlas_db = prefix+'atlases'
+    map_db = prefix+'maps' 
+    
+    # get number of atlases
+    # will want to do this on a per client basis
+    atlas_dom = connect_domain(key, secret, atlas_db) 
+    atlas_count = atlas_dom.select("select count(*) from `%s`"%(atlas_db)).next()  
+    
+    #TODO: get last updated time
+    
+    #TODO: get recent list of map's for client
+    
+    return render_template('index.html',atlas_count=atlas_count['Count']) 
 
 @app.route('/upload')
 def upload():
@@ -29,6 +42,10 @@ def thing(path):
     bucket = prefix+'stuff'
     return redirect('http://%(bucket)s.s3.amazonaws.com/%(path)s' % locals())
 
+@app.route('/error')
+def error():
+    return render_template('error.html')
+
 @app.route('/atlas', methods=['POST'])
 def post_atlas(id=None):
     '''
@@ -36,16 +53,24 @@ def post_atlas(id=None):
     #key, secret, prefix = environ['key'], environ['secret'], environ['prefix']
     atlas_dom = connect_domain(key, secret, prefix+'atlases')
     queue = connect_queue(key, secret, prefix+'jobs')
-
-    id = create_atlas(atlas_dom, queue, request.form['url'])
     
-    return redirect('/atlas/%s' % id, code=303)
+    # local files???
+    #f = request.files['url'] 
+    
+    rsp = create_atlas(atlas_dom, queue, request.form['url']) 
+    
+    if 'error' in rsp:
+        return render_template('error.html',msg=rsp)
+    elif 'success' in rsp:
+        return redirect('/atlas/%s' % rsp['success'], code=303)
+    
+    return render_template('error.html',msg={'error':'unknown'})
+
 
 @app.route('/atlas/<id>')
 def get_atlas(id):
     '''
     ''' 
-    
     #key, secret, prefix = environ['key'], environ['secret'], environ['prefix']
     atlas_dom = connect_domain(key, secret, prefix+'atlases')
     map_dom = connect_domain(key, secret, prefix+'maps')

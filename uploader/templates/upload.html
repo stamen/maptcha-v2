@@ -13,10 +13,10 @@
     <div class="container">
         <div class="page-header"><a href="http://maptcha.org">maptcha.org</a> / <a href="index.html">{CLIENT_NAME}</a></div>
         <h1>Upload </h1>
-        <form class="form-actions" action="atlas" method="post">    
-            <p>Choose your Map CSV file:</p>
+        <form class="form-actions" action="atlas" method="post" enctype="multipart/form-data">    
+            <p>URL to Map CSV file:</p>
             <p>
-                <input id="csv-file-selector" name="url" type="file" class="input-xxlarge" /> 
+                <input id="csv-file-selector" name="url" type="text" class="input-xxlarge" /> 
             </p>
             <p id="csv-submit-btn">
                 <button class="btn btn-success disabled" disabled="disabled" type="submit">Submit</button>

@@ -1,10 +1,13 @@
 from os import environ
-import logging
+import logging    
 
-from util import connect_domain, connect_queue, connect_bucket
+from os.path import realpath, dirname, join, exists 
+
+from util import connect_domain, connect_queue, connect_bucket, get_config_vars
 from populate_atlas import populate_atlas
 
-key, secret, prefix = environ['key'], environ['secret'], environ['prefix']
+key, secret, prefix = get_config_vars(dirname(__file__)) 
+#key, secret, prefix = environ['key'], environ['secret'], environ['prefix']
 
 if __name__ == '__main__':
 
