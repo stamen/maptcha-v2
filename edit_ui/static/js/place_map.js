@@ -86,9 +86,9 @@ var garm;
         });
         
         canvasBg.fillColor = '#ccc';
-        canvasBg.strokeColor = "black";
+        canvasBg.strokeColor = "#ccc";
         canvasBg.strokeWidth = 1;   
-        canvasBg.opacity = .5;
+        canvasBg.opacity = 1;
         
         pin.fillColor = '#F8F801';
         pin.strokeColor = '#F8F801';
@@ -467,10 +467,10 @@ var garm;
         if(options['background-map']['provider-alt']){
             backgroundMapProviderComplete = new MM.StamenTileLayer(options['background-map']['provider-alt']).provider;
         } 
+        
+        var size = new MM.Point(windowSize.w,windowSize.h);
+        backgroundMap = new MM.Map(options['background-map']['id'], backgroundMapLayer,size,[new MM.DragHandler(map)]); 
 
-        backgroundMap = new MM.Map(options['background-map']['id'], backgroundMapLayer); 
-
-        backgroundMap.setSize(new MM.Point(windowSize.w,windowSize.h));
         backgroundMap.setCenterZoom(new MM.Location(37.7, -122.4), 12); 
     }
     
