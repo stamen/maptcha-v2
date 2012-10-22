@@ -4,7 +4,11 @@
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 <title>Maptcha!</title>
 <link href="/static/css/bootstrap.css" rel="stylesheet" type="text/css" />
-<link href="/static/css/maptcha.css" rel="stylesheet" type="text/css" />
+<link href="/static/css/maptcha.css" rel="stylesheet" type="text/css" /> 
+
+<script type="text/javascript" src="/static/js/vendor/modestmaps.min.js"></script>
+<script type="text/javascript" src="/static/js/vendor/extent-selector.js"></script>  
+<script type="text/javascript" src="http://maps.stamen.com/js/tile.stamen.js?v1.2.0"></script>
 </head>
 
 <body>
@@ -15,7 +19,55 @@
 
 	<h3>This Atlas contains {{ maps|sumiter }} maps:</h3>
 
-    <h3>Status:{{ atlas.status }}</h3>
+    <h3>Status:{{ atlas.status }}</h3>  
+    
+    <div id='atlas-hints'>
+        <p>Please spend a moment giving people some clues about the area that this atlas covers.</p>
+   
+        <form action="/atlas/{{ atlas.name }}" method="post"> 
+        
+        <input name="ul_lat" id="ul_lat" type="hidden">
+        <input name="ul_lon" id="ul_lon" type="hidden">
+        <input name="lr_lat" id="lr_lat" type="hidden"> 
+        <input name="lr_lon" id="lr_lon" type="hidden"> 
+        
+        <div class="row">
+    		<div class="span4 twenty">       
+            
+                <p>Help define a bounding box for all the maps <br />
+    in this atlas. Add a few places you know <br />
+    are on the maps, then hit refresh below.</p>
+                <p class="twenty"><input type="text" value="" /></p>
+                <p><input type="text" value="" /></p>
+                <p><input type="text" /></p>
+                <p><input type="text" /></p>
+                <p><input type="text" /></p>
+                <p><input type="text" /></p>
+            
+                <button class="btn-primary">Refresh Map</button>
+            </div>
+            <div class="span8 twenty">
+            	<p>Does the area contain all your maps, do you think?</p>
+            	<div id='atlas-map' style='width:100%; height:420px;'>
+            	    <div class="zoom-controls">  
+                        <a href="#" id="zoom-in">+</a> 
+                        <a href="#" id="zoom-out">&ndash;</a>
+                    </div> 
+                    <div id="extent" class="map-extent"></div>
+                    <label for="extent-lock" id="extent-lock-label">Lock extent: 
+                    <input id="extent-lock" type="checkbox" checked="checked"/></label>
+            	</div>  
+            	<!-- <iframe width="100%" height="420" src="http://maps.stamen.com/toner-lite/embed#12/37.7706/-122.3782"></iframe>  -->
+            </div>
+    	</div>    
+    
+        <div class="row twenty submit">
+        	<button class="btn-success btn-large">Save</button>
+        </div>
+        
+        </form> 
+    </div>
+    
     <table class="table-striped table twenty">
     	<tr>
         	<th>Thumbnail</th>
@@ -39,7 +91,63 @@
     <div class="footer">
     	<a href="#top" class="top-jumper">Top &uarr;</a>
     </div>
-</div> 
+</div>                                                                
+
 <script type="text/javascript" src="/static/js/uploader.js"></script> 
+<script type="text/javascript" defer> 
+
+var layer = new MM.StamenTileLayer("toner-lite");
+var map = new MM.Map("atlas-map", layer);
+map.setCenterZoom(new MM.Location(37.7, -122.4), 9);  
+
+var zoomIn = document.getElementById("zoom-in");
+var zoomOut = document.getElementById("zoom-out");
+zoomIn.onclick = function(){
+    map.zoomIn();
+    return false;
+} 
+zoomOut.onclick = function(){
+    map.zoomOut();
+    return false;
+} 
+
+// extent selector
+var ul_lat = document.getElementById("ul_lat"),
+    ul_lon = document.getElementById("ul_lon"),
+    lr_lat = document.getElementById("lr_lat"),
+    lr_lon = document.getElementById("lr_lon");
+    
+var selector = new MM.ExtentSelector(document.getElementById("extent"));
+selector.allowMoveCenter = false;
+map.addLayer(selector);
+selector.addCallback("extentset", function(o, ext) {
+   ul_lat.value = ext.north;
+   ul_lon.value = ext.west;
+   lr_lat.value = ext.south;
+   lr_lon.value = ext.east; 
+});
+
+var checkbox = document.getElementById("extent-lock");
+MM.addEvent(checkbox, "change", function(e) {
+   selector.allowMoveCenter = !checkbox.checked;
+}); 
+
+
+function updateSelector(){
+    var dim = map.dimensions;
+    var ctrPt = map.locationPoint(map.getCenter()); 
+    
+    dim.x *= .70;
+    dim.y *= .70;
+    
+    var ne = new MM.Point(ctrPt.x + dim.x/2, ctrPt.y - dim.y/2);
+    var sw = new MM.Point(ctrPt.x - dim.x/2 , ctrPt.y + dim.y/2); 
+
+    selector.setExtent([map.pointLocation(ne),map.pointLocation(sw)]);
+
+} 
+updateSelector();  
+
+</script>
 </body>
 </html>

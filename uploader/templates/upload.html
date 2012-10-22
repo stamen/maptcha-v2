@@ -13,22 +13,22 @@
     <div class="container">
         <div class="page-header"><a href="http://maptcha.org">maptcha.org</a> / <a href="index.html">{CLIENT_NAME}</a></div>
         <h1>Upload </h1>
-        <form class="form-actions" action="atlas" method="post" enctype="multipart/form-data">    
+        <form class="form-actions" action="atlas" method="post">
             <p>URL to Map CSV file:</p>
             <p>
-                <input id="csv-file-selector" name="url" type="text" class="input-xxlarge" /> 
+                <input id="csv-file-selector" name="url" type="text" class="input-xxlarge"/> 
             </p>
             <p id="csv-submit-btn">
                 <button class="btn btn-success disabled" disabled="disabled" type="submit">Submit</button>
             </p> 
-            <p><a href="step2-error-check.html">Pretend like you've hit upload</a></p>
+            <!--<p><a href="step2-error-check.html">Pretend like you've hit upload</a></p>-->
         </form>
         <h2>How To</h2>
     
         <div class="row">
-        	<div class="span4">
+            <div class="span4">
                 <p>To upload a series of maps into Maptcha, you need to upload a CSV that contains a row for each map. There are 4 required fields, but more is encouraged.</p>
-                <p>Here's <a href="maptcha-example-csv-file.csv">an example CSV file</a> to get you started.</p>
+                <p>Here's <a href="/static/maptcha-example-csv-file.csv">an example CSV file</a> to get you started.</p>
             </div>
             <div class="span8">
                 <h3>Map Metadata Fields <small>Red means <span class="required">required</span></small></h3>

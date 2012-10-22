@@ -44,6 +44,8 @@ def thing(path):
 
 @app.route('/error')
 def error():
+    '''
+    '''
     return render_template('error.html')
 
 @app.route('/atlas', methods=['POST'])
@@ -53,10 +55,7 @@ def post_atlas(id=None):
     #key, secret, prefix = environ['key'], environ['secret'], environ['prefix']
     atlas_dom = connect_domain(key, secret, prefix+'atlases')
     queue = connect_queue(key, secret, prefix+'jobs')
-    
-    # local files???
-    #f = request.files['url'] 
-    
+
     rsp = create_atlas(atlas_dom, queue, request.form['url']) 
     
     if 'error' in rsp:
@@ -91,6 +90,7 @@ def static(filename):
     resp.headers['Content-Type'] = guess_type(filename)[0]
     return resp  
 
+# gets count of iterator
 @app.template_filter('sumiter')
 def sumiter(s):
     return sum(1 for _ in s)

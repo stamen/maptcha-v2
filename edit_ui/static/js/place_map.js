@@ -656,9 +656,7 @@
         updateOldMap();
     }
     
-    
-    
-    
+
     /// GEOCODER 
     YTOB.Geocoder = function(){  
         if(geocoder)return geocoder;
