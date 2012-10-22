@@ -201,7 +201,7 @@ var garm;
         if(!activeDrag) {
             return;
         }
-         
+
         var x = Math.max(padding, Math.min(paper.view.bounds.right - padding, event.point.x)),
             y = Math.max(padding, Math.min(paper.view.bounds.bottom - padding, event.point.y));
 
@@ -336,7 +336,6 @@ var garm;
         
         paper.view.viewSize = new paper.Size(w,h); 
         
-        
         paper.view.draw();
     } 
     
@@ -411,43 +410,36 @@ var garm;
         image.setMatrix(xform); 
 
         pin = new paper.Path.Oval(new paper.Rectangle(paper.view.center.x - 13, paper.view.center.y - 13, 26, 26));  
+        
         var handleBk = new paper.Path.Rectangle(paper.view.center.x - 13, paper.view.center.y - 13, 26, 26) 
-
-        imageHint = new paper.PointText(new paper.Point(60, 25));
-        handleHint = new paper.PointText(paper.view.center); 
-         
-      
+        
+        // little markers in the handle
         var lineSize = 7;
-        var pt1 = new paper.Point(paper.view.center.x ,paper.view.center.y - lineSize);
-        var pt2 = new paper.Point(paper.view.center.x + lineSize,paper.view.center.y - lineSize); 
-        var pt3 = new paper.Point(paper.view.center.x + lineSize,paper.view.center.y );
+        var mark1 = new paper.Path();
+        var mark2 = new paper.Path();
         
-        var pt4 = new paper.Point(paper.view.center.x - lineSize ,paper.view.center.y);
-        var pt5 = new paper.Point(paper.view.center.x - lineSize ,paper.view.center.y + lineSize);
-        var pt6 = new paper.Point(paper.view.center.x ,paper.view.center.y + lineSize); 
-        var lin = new paper.Path();
-        var linBottom = new paper.Path();
+        mark1.strokeColor = "black";
+        mark1.strokeWidth = 2;
+        mark1.fillColor = "black";
+        mark2.strokeColor = "black";
+        mark2.strokeWidth = 2;
+        mark2.fillColor = "black";
         
-
-        lin.strokeColor = "black";
-        lin.strokeWidth = 2;
-        lin.fillColor = "black";
-        linBottom.strokeColor = "black";
-        linBottom.strokeWidth = 2;
-        linBottom.fillColor = "black";
+        mark1.add( new paper.Point(paper.view.center.x ,paper.view.center.y - lineSize) );
+        mark1.add( new paper.Point(paper.view.center.x + lineSize,paper.view.center.y - lineSize) );
+        mark1.add( new paper.Point(paper.view.center.x + lineSize,paper.view.center.y ) );
+        mark2.add( new paper.Point(paper.view.center.x - lineSize ,paper.view.center.y) );
+        mark2.add( new paper.Point(paper.view.center.x - lineSize ,paper.view.center.y + lineSize) );
+        mark2.add( new paper.Point(paper.view.center.x ,paper.view.center.y + lineSize) );
         
-        lin.add(pt1)
-        lin.add(pt2)
-        lin.add(pt3)
-        linBottom.add(pt4)
-        linBottom.add(pt5)
-        linBottom.add(pt6)
+        handle = new paper.Group([handleBk,mark1,mark2]);
         
-        handle = new paper.Group([handleBk,lin,linBottom]);
+        imageHint = new paper.PointText(new paper.Point(60, 25));
+        handleHint = new paper.PointText(paper.view.center);
         
         rotator = new paper.Group([pin, handle, handleHint]);
         rotator.visible = false;
-
+        
         handle.rotate(45 - handle.position.angle);
         
         setCanvasObjects();
@@ -456,13 +448,13 @@ var garm;
         var tool = new paper.Tool();
         tool.onMouseDown = onMouseDown; 
         tool.onMouseMove = onMouseMove;
-        tool.onMouseUp = onMouseUp;   
+        tool.onMouseUp = onMouseUp;
         
         updateImagePosition(); 
         
         updateArmAndCircle();
         
-        paper.view.draw();  
+        paper.view.draw();
 
     } 
 
