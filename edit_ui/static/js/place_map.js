@@ -1,4 +1,3 @@
-var garm;
 (function(exports){
 
 
@@ -75,7 +74,7 @@ var garm;
     var lastRot = 0;     
     
     function setCanvasObjects(){ 
-        
+        var hintStyles = { fillColor: 'black', fontSize: '16', font: 'Helvetica, Arial, sans-serif' };
         $("#zoom-controls-canvas").find('.zoom-in').on('click',function(e){
             e.preventDefault();
             zoomInAbout(paper.view.center); 
@@ -95,14 +94,12 @@ var garm;
         pin.strokeWidth = 1;
 
         handle.fillColor = '#F8F801';
-        //handle.strokeColor = '#F8F801';
-        //handle.strokeWidth = 2;
 
         imageHint.content = '(Drag to move)';
-        imageHint.characterStyle = { fillColor: 'black', fontSize: '16', font: 'Helvetica, Arial, sans-serif' };
+        imageHint.characterStyle = hintStyles;
 
         handleHint.content = '(Rotate & scale)';
-        handleHint.characterStyle = { fillColor: 'black', fontSize: '16', font: 'Helvetica, Arial, sans-serif' };
+        handleHint.characterStyle = hintStyles;
 
         pin.position = paper.view.center;   
         
@@ -125,16 +122,12 @@ var garm;
         var newEndPt = new paper.Point(0,0);
         newEndPt.x = handle.position.x + (handle.position.x - pin.position.x) / lenAB * newLength;
         newEndPt.y = handle.position.y + (handle.position.y - pin.position.y) / lenAB * newLength;    
-        var angle =  Math.atan2((newEndPt.y - pin.position.y), (newEndPt.x - pin.position.x)) * (180/Math.PI); 
-        
-        //angle += 360;
-        //angle %= 360;                    
-        
+        //var angle =  Math.atan2((newEndPt.y - pin.position.y), (newEndPt.x - pin.position.x)) * (180/Math.PI); 
+
         arm = new paper.Path.Line(newEndPt, pin.position) 
         
         var rot = xform.getRotation();
-        
-        
+
         handle.rotate( rot - lastRot )
         lastRot = rot; 
 
@@ -152,7 +145,6 @@ var garm;
 
         circle = new paper.Path.Arc(s, c, e); 
 
-        
         rotator.insertChild(0, circle);
 
         circle.strokeColor = '#F8F801';
@@ -160,10 +152,7 @@ var garm;
         circle.opacity = 1;
         circle.dashArray = [14, 7];
 
-
         handleHint.position = addPoints(handle.position , new paper.Point(-170, 5)); 
-
-        garm = handle;
     }
     
     function onMouseDown(event)
