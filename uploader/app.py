@@ -11,12 +11,6 @@ from data import create_atlas
 app = Flask(__name__) 
 key, secret, prefix = get_config_vars(dirname(__file__))
 
-@app.route('/upload')
-def upload():
-    '''
-    '''
-    return render_template('upload.html') 
-
 @app.route('/thing/<path:path>')
 def thing(path):
     '''

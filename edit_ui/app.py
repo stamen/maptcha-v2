@@ -44,6 +44,11 @@ def index():
     
     return render_template('index.html',atlas_count=atlas_count['Count']) 
 
+def upload():
+    '''
+    '''
+    return render_template('upload.html') 
+
 def place_rough_map(id):
     '''
     '''
@@ -98,6 +103,7 @@ app = Flask(__name__)
 app.add_url_rule('/thing/<path:path>', 'thing', thing)
 app.add_url_rule('/static/<path:path>', 'static', static)
 app.add_url_rule('/', 'index', index)
+app.add_url_rule('/upload', 'upload', upload)
 app.add_url_rule('/place-rough/map/<id>', 'get/post map rough placement', place_rough_map, methods=['GET', 'POST'])
 app.add_url_rule('/place-rough/atlas/<id>', 'get atlas rough placement', place_rough_atlas)
 app.add_url_rule('/atlases', 'get atlases', get_atlases)
