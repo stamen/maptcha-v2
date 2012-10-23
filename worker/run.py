@@ -1,3 +1,9 @@
+''' Run me with cron:
+
+# m h  dom mon dow   command
+* * * * *   cd yearofthebay && python worker/run.py
+
+'''
 from os import environ
 from time import time, sleep
 import logging    
