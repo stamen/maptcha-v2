@@ -103,6 +103,14 @@ def post_atlas(id=None):
     
     return render_template('error.html', msg={'error':'unknown'})
 
+def get_atlas(id):
+    '''
+    ''' 
+    atlas = atlas_dom.get_item(id)
+    maps = map_dom.select("select * from `%s` where atlas = '%s'" % (map_dom.name, atlas.name))
+    
+    return render_template('atlas.html', atlas=atlas, maps=maps)
+
 def get_atlases():
     '''
     '''
@@ -113,6 +121,11 @@ def get_atlases():
     
     return jsonify(dict(atlases=atlases))
 
+def sumiter(s):
+    ''' gets count of iterator
+    '''
+    return sum(1 for _ in s)
+    
 app = Flask(__name__)
 
 app.add_url_rule('/thing/<path:path>', 'thing', thing)
@@ -123,6 +136,9 @@ app.add_url_rule('/place-rough/map/<id>', 'get/post map rough placement', place_
 app.add_url_rule('/place-rough/atlas/<id>', 'get atlas rough placement', place_rough_atlas)
 app.add_url_rule('/atlases', 'get atlases', get_atlases)
 app.add_url_rule('/atlas', 'post atlas', post_atlas, methods=['POST'])
+app.add_url_rule('/atlas/<id>', 'get atlas', get_atlas)
+
+app.add_template_filter(sumiter)
 
 if __name__ == '__main__':
     app.debug = True

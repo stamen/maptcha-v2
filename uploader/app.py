@@ -24,19 +24,6 @@ def error():
     return render_template('error.html')
 
 
-@app.route('/atlas/<id>')
-def get_atlas(id):
-    '''
-    ''' 
-    #key, secret, prefix = environ['key'], environ['secret'], environ['prefix']
-    atlas_dom = connect_domain(key, secret, prefix+'atlases')
-    map_dom = connect_domain(key, secret, prefix+'maps')
-
-    atlas = atlas_dom.get_item(id)
-    maps = map_dom.select("select * from `%s` where atlas = '%s'" % (map_dom.name, atlas.name))
-    
-    return render_template('atlas.html', atlas=atlas, maps=maps)
-
 @app.route('/static/<path:path>')
 def static(filename):
     '''
@@ -48,11 +35,6 @@ def static(filename):
     resp.headers['Content-Type'] = guess_type(filename)[0]
     return resp  
 
-# gets count of iterator
-@app.template_filter('sumiter')
-def sumiter(s):
-    return sum(1 for _ in s)
-    
 if __name__ == '__main__':
     app.debug = True
     app.run(host='127.0.0.1', port=8080)
