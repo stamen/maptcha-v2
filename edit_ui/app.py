@@ -28,6 +28,22 @@ def static(filename):
     resp.headers['Content-Type'] = guess_type(filename)[0]
     return resp
 
+def index():
+    '''
+    '''
+    atlas_db = aws_prefix+'atlases'
+    map_db = aws_prefix+'maps' 
+    
+    # get number of atlases
+    # will want to do this on a per client basis
+    atlas_count = atlas_dom.select("select count(*) from `%s`" % atlas_db).next()  
+    
+    #TODO: get last updated time
+    
+    #TODO: get recent list of map's for client
+    
+    return render_template('index.html',atlas_count=atlas_count['Count']) 
+
 def place_rough_map(id):
     '''
     '''
@@ -81,6 +97,7 @@ app = Flask(__name__)
 
 app.add_url_rule('/thing/<path:path>', 'thing', thing)
 app.add_url_rule('/static/<path:path>', 'static', static)
+app.add_url_rule('/', 'index', index)
 app.add_url_rule('/place-rough/map/<id>', 'get/post map rough placement', place_rough_map, methods=['GET', 'POST'])
 app.add_url_rule('/place-rough/atlas/<id>', 'get atlas rough placement', place_rough_atlas)
 app.add_url_rule('/atlases', 'get atlases', get_atlases)

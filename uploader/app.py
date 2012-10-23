@@ -11,24 +11,6 @@ from data import create_atlas
 app = Flask(__name__) 
 key, secret, prefix = get_config_vars(dirname(__file__))
 
-@app.route('/')
-def index():
-    '''
-    '''
-    atlas_db = prefix+'atlases'
-    map_db = prefix+'maps' 
-    
-    # get number of atlases
-    # will want to do this on a per client basis
-    atlas_dom = connect_domain(key, secret, atlas_db) 
-    atlas_count = atlas_dom.select("select count(*) from `%s`"%(atlas_db)).next()  
-    
-    #TODO: get last updated time
-    
-    #TODO: get recent list of map's for client
-    
-    return render_template('index.html',atlas_count=atlas_count['Count']) 
-
 @app.route('/upload')
 def upload():
     '''
