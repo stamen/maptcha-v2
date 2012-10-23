@@ -16,6 +16,7 @@ dd {
     font-weight: bold;
 }
 
+
 .twenty {
 	margin-top: 20px;
 }
@@ -28,6 +29,18 @@ td.mapThumb {
 } 
 .mapThumb img {
 	margin-left: auto; margin-right: auto;
+}
+
+td.mapThumb.empty{
+    width:150px;
+    height:150px;
+    background:url('/static/styles/imgs/loading.gif') 50% 50% no-repeat;
+}
+td.mapThumb.empty a{
+    display:none;
+}
+td.mapThumb.finished a{
+    display: block;
 }
 
 .bigMap {

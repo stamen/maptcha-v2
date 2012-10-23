@@ -78,7 +78,7 @@
         </tr> 
         {% for map in maps %}  
             <tr>
-            	<td class="mapThumb"><a href="/thing/{{ map.image }}"><img src="/thing/{{ map.thumb }}" /></a></td>
+            	<td class="mapThumb empty" map-id="{{map.name}}"><a href="/thing/{{ map.image }}"><img src="/thing/{{ map.thumb }}" /></a></td>
             	<td>{{map.map_title}}</td>
             	<td>{{map.date}}</td> 
             	<td><a href="{{map.image_url}}" title='link to image'>{{map.image_url}}</a></td>
@@ -94,6 +94,20 @@
 
 <script type="text/javascript" src="/static/js/uploader.js"></script> 
 <script type="text/javascript" defer> 
+
+var empties = getElementsByClass('empty'); 
+if(empties){
+    var queue = [];
+    for(var i=0;i<empties.length;i++){
+        queue.push({
+            'id':empties[i].getAttribute('map-id'),
+            'dom':empties[i]
+        });
+    }
+    poller.queue = queue;
+    poller.run();
+} 
+
 
 var layer = new MM.StamenTileLayer("toner-lite");
 var map = new MM.Map("atlas-map", layer);

@@ -11,18 +11,33 @@ function timeConverter(UNIX_timestamp){
     var new_date = new Date(yr,month,day,hour,min,sec,milli);
 
     return new_date;
+}
+
+function getElementsByClass(searchClass,node,tag) {
+	var classElements = new Array();
+	if ( node == null )
+		node = document;
+	if ( tag == null )
+		tag = '*';
+	var els = node.getElementsByTagName(tag);
+	var elsLen = els.length;
+	var pattern = new RegExp("(^|\\s)"+searchClass+"(\\s|$)");
+	for (i = 0, j = 0; i < elsLen; i++) {
+		if ( pattern.test(els[i].className) ) {
+			classElements[j] = els[i];
+			j++;
+		}
+	}
+	return classElements;
 } 
 
 //
 var poller = {
-    queue:[], // {id:ID to check, dom:related dom element to update}
+    queue:[], // {id:ID to check, dom:related dom element to update} 
     run: function(){  
-
-        if (this.queue.length <= 0)return; 
+        if (!this.queue.length)return; 
         var url = "/check-map-status/"+this.queue[this.queue.length-1].id 
         this.xhr(url);
-        
-        
     },
     resp: function(r){ 
        if(r && r.response){
@@ -33,14 +48,15 @@ var poller = {
           }
           
           if (json['status'] == "finished"){ 
-              var dom = this.queue.dom;
-              //
+              var dom = this.queue[this.queue.length-1].dom;
+              dom.classList.remove('empty');
+              dom.classList.add('finished');
               this.queue.pop();
               
-              
-          } 
-            
-          this.run();
+          }
+         
+         this.run(); 
+         //this.run(q)
        }
       
     },
