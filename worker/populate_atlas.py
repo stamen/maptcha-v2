@@ -53,7 +53,48 @@ def populate_atlas(atlas_dom, map_dom, bucket, id):
     atlas['status'] = 'uploaded'
     atlas.save()
 
-def create_atlas_map(map_dom, bucket, atlas_id, map_url, map_name, row):
+def create_atlas_map(atlas_dom, map_dom, bucket, map_id):
+    #atlas = atlas_dom.get_item(id,consistent_read=True)
+    map = map_dom.get_item(map_id,consistent_read=True)
+    map_url = map['image_url']
+    #atlas = atlas_dom.get_item(map['atlas'],consistent_read=True)
+    #
+    # Full-size image
+    #
+    key = bucket.new_key(map['image'])
+    head = {'Content-Type': guess_type(map_url)[0]}
+    body = StringIO(urlopen(map_url).read())
+
+    key.set_contents_from_string(body.getvalue(), headers=head, policy='public-read')
+    image = Image.open(body)
+
+    #
+    # Large image
+    #
+    key = bucket.new_key(map['large'])
+    head = {'Content-Type': 'image/jpeg'}
+    body = StringIO()
+
+    image.thumbnail((2048, 2048), Image.ANTIALIAS)
+    image.save(body, 'JPEG')
+    key.set_contents_from_string(body.getvalue(), headers=head, policy='public-read')
+
+    #
+    # Thumbnail image
+    #
+    key = bucket.new_key(map['thumb'])
+    head = {'Content-Type': 'image/jpeg'}
+    body = StringIO()
+
+    image.thumbnail((150, 150), Image.ANTIALIAS)
+    image.save(body, 'JPEG')
+    key.set_contents_from_string(body.getvalue(), headers=head, policy='public-read') 
+    
+    map['status'] = 'finished'
+    map.save()
+
+    
+def create_atlas_map_old(map_dom, bucket, atlas_id, map_url, map_name, row):
     '''
     '''
     scheme, host, path, q, p, f = urlparse(map_url)

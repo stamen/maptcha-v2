@@ -6,17 +6,7 @@ window.onload = function(){
     var jumpStart = null;
     var jumpMove = 0;
     
-    if(fileSelector && submitBtn){
-        fileSelector.onchange = function(){ 
-            if(this.value){
-                submitBtn.disabled = false;
-                submitBtn.classList.remove('disabled');
-            }else{
-                submitBtn.disabled = true;
-                submitBtn.classList.add('disabled');
-            } 
-        }
-     }  
+    
      
     if(jumpers){   
          for(var i=0;i<jumpers.length;i++){

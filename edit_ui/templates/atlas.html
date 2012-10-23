@@ -9,13 +9,14 @@
 <script type="text/javascript" src="/static/js/vendor/modestmaps.min-old.js"></script>
 <script type="text/javascript" src="/static/js/vendor/extent-selector.js"></script>  
 <script type="text/javascript" src="http://maps.stamen.com/js/tile.stamen.js?v1.2.0"></script>
+<script type="text/javascript" src="/static/js/common.js"></script>
 </head>
 
 <body>
 <a name="top"></a>
 <div class="container">
-    <div class="page-header"><a href="http://maptcha.org">maptcha.org</a> / <a href="index.html">{CLIENT_NAME}</a></div>
-    <h1><a href="{{ atlas.href }}">{{ atlas.name }}</a></h1>
+    <div class="page-header"><a href="http://maptcha.org">maptcha.org</a> / <a href="index.html">{{atlas.affiliation}}</a></div>
+    <h1><a href="{{ atlas.href }}">{{ atlas.title }}</a></h1>
 
 	<h3>This Atlas contains {{ maps|sumiter }} maps:</h3>
 
@@ -76,14 +77,12 @@
         	<th>Image URL</th>
         </tr> 
         {% for map in maps %}  
-        
             <tr>
             	<td class="mapThumb"><a href="/thing/{{ map.image }}"><img src="/thing/{{ map.thumb }}" /></a></td>
             	<td>{{map.map_title}}</td>
             	<td>{{map.date}}</td> 
             	<td><a href="{{map.image_url}}" title='link to image'>{{map.image_url}}</a></td>
             </tr> 
-            
         {% endfor %}       
  
 	</table>        

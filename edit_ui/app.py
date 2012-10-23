@@ -91,10 +91,9 @@ def place_rough_atlas(id):
 def post_atlas(id=None):
     '''
     '''
-    #key, secret, prefix = environ['key'], environ['secret'], environ['prefix']
     queue = connect_queue(aws_key, aws_secret, aws_prefix+'jobs')
 
-    rsp = create_atlas(atlas_dom, queue, request.form['url']) 
+    rsp = create_atlas(atlas_dom, map_dom, queue, request.form['url'], request.form['atlas-name'], request.form['atlas-affiliation']) 
     
     if 'error' in rsp:
         return render_template('error.html',msg=rsp)
@@ -119,8 +118,17 @@ def get_atlases():
     atlases = [dict(status=a['status'], name=a.name, rough_href='/place-rough/atlas/%s' % a.name)
                for a in atlas_dom.select(q)]
     
-    return jsonify(dict(atlases=atlases))
-
+    return jsonify(dict(atlases=atlases)) 
+    
+def check_map_status(id=None):
+    rsp = 'error'
+    if id:
+        map = map_dom.get_item(id,consistent_read=True)
+        if map:
+            rsp = map['status']
+    
+    return jsonify(status=rsp)
+  
 def sumiter(s):
     ''' gets count of iterator
     '''
@@ -137,6 +145,7 @@ app.add_url_rule('/place-rough/atlas/<id>', 'get atlas rough placement', place_r
 app.add_url_rule('/atlases', 'get atlases', get_atlases)
 app.add_url_rule('/atlas', 'post atlas', post_atlas, methods=['POST'])
 app.add_url_rule('/atlas/<id>', 'get atlas', get_atlas)
+app.add_url_rule('/check-map-status/<id>', 'get map status', check_map_status, methods=['GET'])
 
 app.add_template_filter(sumiter)
 

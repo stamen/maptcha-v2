@@ -11,7 +11,7 @@ import logging
 from os.path import realpath, dirname, join, exists 
 
 from util import connect_domain, connect_queue, connect_bucket, get_config_vars
-from populate_atlas import populate_atlas
+from populate_atlas import populate_atlas, create_atlas_map
 
 key, secret, prefix = get_config_vars(dirname(__file__)) 
 #key, secret, prefix = environ['key'], environ['secret'], environ['prefix']
@@ -36,11 +36,11 @@ if __name__ == '__main__':
             msg = message.get_body()
             logging.info(msg)
             
-            if msg.startswith('populate atlas '):
+            if msg.startswith('create map '):
                 map_dom = connect_domain(key, secret, prefix+'maps')
                 atlas_dom = connect_domain(key, secret, prefix+'atlases')
-    
-                populate_atlas(atlas_dom, map_dom, bucket, msg[len('populate atlas '):])
+                create_atlas_map(atlas_dom, map_dom, bucket, msg[len('create map '):])
+                #populate_atlas(atlas_dom, map_dom, bucket, msg[len('populate atlas '):])
             
             queue.delete_message(message)
         

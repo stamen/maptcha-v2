@@ -14,8 +14,17 @@
     <h1>Error:</h1>
 
     
-    <div class="alert-error">{{msg.error}}</div>
+    <div class="alert-error">{{msg.error}}</div>  
     
+    {% if msg.rows%} 
+    <ul> 
+       
+        {% for row in msg.rows %}  
+        <li>ROW {{row.idx}}: {{row.err}}</li>
+        {% endfor %} 
+        
+    </ul>
+    {% endif %}
     <a href="/upload">Correct errors above and try upload again.</a>
     
     <div class="footer">

@@ -1,14 +1,18 @@
 from uuid import uuid1
 from time import time
 from random import choice
-from urllib import urlopen
+from urllib import urlopen 
+from os.path import basename, splitext 
+from urlparse import urljoin, urlparse
 from csv import DictReader
+import re 
 
-from util import connect_domain
+from util import connect_domain, check_url
 
 from boto.exception import SDBResponseError
 
 required_fields = ['map_title', 'date', 'image_url']
+reserved_keys = ['image','large','thumb','atlas']
 
 def generate_id():
     '''
@@ -24,27 +28,69 @@ def connect_domains(key, secret, prefix):
     return domains
     
 def validate_required_fields(keys):
-    errors = 0
+    errors = []
     for field in required_fields: 
         if field not in keys:
-            errors += 1
+            errors.append(field)
         
     return errors
+
+def slugify(w):
+    w = w.strip().lower()
+    return re.sub(r'\W+','_',w)
+        
+def normalize_rows(rows):
+    normalized = []
+    for row in rows:
+        obj = {}
+        for item in row:
+            norm_key = slugify(item)
+
+            if norm_key in reserved_keys:
+                norm_key = "__" + norm_key
+                
+            obj[norm_key] = row[item]
+        normalized.append(obj) 
+        
+    return normalized
     
-def create_atlas(domain, queue, url):
+def create_atlas(domain, map_dom, queue, url, name, affiliation):
     '''
     '''
-    row = DictReader(urlopen(url)).next()
+    temp = list(DictReader(urlopen(url)))
+    
+    rows = normalize_rows(temp)
     
     # normalize keys
-    keys = [key.lower().replace(' ', '_') for key in row.keys()]
+    #keys = [key.lower().replace(' ', '_') for key in rows[0].keys()]
     
-    missing_fields = validate_required_fields(keys) 
+    missing_fields = validate_required_fields(rows[0].keys()) 
     
     #
-    if missing_fields > 0:
-        return {'error':"missing keys"}
-        
+    # validate fields
+    #
+    if len(missing_fields) > 0:
+        return {'error':"Missing the following keys in you CSV file: %s"%(",".join(missing_fields))}
+    
+    #
+    # validate images
+    # 
+    
+    # need to know the image_col name
+    #img_col = filter(lambda x: x.lower().replace(' ', '_') == "image_url", rows[0].keys())[0]
+    invalid_urls = []
+    for idx, row in enumerate(rows):
+        valid_url = check_url(row['image_url'])
+        if not valid_url:
+            row_num = idx+1
+            invalid_urls.append({'idx':row_num,'err':row['image_url']})
+            
+    if len(invalid_urls):
+        return {'error':"There were some invalid Image URL's","rows":invalid_urls} 
+    
+    
+    
+    
     #if 'address' not in row:
         #raise ValueError('Missing "address" in %(url)s' % locals())
 
@@ -53,17 +99,46 @@ def create_atlas(domain, queue, url):
     #
     atlas = domain.new_item(str(uuid1()))
     atlas['href'] = url
-    atlas['status'] = 'empty'
+    atlas['timestamp'] = time()
+    atlas['title'] = name
+    atlas['affiliation'] = affiliation
+    atlas['status'] = 'uploaded'
     atlas.save()
+    
+    #
+    # add maps
+    #
+    for row in rows:
+        scheme, host, path, q, p, f = urlparse(row['image_url'])
+
+        image_name = basename(path)
+        map = map_dom.new_item(str(uuid1()))
+        map['image'] = 'maps/%s/%s' % (map.name, image_name)
+        map['large'] = 'maps/%s/%s-large.jpg' % (map.name, splitext(image_name)[0])
+        map['thumb'] = 'maps/%s/%s-thumb.jpg' % (map.name, splitext(image_name)[0])
+        map['atlas'] = atlas.name
+        map['status'] = 'empty'
+        
+        for item in row:
+            map[item] = row[item]
+            
+        map.save() 
+        
+        message = queue.new_message('create map %s' % map.name)
+        queue.write(message)
+        
 
     #
     # Queue the atlas for processing.
     #
-    message = queue.new_message('populate atlas %s' % atlas.name)
-    queue.write(message)
+    #message = queue.new_message('populate atlas %s' % atlas.name)
+    
 
     return {'success':atlas.name}
-                   
+
+def create_atlas_map():
+    pass
+                       
 def choose_map(map_dom, atlas_id=None, skip_map_id=None):
     '''
     '''

@@ -14,13 +14,24 @@
         <div class="page-header"><a href="http://maptcha.org">maptcha.org</a> / <a href="index.html">{CLIENT_NAME}</a></div>
         <h1>Upload </h1>
         <form class="form-actions" action="atlas" method="post">
+            <p>Name of Atlas:</p>
+            <p>
+                <input id="atlas-name" name="atlas-name" type="text" class="input-xxlarge"/>
+                <span class="help-inline">*</span> 
+            </p>
+            <p>Institutional Affiliation:</p>
+            <p>
+                <input id="atlas-affiliation" name="atlas-affiliation" type="text" class="input-xxlarge"/>
+                <span class="help-inline">*</span> 
+            </p>
             <p>URL to Map CSV file:</p>
             <p>
-                <input id="csv-file-selector" name="url" type="text" class="input-xxlarge"/> 
+                <input id="csv-file-selector" name="url" type="text" class="input-xxlarge"/>
+                <span class="help-inline">*</span> 
             </p>
             <p id="csv-submit-btn">
-                <button class="btn btn-success disabled" disabled="disabled" type="submit">Submit</button>
-            </p> 
+                <button class="btn btn-success" type="submit">Submit</button>
+            </p>
             <!--<p><a href="step2-error-check.html">Pretend like you've hit upload</a></p>-->
         </form>
         <h2>How To</h2>
@@ -40,7 +51,7 @@
                     <dt><span class="required">Date</span></dt>
                     <dd>When the map was made. A year is enough information.<br />
                         <code class="example">1859</code></dd>
-                    <dt><span class="required">Dropbox_Image_URL</span></dt>
+                    <dt><span class="required">Image_URL</span></dt>
                     <dd>This must be a fully qualified URL (with the http://) to a <strong>public</strong> <a href="https://www.dropbox.com/">DropBox</a> repository where Maptcha can access an actual image file. That means the URL needs to point at a .jpg or .tif. Please link to the largest possible image size.<br />
                         <code class="example">http://dropbox.com/8467/8075467309_d1eb3cee97_o.jpg</code></dd>
                 
