@@ -5,7 +5,7 @@ from mimetypes import guess_type
 from flask import Flask, request, redirect, render_template, jsonify, make_response
 
 from util import connect_queue, get_config_vars
-from data import connect_domains, place_roughly, choose_map
+from data import connect_domains, place_roughly, choose_map, create_atlas
 
 aws_key, aws_secret, aws_prefix = get_config_vars(dirname(__file__))
 
@@ -88,6 +88,21 @@ def place_rough_atlas(id):
     
     return redirect('/place-rough/map/%s' % map.name)    
 
+def post_atlas(id=None):
+    '''
+    '''
+    #key, secret, prefix = environ['key'], environ['secret'], environ['prefix']
+    queue = connect_queue(aws_key, aws_secret, aws_prefix+'jobs')
+
+    rsp = create_atlas(atlas_dom, queue, request.form['url']) 
+    
+    if 'error' in rsp:
+        return render_template('error.html',msg=rsp)
+    elif 'success' in rsp:
+        return redirect('/atlas/%s' % rsp['success'], code=303)
+    
+    return render_template('error.html', msg={'error':'unknown'})
+
 def get_atlases():
     '''
     '''
@@ -107,6 +122,7 @@ app.add_url_rule('/upload', 'upload', upload)
 app.add_url_rule('/place-rough/map/<id>', 'get/post map rough placement', place_rough_map, methods=['GET', 'POST'])
 app.add_url_rule('/place-rough/atlas/<id>', 'get atlas rough placement', place_rough_atlas)
 app.add_url_rule('/atlases', 'get atlases', get_atlases)
+app.add_url_rule('/atlas', 'post atlas', post_atlas, methods=['POST'])
 
 if __name__ == '__main__':
     app.debug = True

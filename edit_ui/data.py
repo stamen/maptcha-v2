@@ -1,10 +1,14 @@
 from uuid import uuid1
 from time import time
 from random import choice
+from urllib import urlopen
+from csv import DictReader
 
 from util import connect_domain
 
 from boto.exception import SDBResponseError
+
+required_fields = ['map_title', 'date', 'image_url']
 
 def generate_id():
     '''
@@ -18,7 +22,48 @@ def connect_domains(key, secret, prefix):
     domains = [connect_domain(key, secret, prefix+suffix) for suffix in suffixes]
     
     return domains
+    
+def validate_required_fields(keys):
+    errors = 0
+    for field in required_fields: 
+        if field not in keys:
+            errors += 1
+        
+    return errors
+    
+def create_atlas(domain, queue, url):
+    '''
+    '''
+    row = DictReader(urlopen(url)).next()
+    
+    # normalize keys
+    keys = [key.lower().replace(' ', '_') for key in row.keys()]
+    
+    missing_fields = validate_required_fields(keys) 
+    
+    #
+    if missing_fields > 0:
+        return {'error':"missing keys"}
+        
+    #if 'address' not in row:
+        #raise ValueError('Missing "address" in %(url)s' % locals())
 
+    #
+    # Add an entry for the atlas to the atlases table.
+    #
+    atlas = domain.new_item(str(uuid1()))
+    atlas['href'] = url
+    atlas['status'] = 'empty'
+    atlas.save()
+
+    #
+    # Queue the atlas for processing.
+    #
+    message = queue.new_message('populate atlas %s' % atlas.name)
+    queue.write(message)
+
+    return {'success':atlas.name}
+                   
 def choose_map(map_dom, atlas_id=None, skip_map_id=None):
     '''
     '''

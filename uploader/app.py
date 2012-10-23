@@ -6,7 +6,6 @@ from mimetypes import guess_type
 from flask import Flask, request, redirect, render_template, make_response
 
 from util import connect_domain, connect_queue, get_config_vars
-from data import create_atlas
 
 app = Flask(__name__) 
 key, secret, prefix = get_config_vars(dirname(__file__))
@@ -23,23 +22,6 @@ def error():
     '''
     '''
     return render_template('error.html')
-
-@app.route('/atlas', methods=['POST'])
-def post_atlas(id=None):
-    '''
-    '''
-    #key, secret, prefix = environ['key'], environ['secret'], environ['prefix']
-    atlas_dom = connect_domain(key, secret, prefix+'atlases')
-    queue = connect_queue(key, secret, prefix+'jobs')
-
-    rsp = create_atlas(atlas_dom, queue, request.form['url']) 
-    
-    if 'error' in rsp:
-        return render_template('error.html',msg=rsp)
-    elif 'success' in rsp:
-        return redirect('/atlas/%s' % rsp['success'], code=303)
-    
-    return render_template('error.html',msg={'error':'unknown'})
 
 
 @app.route('/atlas/<id>')
