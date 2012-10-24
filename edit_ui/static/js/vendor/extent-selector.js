@@ -76,7 +76,7 @@ if (!com.modestmaps) {
             for (var i = 0; i < names.length; i++) {
                 this.handles[names[i]] = this.createHandle(names[i]);
             }
-            console.log(MM)
+
             this.onHandleDown.bound = MM.bind(this.onHandleDown, this);
             MM.addEvent(this.handles, "mousedown", this.onHandleDown.bound);
         },

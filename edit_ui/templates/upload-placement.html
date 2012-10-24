@@ -18,9 +18,8 @@
     <div class="page-header"><a href="http://maptcha.org">maptcha.org</a> / <a href="index.html">{CLIENT_NAME}</a></div>
     <h1><a href="/atlas/{{ atlas.name }}">{{ atlas.title }}</a></h1>
 
-	<h3>This Atlas contains {{ maps|sumiter }} maps:</h3>
 
-    <h3>Status: Processing maps</h3>  
+    <h3>Status: Processing</h3>  
     
     <div id='atlas-hints'> 
         
@@ -54,8 +53,8 @@
                         <a href="#" id="zoom-out">&ndash;</a>
                     </div> 
                     <div id="extent" class="map-extent"></div>
-                    <label for="extent-lock" id="extent-lock-label">Lock extent: 
-                    <input id="extent-lock" type="checkbox" checked="checked"/></label>
+                    <!--<label for="extent-lock" id="extent-lock-label">Lock extent: 
+                    <input id="extent-lock" type="checkbox" checked="checked"/></label>-->
                 </div>
                 <!-- <iframe width="100%" height="420" src="http://maps.stamen.com/toner-lite/embed#12/37.7706/-122.3782"></iframe>  -->
             </div>
@@ -112,6 +111,10 @@ zoomOut.onclick = function(){
 var selector = new MM.ExtentSelector(document.getElementById("extent"));
 selector.allowMoveCenter = false;
 map.addLayer(selector);
+map.addCallback('zoomed', function(m) {
+    // respond to new center:
+    updateSelector();
+});
 selector.addCallback("extentset", function(o, ext) {
    ul_lat.value = ext.north;
    ul_lon.value = ext.west;
@@ -119,25 +122,33 @@ selector.addCallback("extentset", function(o, ext) {
    lr_lon.value = ext.east; 
 });
 
+
+
+/*
 var checkbox = document.getElementById("extent-lock");
 MM.addEvent(checkbox, "change", function(e) {
    selector.allowMoveCenter = !checkbox.checked;
 }); 
-
+*/
 
 function updateSelector(){
-    var dim = map.dimensions;
-    var ctrPt = map.locationPoint(map.getCenter()); 
+    if(ul_lat.value && ul_lon.value && lr_lat.value && lr_lon.value){
+        var ext = new MM.Extent( new MM.Location(ul_lat.value,lr_lon.value), new MM.Location(lr_lat.value,ul_lon.value) );
+        selector.setExtent(ext);  
+        
+    }else{
+        var dim = map.dimensions;
+        var ctrPt = map.locationPoint(map.getCenter()); 
     
-    dim.x *= .70;
-    dim.y *= .70;
+        dim.x *= .70;
+        dim.y *= .70;
     
-    var ne = new MM.Point(ctrPt.x + dim.x/2, ctrPt.y - dim.y/2);
-    var sw = new MM.Point(ctrPt.x - dim.x/2 , ctrPt.y + dim.y/2); 
+        var ne = new MM.Point(ctrPt.x + dim.x/2, ctrPt.y - dim.y/2);
+        var sw = new MM.Point(ctrPt.x - dim.x/2 , ctrPt.y + dim.y/2);
+        selector.setExtent([map.pointLocation(ne),map.pointLocation(sw)]);
+     } 
+}      
 
-    selector.setExtent([map.pointLocation(ne),map.pointLocation(sw)]);
-
-} 
 if(i_extent){
     selector.setExtent(i_extent);
 }else{

@@ -91,11 +91,12 @@ td.mapThumb.finished a{
 
 .zoom-controls a:hover{
     color:white;
-} 
+}
+
+/* map extent */ 
 .map-extent {
-    background-color: rgba(255,0,0,.1);
     background-color: transparent;
-    z-index: 1000;
+    z-index: 9;
 }
 .map-extent .handles {
     cursor: move;
@@ -133,7 +134,8 @@ td.mapThumb.finished a{
 
 .map-extent .handle-east {
     width: 5px;
-    height: 100%; right: -1px;
+    height: 100%; 
+    right: -1px;
 }
 
 .map-extent .handle-west {
@@ -146,27 +148,29 @@ td.mapThumb.finished a{
 .map-extent .handle-northeast,
 .map-extent .handle-southeast,
 .map-extent .handle-southwest {
-    width: 9px;
-    height: 9px;
-    border-radius: 5px;
+    width: 18px;
+    height: 18px;
+    border-radius: 9px;
+    background:yellow;
 }
 
 .map-extent .handle-northeast {
-    top: -4px;
-    right: -4px;
+    top: -9px;
+    right: -9px;
 }
 .map-extent .handle-southeast {
-    bottom: -4px;
-    right: -4px;
+    bottom: -9px;
+    right: -9px;
 }
 .map-extent .handle-southwest {
-    bottom: -4px;
-    left: -4px;
+    bottom: -9px;
+    left: -9px;
 }
 .map-extent .handle-northwest {
-    top: -4px;
-    left: -4px;
+    top: -9px;
+    left: -9px;
 }
+
 #extent-lock-label{
     position:absolute;
     z-index:1001;
