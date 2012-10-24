@@ -9,8 +9,8 @@ def create_atlas_map(atlas_dom, map_dom, bucket, map_id):
     '''
     '''
     map = map_dom.get_item(map_id,consistent_read=True)
-    map_url = map['image_url']
-    #atlas = atlas_dom.get_item(map['atlas'],consistent_read=True)
+    map_url = map['image_url'] 
+    
     #
     # Full-size image
     #
@@ -45,5 +45,16 @@ def create_atlas_map(atlas_dom, map_dom, bucket, map_id):
     
     map['status'] = 'finished'
     map.save()
+    
+    # update atlas status
+    atlas = atlas_dom.get_item(map['atlas'],consistent_read=True) 
+    q = "select count(*) from `%s` where atlas = '%s' and status = 'empty'"%(map_dom.name,map['atlas'])
+    remaining = map_dom.select(q,consistent_read=True).next()
+    if int(remaining['Count']) == 0:
+        atlas['status'] = "uploaded"
+        atlas.save()
+    
+    
+    
 
 

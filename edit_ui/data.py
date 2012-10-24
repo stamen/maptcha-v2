@@ -88,9 +88,7 @@ def create_atlas(domain, map_dom, queue, url, name, affiliation):
     if len(invalid_urls):
         return {'error':"There were some invalid Image URL's","rows":invalid_urls} 
     
-    
-    
-    
+
     #if 'address' not in row:
         #raise ValueError('Missing "address" in %(url)s' % locals())
 
@@ -102,7 +100,8 @@ def create_atlas(domain, map_dom, queue, url, name, affiliation):
     atlas['timestamp'] = time()
     atlas['title'] = name
     atlas['affiliation'] = affiliation
-    atlas['status'] = 'uploaded'
+    atlas['map_count'] = len(rows)
+    atlas['status'] = 'processing maps'
     atlas.save()
     
     #

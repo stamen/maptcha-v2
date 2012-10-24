@@ -56,6 +56,9 @@ td.mapThumb.finished a{
   margin: 18px 0;
   border-top: 1px solid #eeeeee;
 }
+#maps-progress{
+    margin-top:20px;
+}
 
 /**/
 #csv-submit-btn{

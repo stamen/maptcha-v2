@@ -2,7 +2,7 @@ from os import environ
 from os.path import dirname, join
 from mimetypes import guess_type
 
-from flask import Flask, request, redirect, render_template, jsonify, make_response
+from flask import Flask, request, redirect, render_template, jsonify, make_response, abort
 
 from util import connect_queue, get_config_vars
 from data import connect_domains, place_roughly, choose_map, create_atlas
@@ -105,36 +105,42 @@ def post_atlas(id=None):
         return redirect('/atlas-hints/%s' % rsp['success'].name, code=303)
     
     return render_template('error.html', msg={'error':'unknown'}) 
-    
+
+# simple 404 page
+def page_not_found(error):
+    return render_template('404.html'),404
+       
 def post_atlas_hints(id=None): 
     '''
     '''
     atlas = atlas_dom.get_item(id,consistent_read=True)
-    if request.method == 'POST': 
+    if atlas:
+        if request.method == 'POST': 
         
-        ul_lat = float(request.form.get('ul_lat', None))
-        ul_lon = float(request.form.get('ul_lon', None))
-        lr_lat = float(request.form.get('lr_lat', None))
-        lr_lon = float(request.form.get('lr_lon', None))
-        has_streets = bool(request.form.get('hints-features', False))
-        has_cities = bool(request.form.get('hints-citites', False))
-        has_streets = bool(request.form.get('hints-streets', False))
+            ul_lat = float(request.form.get('ul_lat', None))
+            ul_lon = float(request.form.get('ul_lon', None))
+            lr_lat = float(request.form.get('lr_lat', None))
+            lr_lon = float(request.form.get('lr_lon', None))
+            has_streets = bool(request.form.get('hints-features', False))
+            has_cities = bool(request.form.get('hints-citites', False))
+            has_streets = bool(request.form.get('hints-streets', False))
         
         
-        atlas['ul_lat'] = '%.8f' % ul_lat
-        atlas['ul_lon'] = '%.8f' % ul_lon
-        atlas['lr_lat'] = '%.8f' % lr_lat
-        atlas['lr_lon'] = '%.8f' % lr_lon 
-        atlas['hint_features'] = has_streets
-        atlas['hint_cities'] = has_cities
-        atlas['hint_streets'] = has_streets
+            atlas['ul_lat'] = '%.8f' % ul_lat
+            atlas['ul_lon'] = '%.8f' % ul_lon
+            atlas['lr_lat'] = '%.8f' % lr_lat
+            atlas['lr_lon'] = '%.8f' % lr_lon 
+            atlas['hint_features'] = has_streets
+            atlas['hint_cities'] = has_cities
+            atlas['hint_streets'] = has_streets
         
-        atlas.save()
+            atlas.save()
         
-        return redirect('/atlas/%s' % atlas.name, code=303)
-         
-    
-    return render_template('upload-placement.html', atlas=atlas)
+            return redirect('/atlas/%s' % atlas.name, code=303)
+
+        return render_template('upload-placement.html', atlas=atlas)
+    else:
+        abort(404)
     
 def get_atlas(id):
     '''
@@ -156,13 +162,17 @@ def get_atlases():
     return jsonify(dict(atlases=atlases)) 
     
 def check_map_status(id=None):
-    rsp = 'error'
+    rsp = {'error':'unkown'}
     if id:
-        map = map_dom.get_item(id,consistent_read=True)
-        if map:
-            rsp = map['status']
+        #map = map_dom.get_item(id,consistent_read=True)
+        q = "select name from `%s` where atlas = '%s' and status = 'finished'"%(map_dom.name,id)
+        done = map_dom.select(q,consistent_read=True)
+        if done:
+            rsp = {'finished':[]}
+            for item in done:
+                rsp['finished'].append(item.name)
     
-    return jsonify(status=rsp)
+    return jsonify(rsp)
   
 def sumiter(s):
     ''' gets count of iterator
@@ -181,7 +191,9 @@ app.add_url_rule('/atlases', 'get atlases', get_atlases)
 app.add_url_rule('/atlas', 'post atlas', post_atlas, methods=['POST'])
 app.add_url_rule('/atlas-hints/<id>', 'post atlas hints', post_atlas_hints, methods=['GET', 'POST'])
 app.add_url_rule('/atlas/<id>', 'get atlas', get_atlas)
-app.add_url_rule('/check-map-status/<id>', 'get map status', check_map_status, methods=['GET'])
+app.add_url_rule('/check-map-status/<id>', 'get map status', check_map_status, methods=['GET']) 
+
+app.error_handler_spec[None][404] = page_not_found
 
 app.add_template_filter(sumiter)
 

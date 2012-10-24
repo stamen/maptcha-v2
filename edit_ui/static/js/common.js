@@ -31,38 +31,77 @@ function getElementsByClass(searchClass,node,tag) {
 	return classElements;
 } 
 
-//TODO: not tested for browser support, will not work for IE < 8
+//TODO: not thoughly tested for browser support, will not work for IE < 8
 var poller = { 
     rate: 5000,
-    queue:[], // {id:ID to check, dom: element to update} 
+    queueHash:{},
+    atlas_id:'',
+    checkClass:'empty',
     run: function(){  
-        if (!this.queue.length)return; 
-        var url = "/check-map-status/"+this.queue[this.queue.length-1].id 
+        var url = "/check-map-status/"+this.atlas_id;
         this.xhr(url);
+    },
+    check:function(){ 
+        if(!this.atlas_id)return;
+        
+        var empties = getElementsByClass(this.checkClass); 
+        if(empties){
+            this.queueHash = {};
+            for(var i=0;i<empties.length;i++){
+                var id = empties[i].getAttribute('id');
+                this.queueHash[id] = empties[i];
+            }
+            this.updateProgressBar(empties.length)
+            this.run();
+        }else{
+            this.updateProgressBar(0)
+        }
+        
+    },
+    updateProgressBar: function(t){
+       if(progressBar){
+           var remaining = map_total - t;
+           var w = (remaining / map_total) * 100; 
+           if(w >= 100){
+               progressBar.parentElement.style.display = 'none';
+               var status_elm = document.getElementById('atlas-status');
+               status_elm.innerText = "Status: uploaded";
+           }else{
+               progressBar.style.width = w + "%";
+           }
+           
+       }
     },
     resp: function(r){ 
         if(r && r.response){
-            var json = JSON.parse(r.response);
-            if(json['status'] == 'error'){  
-                // do an error handler here
-                this.queue.pop();
+            var json = JSON.parse(r.response); 
+                        
+            if(json['error']){  
+                // do an error handler here 
             }
 
-            if (json['status'] == "finished"){ 
-                var dom = this.queue[this.queue.length-1].dom;
-                // reload thumb
-                var img = dom.getElementsByTagName('img');
-                if(img){
-                    img = img[0];
-                    img.setAttribute('src',img.getAttribute('src'));
+            if (json['finished']){ 
+                var ids = json['finished'];
+                for(var i=0;i<ids.length;i++){ 
+                    var id = 'thumb-'+ids[i];
+                    if(this.queueHash[id]){
+                        var elm = this.queueHash[id];
+                        if(elm){
+                            var img = elm.getElementsByTagName('img');
+                            if(img){
+                                img = img[0];
+                                img.setAttribute('src',img.getAttribute('src'));
+
+                            } 
+                            elm.classList.remove('empty');
+                            elm.classList.add('finished');
+                        }
+                    }
                 }
-                dom.classList.remove('empty');
-                dom.classList.add('finished');
-                this.queue.pop();
             } 
             
             var self = this;
-            window.setInterval(function(){self.run();},this.rate);
+            window.setTimeout(function(){self.check();},this.rate);
         } 
       
     },

@@ -20,8 +20,13 @@
 
 	<h3>This Atlas contains {{ maps|sumiter }} maps:</h3>
 
-    <h3>Status:{{ atlas.status }}</h3>  
-
+    <h3 id="atlas-status">Status:{{ atlas.status }}</h3>
+      
+    {% if atlas.status != 'uploaded' %}
+        <div id="maps-progress" class="progress progress-info progress-striped">
+            <div id="maps-progress-bar" class="bar" style="width: 0%"></div>
+        </div> 
+    {% endif %} 
     
     <table class="table-striped table twenty">
     	<tr>
@@ -32,7 +37,7 @@
         </tr> 
         {% for map in maps %}  
             <tr>
-            	<td class="mapThumb {{map.status}}" map-id="{{map.name}}"><a href="/thing/{{ map.image }}"><img src="/thing/{{ map.thumb }}" /></a></td>
+            	<td class="mapThumb {{map.status}}" id="thumb-{{map.name}}"><a href="/thing/{{ map.image }}"><img src="/thing/{{ map.thumb }}" /></a></td>
             	<td>{{map.map_title}}</td>
             	<td>{{map.date}}</td> 
             	<td><a href="{{map.image_url}}" title='link to image'>{{map.image_url}}</a></td>
@@ -48,73 +53,18 @@
 
 <script type="text/javascript" src="/static/js/uploader.js"></script> 
 <script type="text/javascript" defer> 
+var map_total = {{ atlas.map_count|default(0,true) }};
+var atlas_name = "{{ atlas.name }}";
+var progressBar = document.getElementById('maps-progress-bar');  
+poller.atlas_id = atlas_name;
+poller.check();
 
 
-var empties = getElementsByClass('empty'); 
-if(empties){
-    var queue = [];
-    for(var i=0;i<empties.length;i++){
-        queue.push({
-            'id':empties[i].getAttribute('map-id'),
-            'dom':empties[i]
-        });
-    }
-    poller.queue = queue;
-    poller.run();
-} 
-
-
+/*
 var layer = new MM.StamenTileLayer("toner-lite");
 var map = new MM.Map("atlas-map", layer);
 map.setCenterZoom(new MM.Location(37.7, -122.4), 9);  
-
-var zoomIn = document.getElementById("zoom-in");
-var zoomOut = document.getElementById("zoom-out");
-zoomIn.onclick = function(){
-    map.zoomIn();
-    return false;
-} 
-zoomOut.onclick = function(){
-    map.zoomOut();
-    return false;
-} 
-
-// extent selector
-var ul_lat = document.getElementById("ul_lat"),
-    ul_lon = document.getElementById("ul_lon"),
-    lr_lat = document.getElementById("lr_lat"),
-    lr_lon = document.getElementById("lr_lon");
-    
-var selector = new MM.ExtentSelector(document.getElementById("extent"));
-selector.allowMoveCenter = false;
-map.addLayer(selector);
-selector.addCallback("extentset", function(o, ext) {
-   ul_lat.value = ext.north;
-   ul_lon.value = ext.west;
-   lr_lat.value = ext.south;
-   lr_lon.value = ext.east; 
-});
-
-var checkbox = document.getElementById("extent-lock");
-MM.addEvent(checkbox, "change", function(e) {
-   selector.allowMoveCenter = !checkbox.checked;
-}); 
-
-
-function updateSelector(){
-    var dim = map.dimensions;
-    var ctrPt = map.locationPoint(map.getCenter()); 
-    
-    dim.x *= .70;
-    dim.y *= .70;
-    
-    var ne = new MM.Point(ctrPt.x + dim.x/2, ctrPt.y - dim.y/2);
-    var sw = new MM.Point(ctrPt.x - dim.x/2 , ctrPt.y + dim.y/2); 
-
-    selector.setExtent([map.pointLocation(ne),map.pointLocation(sw)]);
-
-} 
-updateSelector();  
+*/
 
 </script>
 </body>
