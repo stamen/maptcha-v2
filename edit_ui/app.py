@@ -98,15 +98,46 @@ def post_atlas(id=None):
     if 'error' in rsp:
         return render_template('error.html',msg=rsp)
     elif 'success' in rsp:
-        return redirect('/atlas/%s' % rsp['success'], code=303)
+        return redirect('/atlas-hints/%s' % rsp['success'].name, code=303)
     
-    return render_template('error.html', msg={'error':'unknown'})
-
+    return render_template('error.html', msg={'error':'unknown'}) 
+    
+def post_atlas_hints(id=None): 
+    '''
+    '''
+    atlas = atlas_dom.get_item(id,consistent_read=True)
+    if request.method == 'POST': 
+        
+        ul_lat = float(request.form.get('ul_lat', None))
+        ul_lon = float(request.form.get('ul_lon', None))
+        lr_lat = float(request.form.get('lr_lat', None))
+        lr_lon = float(request.form.get('lr_lon', None))
+        has_streets = bool(request.form.get('hints-features', False))
+        has_cities = bool(request.form.get('hints-citites', False))
+        has_streets = bool(request.form.get('hints-streets', False))
+        
+        
+        atlas['ul_lat'] = '%.8f' % ul_lat
+        atlas['ul_lon'] = '%.8f' % ul_lon
+        atlas['lr_lat'] = '%.8f' % lr_lat
+        atlas['lr_lon'] = '%.8f' % lr_lon 
+        atlas['hint_features'] = has_streets
+        atlas['hint_cities'] = has_cities
+        atlas['hint_streets'] = has_streets
+        
+        atlas.save()
+        
+        return redirect('/atlas/%s' % atlas.name, code=303)
+         
+    
+    return render_template('upload-placement.html', atlas=atlas)
+    
 def get_atlas(id):
     '''
     ''' 
-    atlas = atlas_dom.get_item(id)
-    maps = map_dom.select("select * from `%s` where atlas = '%s'" % (map_dom.name, atlas.name))
+    atlas = atlas_dom.get_item(id,consistent_read=True)
+    q = "select * from `%s` where atlas = '%s'" % (map_dom.name, atlas.name)
+    maps = map_dom.select(q,consistent_read=True)
     
     return render_template('atlas.html', atlas=atlas, maps=maps)
 
@@ -144,6 +175,7 @@ app.add_url_rule('/place-rough/map/<id>', 'get/post map rough placement', place_
 app.add_url_rule('/place-rough/atlas/<id>', 'get atlas rough placement', place_rough_atlas)
 app.add_url_rule('/atlases', 'get atlases', get_atlases)
 app.add_url_rule('/atlas', 'post atlas', post_atlas, methods=['POST'])
+app.add_url_rule('/atlas-hints/<id>', 'post atlas hints', post_atlas_hints, methods=['GET', 'POST'])
 app.add_url_rule('/atlas/<id>', 'get atlas', get_atlas)
 app.add_url_rule('/check-map-status/<id>', 'get map status', check_map_status, methods=['GET'])
 

@@ -31,33 +31,39 @@ function getElementsByClass(searchClass,node,tag) {
 	return classElements;
 } 
 
-//
-var poller = {
-    queue:[], // {id:ID to check, dom:related dom element to update} 
+//TODO: not tested for browser support, will not work for IE < 8
+var poller = { 
+    rate: 5000,
+    queue:[], // {id:ID to check, dom: element to update} 
     run: function(){  
         if (!this.queue.length)return; 
         var url = "/check-map-status/"+this.queue[this.queue.length-1].id 
         this.xhr(url);
     },
     resp: function(r){ 
-       if(r && r.response){
-          var json = JSON.parse(r.response);
-          if(json['status'] == 'error'){
-              this.queue.pop();
-              return;
-          }
-          
-          if (json['status'] == "finished"){ 
-              var dom = this.queue[this.queue.length-1].dom;
-              dom.classList.remove('empty');
-              dom.classList.add('finished');
-              this.queue.pop();
-              
-          }
-         
-         this.run(); 
-         //this.run(q)
-       }
+        if(r && r.response){
+            var json = JSON.parse(r.response);
+            if(json['status'] == 'error'){  
+                // do an error handler here
+                this.queue.pop();
+            }
+
+            if (json['status'] == "finished"){ 
+                var dom = this.queue[this.queue.length-1].dom;
+                // reload thumb
+                var img = dom.getElementsByTagName('img');
+                if(img){
+                    img = img[0];
+                    img.setAttribute('src',img.getAttribute('src'));
+                }
+                dom.classList.remove('empty');
+                dom.classList.add('finished');
+                this.queue.pop();
+            } 
+            
+            var self = this;
+            window.setInterval(function(){self.run();},this.rate);
+        } 
       
     },
     //#https://github.com/d3/d3.github.com/blob/master/d3.v2.js
@@ -77,4 +83,142 @@ var poller = {
         };
         req.send(null);
     } 
+}  
+
+/*
+ * classList.js: Cross-browser full element.classList implementation.
+ * 2011-06-15
+ *
+ * By Eli Grey, http://eligrey.com
+ * Public Domain.
+ * NO WARRANTY EXPRESSED OR IMPLIED. USE AT YOUR OWN RISK.
+ */
+ 
+/*global self, document, DOMException */
+ 
+/*! @source http://purl.eligrey.com/github/classList.js/blob/master/classList.js*/
+ 
+if (typeof document !== "undefined" && !("classList" in document.createElement("a"))) {
+ 
+(function (view) {
+ 
+"use strict";
+ 
+var
+      classListProp = "classList"
+    , protoProp = "prototype"
+    , elemCtrProto = (view.HTMLElement || view.Element)[protoProp]
+    , objCtr = Object
+    , strTrim = String[protoProp].trim || function () {
+        return this.replace(/^\s+|\s+$/g, "");
+    }
+    , arrIndexOf = Array[protoProp].indexOf || function (item) {
+        var
+              i = 0
+            , len = this.length
+        ;
+        for (; i < len; i++) {
+            if (i in this && this[i] === item) {
+                return i;
+            }
+        }
+        return -1;
+    }
+    // Vendors: please allow content code to instantiate DOMExceptions
+    , DOMEx = function (type, message) {
+        this.name = type;
+        this.code = DOMException[type];
+        this.message = message;
+    }
+    , checkTokenAndGetIndex = function (classList, token) {
+        if (token === "") {
+            throw new DOMEx(
+                  "SYNTAX_ERR"
+                , "An invalid or illegal string was specified"
+            );
+        }
+        if (/\s/.test(token)) {
+            throw new DOMEx(
+                  "INVALID_CHARACTER_ERR"
+                , "String contains an invalid character"
+            );
+        }
+        return arrIndexOf.call(classList, token);
+    }
+    , ClassList = function (elem) {
+        var
+              trimmedClasses = strTrim.call(elem.className)
+            , classes = trimmedClasses ? trimmedClasses.split(/\s+/) : []
+            , i = 0
+            , len = classes.length
+        ;
+        for (; i < len; i++) {
+            this.push(classes[i]);
+        }
+        this._updateClassName = function () {
+            elem.className = this.toString();
+        };
+    }
+    , classListProto = ClassList[protoProp] = []
+    , classListGetter = function () {
+        return new ClassList(this);
+    }
+;
+// Most DOMException implementations don't allow calling DOMException's toString()
+// on non-DOMExceptions. Error's toString() is sufficient here.
+DOMEx[protoProp] = Error[protoProp];
+classListProto.item = function (i) {
+    return this[i] || null;
+};
+classListProto.contains = function (token) {
+    token += "";
+    return checkTokenAndGetIndex(this, token) !== -1;
+};
+classListProto.add = function (token) {
+    token += "";
+    if (checkTokenAndGetIndex(this, token) === -1) {
+        this.push(token);
+        this._updateClassName();
+    }
+};
+classListProto.remove = function (token) {
+    token += "";
+    var index = checkTokenAndGetIndex(this, token);
+    if (index !== -1) {
+        this.splice(index, 1);
+        this._updateClassName();
+    }
+};
+classListProto.toggle = function (token) {
+    token += "";
+    if (checkTokenAndGetIndex(this, token) === -1) {
+        this.add(token);
+    } else {
+        this.remove(token);
+    }
+};
+classListProto.toString = function () {
+    return this.join(" ");
+};
+ 
+if (objCtr.defineProperty) {
+    var classListPropDesc = {
+          get: classListGetter
+        , enumerable: true
+        , configurable: true
+    };
+    try {
+        objCtr.defineProperty(elemCtrProto, classListProp, classListPropDesc);
+    } catch (ex) { // IE 8 doesn't support enumerable:true
+        if (ex.number === -0x7FF5EC54) {
+            classListPropDesc.enumerable = false;
+            objCtr.defineProperty(elemCtrProto, classListProp, classListPropDesc);
+        }
+    }
+} else if (objCtr[protoProp].__defineGetter__) {
+    elemCtrProto.__defineGetter__(classListProp, classListGetter);
+}
+ 
+}(self));
+ 
 }

@@ -134,11 +134,9 @@ def create_atlas(domain, map_dom, queue, url, name, affiliation):
     #message = queue.new_message('populate atlas %s' % atlas.name)
     
 
-    return {'success':atlas.name}
+    return {'success':atlas}
 
-def create_atlas_map():
-    pass
-                       
+             
 def choose_map(map_dom, atlas_id=None, skip_map_id=None):
     '''
     '''

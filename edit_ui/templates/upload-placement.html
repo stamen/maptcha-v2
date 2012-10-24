@@ -1,0 +1,149 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<title>Maptcha!</title>
+<link href="/static/css/bootstrap.css" rel="stylesheet" type="text/css" />
+<link href="/static/css/maptcha.css" rel="stylesheet" type="text/css" /> 
+
+<script type="text/javascript" src="/static/js/vendor/modestmaps.min-old.js"></script>
+<script type="text/javascript" src="/static/js/vendor/extent-selector.js"></script>  
+<script type="text/javascript" src="http://maps.stamen.com/js/tile.stamen.js?v1.2.0"></script>
+<script type="text/javascript" src="/static/js/common.js"></script>
+</head>
+
+<body>
+<a name="top"></a>
+<div class="container">
+    <div class="page-header"><a href="http://maptcha.org">maptcha.org</a> / <a href="index.html">{CLIENT_NAME}</a></div>
+    <h1><a href="/atlas/{{ atlas.name }}">{{ atlas.title }}</a></h1>
+
+	<h3>This Atlas contains {{ maps|sumiter }} maps:</h3>
+
+    <h3>Status: Processing maps</h3>  
+    
+    <div id='atlas-hints'> 
+        
+        <form action="/atlas-hints/{{ atlas.name }}" method="post"> 
+        
+        <input name="ul_lat" id="ul_lat" type="hidden" value="{{ atlas.ul_lat|float if atlas.ul_lat }}">
+        <input name="ul_lon" id="ul_lon" type="hidden" value="{{ atlas.ul_lon|float if atlas.ul_lon }}">
+        <input name="lr_lat" id="lr_lat" type="hidden" value="{{ atlas.lr_lat|float if atlas.lr_lat }}"> 
+        <input name="lr_lon" id="lr_lon" type="hidden" value="{{ atlas.lr_lon|float if atlas.lr_lon }}">
+        
+        <h4>Please spend a moment giving people some clues about the area that this atlas covers.</h4> 
+        <br/> 
+         
+        <!-- not sure what's going on in jinja -->
+        <label class="checkbox">
+          <input type="checkbox" value="opt-features" name="hints-features" {% if atlas.hint_features|string == "True" %}checked="checked"{% endif %} > Does the atlas contain geographical features?
+        </label>
+        <label class="checkbox">
+          <input type="checkbox" value="opt-cities" name="hints-cities" {% if atlas.hint_cities|string == "True" %}checked="checked"{% endif %} > Does the atlas contain cities?
+        </label>
+        <label class="checkbox">
+          <input type="checkbox" value="opt-streets" name="hints-streets" {% if atlas.hint_streets|string == "True" %}checked="checked"{% endif %} > Does the atlas contain streets?
+        </label>
+   
+        <div class="row">
+            <div class="span12 twenty">
+                <p>Define a bounding box for all the maps in this atlas.</p>
+                <div id='atlas-map' style='width:100%; height:420px;'>
+                    <div class="zoom-controls">  
+                        <a href="#" id="zoom-in">+</a> 
+                        <a href="#" id="zoom-out">&ndash;</a>
+                    </div> 
+                    <div id="extent" class="map-extent"></div>
+                    <label for="extent-lock" id="extent-lock-label">Lock extent: 
+                    <input id="extent-lock" type="checkbox" checked="checked"/></label>
+                </div>
+                <!-- <iframe width="100%" height="420" src="http://maps.stamen.com/toner-lite/embed#12/37.7706/-122.3782"></iframe>  -->
+            </div>
+        </div>
+    
+        <div class="row twenty submit">
+        	<button class="btn-success btn-large">Save</button>
+        </div>
+        
+        </form> 
+    </div>
+    
+           
+        
+    <div class="footer">
+    	<a href="#top" class="top-jumper">Top &uarr;</a>
+    </div>
+</div>                                                                
+
+<script type="text/javascript" src="/static/js/uploader.js"></script> 
+<script type="text/javascript" defer> 
+var layer = new MM.StamenTileLayer("toner-lite");
+var map = new MM.Map("atlas-map", layer);
+var i_extent;
+// extent selector
+var ul_lat = document.getElementById("ul_lat"),
+    ul_lon = document.getElementById("ul_lon"),
+    lr_lat = document.getElementById("lr_lat"),
+    lr_lon = document.getElementById("lr_lon");
+    
+if(ul_lat.value && ul_lon.value && lr_lat.value && lr_lon.value){
+    i_extent = new MM.Extent( new MM.Location(ul_lat.value,lr_lon.value), new MM.Location(lr_lat.value,ul_lon.value) );
+    map.setExtent(i_extent);
+    map.setZoom(map.getZoom()-1);
+}else{
+    map.setCenterZoom(new MM.Location(37.7, -122.4), 9); 
+}
+
+ 
+
+var zoomIn = document.getElementById("zoom-in");
+var zoomOut = document.getElementById("zoom-out");
+zoomIn.onclick = function(){
+    map.zoomIn();
+    return false;
+} 
+zoomOut.onclick = function(){
+    map.zoomOut();
+    return false;
+} 
+
+
+    
+var selector = new MM.ExtentSelector(document.getElementById("extent"));
+selector.allowMoveCenter = false;
+map.addLayer(selector);
+selector.addCallback("extentset", function(o, ext) {
+   ul_lat.value = ext.north;
+   ul_lon.value = ext.west;
+   lr_lat.value = ext.south;
+   lr_lon.value = ext.east; 
+});
+
+var checkbox = document.getElementById("extent-lock");
+MM.addEvent(checkbox, "change", function(e) {
+   selector.allowMoveCenter = !checkbox.checked;
+}); 
+
+
+function updateSelector(){
+    var dim = map.dimensions;
+    var ctrPt = map.locationPoint(map.getCenter()); 
+    
+    dim.x *= .70;
+    dim.y *= .70;
+    
+    var ne = new MM.Point(ctrPt.x + dim.x/2, ctrPt.y - dim.y/2);
+    var sw = new MM.Point(ctrPt.x - dim.x/2 , ctrPt.y + dim.y/2); 
+
+    selector.setExtent([map.pointLocation(ne),map.pointLocation(sw)]);
+
+} 
+if(i_extent){
+    selector.setExtent(i_extent);
+}else{
+    updateSelector();
+}
+
+</script>
+</body>
+</html>
