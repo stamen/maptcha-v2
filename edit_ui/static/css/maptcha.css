@@ -10,7 +10,11 @@ dd {
 	color: white;
 	padding: 3px;
 }
-
+.required-color{
+    color: #F30;
+    font-weight:bold;
+    font-size:18px;
+}
 
 
 .twenty {
@@ -49,6 +53,8 @@ td.mapThumb.finished a{
 }
 #atlas-map{
     border:1px solid #ddd;
+    width:100%; 
+    height:600px;
 }
 
 .footer {
@@ -151,27 +157,32 @@ td.mapThumb.finished a{
 .map-extent .handle-northeast,
 .map-extent .handle-southeast,
 .map-extent .handle-southwest {
-    width: 18px;
-    height: 18px;
-    border-radius: 9px;
-    background:yellow;
+    width: 30px;
+    height: 30px;
+    overflow:hidden;
+    border-radius: 15px;
+    background:yellow url('/static/styles/imgs/arrows.png') 0 0 no-repeat;
 }
 
 .map-extent .handle-northeast {
-    top: -9px;
-    right: -9px;
+    top: -15px;
+    right: -15px;
+    background-position:-20px 2px;
 }
 .map-extent .handle-southeast {
-    bottom: -9px;
-    right: -9px;
+    bottom: -15px;
+    right: -15px;
+    background-position:-75px 2px;
 }
 .map-extent .handle-southwest {
-    bottom: -9px;
-    left: -9px;
+    bottom: -15px;
+    left: -15px;
+    background-position:-48px 2px;
 }
 .map-extent .handle-northwest {
-    top: -9px;
-    left: -9px;
+    top: -15px;
+    left: -15px;
+    background-position:5px 2px;
 }
 
 #extent-lock-label{
@@ -187,3 +198,10 @@ td.mapThumb.finished a{
 #extent-lock-label input{
     display:inline;
 } 
+.handle i{
+    font-weight: bold;
+    font-size: 18px;
+    position: relative;
+    left: 3px;
+    top: -2px;
+}

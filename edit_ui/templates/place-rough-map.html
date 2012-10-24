@@ -17,7 +17,9 @@
     <script type="text/javascript" src="http://maps.stamen.com/js/tile.stamen.js?v1.2.0"></script> 
     <script type="text/javascript" src="/static/js/vendor/paper.js"></script>
     
-</head>
+</head> 
+
+
 <body>
     <div id="background-map-wrap">
          <div id="background-map"></div> 
@@ -48,11 +50,11 @@
                         <a href="#" class="zoom-out">&ndash;</a>
                     </div>
                 
-                    <div id="address-search" class="">  
+                    <div id="address-search" class="no-map">  
                         <div id="address-search-form">
-                            <div class="explain">Search for a cross street you can see on the old map…</div>
-                            <label><input class="input-large" type="search" name="geocode" size="28" placeholder="16th St &amp; Mission St"> Find</label>
-                            <div class="explain"><small>You only have to type the names, like “Milton &amp; Bosworth”</small></div> 
+                            <div id="explain-title" class="explain">Search for a cross street you can see on the old map…</div>
+                            <label><input id="address_input" class="input-large" type="search" name="geocode" size="28" placeholder="16th St &amp; Mission St"> Find</label>
+                            <div class="explain"><small id="explain-help">You only have to type the names, like “Milton &amp; Bosworth”</small></div> 
                         </div>
                     </div> 
                 </div>
@@ -96,17 +98,47 @@
     <script type="text/javascript" src="/static/js/place_map.js"></script> 
      
     <script type="text/javascript" > 
+         var hint_attr = {
+             'street':{
+                 'explain-title':'Search for a cross street you can see on the old map…',
+                 'explain-help':'You only have to type the names, like “Milton &amp; Bosworth”',
+                 'placeholder':'16th St &amp; Mission St'
+             },
+             'towns':{
+                 'explain-title':'Search for a towns/cities you can see on the old map…',
+                 'explain-help':'You only have to type the names, like “San Francisco”',
+                 'placeholder':'Town or City name'
+             },
+             'features':{
+                 'explain-title':'Search for a geographical feature',
+                 'explain-help':'You only have to type the names, like “Sutro Bathes”',
+                 'placeholder':'geographical feature'
+             },
+              'default':{
+                  'explain-title':'Search for a cross street you can see on the old map…',
+                  'explain-help':'You only have to type the names, like “Milton &amp; Bosworth”',
+                  'placeholder':'16th St &amp; Mission St'
+              }
 
-         var atlas_hints = {
-             'ul_lat': {{ atlas.ul_lat|float if atlas.ul_lat }},
-             'ul_lon': {{ atlas.ul_lon|float if atlas.ul_lon }},
-             'lr_lat': {{ atlas.lr_lat|float if atlas.lr_lat }},
-             'lr_lon': {{ atlas.lr_lon|float if atlas.lr_lon }},
-             'has_features': {{ atlas.hint_features|lower|default(false,true) }},
-             'has_cities': {{ atlas.hint_cities|lower|default(false,true) }},
-             'has_streets': {{ atlas.hint_streets|lower|default(false,true) }}
-             
          }
+         var atlas_hints = {
+              'ul_lat': null,
+              'ul_lon': null,
+              'lr_lat': null,
+              'lr_lon': null,
+              'has_features': false,
+              'has_cities': false,
+              'has_streets': false
+          }
+        
+        {% if atlas.ul_lat %}atlas_hints['ul_lat'] = {{ atlas.ul_lat|float }};{% endif %}
+        {% if atlas.ul_lon %}atlas_hints['ul_lon'] = {{ atlas.ul_lon|float }};{% endif %}
+        {% if atlas.lr_lat %}atlas_hints['lr_lat'] = {{ atlas.lr_lat|float }};{% endif %}
+        {% if atlas.lr_lon %}atlas_hints['lr_lon'] = {{ atlas.lr_lon|float }};{% endif %}
+        {% if atlas.hint_features %}atlas_hints['has_features'] = {{ atlas.hint_features|lower|default(false,true) }};{% endif %}
+        {% if atlas.hint_cities %}atlas_hints['has_cities'] = {{ atlas.hint_cities|lower|default(false,true) }};{% endif %}
+        {% if atlas.hint_streets %}atlas_hints['has_streets'] = {{ atlas.hint_streets|lower|default(false,true) }};{% endif %}   
+    
          window.onload = function(){ 
              
              YTOB.PlaceMap.init();

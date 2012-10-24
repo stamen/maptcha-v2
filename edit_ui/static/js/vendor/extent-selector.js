@@ -213,7 +213,8 @@ if (!com.modestmaps) {
             var handle = this.handles.appendChild(document.createElement("div"));
             handle.setAttribute("class", "handle handle-" + name);
             handle.setAttribute("data-name", name);
-            handle.style.position = "absolute";
+            handle.style.position = "absolute"; 
+           
             return handle;
         },
 

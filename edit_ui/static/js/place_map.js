@@ -686,12 +686,30 @@
             
             this.geocoder = new google.maps.Geocoder();
 
-            if(atlas_hints){
+            if(atlas_hints.lr_lat && atlas_hints.ul_lon && atlas_hints.ul_lat && atlas_hints.lr_lon){
                 this.southwest = new google.maps.LatLng(atlas_hints.lr_lat,atlas_hints.ul_lon);
                 this.northeast = new google.maps.LatLng(atlas_hints.ul_lat,atlas_hints.lr_lon); 
             }else{
                 this.southwest = new google.maps.LatLng(37.7077, -122.5169);
                 this.northeast = new google.maps.LatLng(37.8153, -122.3559);
+            } 
+            console.log(atlas_hints)
+            if(atlas_hints.has_streets){
+                $('#explain-title').html(hint_attr['streets']['explain-title']);
+                $('#explain-help').html(hint_attr['streets']['explain-help']);  
+                $('#address_input').attr("placeholder",hint_attr['streets']['placeholder']);
+            }else if(atlas_hints.has_cities){
+                $('#explain-title').html(hint_attr['cities']['explain-title']);
+                $('#explain-help').html(hint_attr['cities']['explain-help']);  
+                $('#address_input').attr("placeholder",hint_attr['cities']['placeholder']);
+            }else if(atlas_hints.has_features){
+                $('#explain-title').html(hint_attr['features']['explain-title']);
+                $('#explain-help').html(hint_attr['features']['explain-help']);  
+                $('#address_input').attr("placeholder",hint_attr['features']['placeholder']);
+            }else{
+                $('#explain-title').html(hint_attr['default']['explain-title']);
+                $('#explain-help').html(hint_attr['default']['explain-help']);  
+                $('#address_input').attr("placeholder",hint_attr['default']['placeholder']);
             }
             
             this.bounds = new google.maps.LatLngBounds(this.southwest, this.northeast); 

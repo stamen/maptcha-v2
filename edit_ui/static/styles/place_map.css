@@ -90,6 +90,7 @@ body{
     position: absolute;
     top: 10px;
     left: 10px;
+    background: white;
     background: rgba(255, 255, 255, .7);
     z-index: 2;
     display: block;
@@ -102,6 +103,7 @@ body{
 
 #address-search.no-map
 {
+    background: #ccc;
     top: 0;
     left: 0;
     width: 100%;

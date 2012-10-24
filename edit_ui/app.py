@@ -101,7 +101,8 @@ def post_atlas(id=None):
     '''
     '''
     queue = connect_queue(aws_key, aws_secret, aws_prefix+'jobs')
-
+    
+    # wrap in try/catch
     rsp = create_atlas(atlas_dom, map_dom, queue, request.form['url'], request.form['atlas-name'], request.form['atlas-affiliation']) 
     
     if 'error' in rsp:
@@ -126,7 +127,7 @@ def post_atlas_hints(id=None):
             ul_lon = float(request.form.get('ul_lon', None))
             lr_lat = float(request.form.get('lr_lat', None))
             lr_lon = float(request.form.get('lr_lon', None))
-            has_streets = bool(request.form.get('hints-features', False))
+            has_features = bool(request.form.get('hints_features', False))
             has_cities = bool(request.form.get('hints-citites', False))
             has_streets = bool(request.form.get('hints-streets', False))
         
@@ -135,7 +136,7 @@ def post_atlas_hints(id=None):
             atlas['ul_lon'] = '%.8f' % ul_lon
             atlas['lr_lat'] = '%.8f' % lr_lat
             atlas['lr_lon'] = '%.8f' % lr_lon 
-            atlas['hint_features'] = has_streets
+            atlas['hint_features'] = has_features
             atlas['hint_cities'] = has_cities
             atlas['hint_streets'] = has_streets
         

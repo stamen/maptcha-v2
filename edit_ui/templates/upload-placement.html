@@ -24,7 +24,9 @@
     <div id='atlas-hints'> 
         
         <form action="/atlas-hints/{{ atlas.name }}" method="post"> 
-        
+        {{atlas.hint_features}} 
+        {{atlas.hint_cities}} 
+        {{atlas.hint_streets}}
         <input name="ul_lat" id="ul_lat" type="hidden" value="{{ atlas.ul_lat|float if atlas.ul_lat }}">
         <input name="ul_lon" id="ul_lon" type="hidden" value="{{ atlas.ul_lon|float if atlas.ul_lon }}">
         <input name="lr_lat" id="lr_lat" type="hidden" value="{{ atlas.lr_lat|float if atlas.lr_lat }}"> 
@@ -32,22 +34,22 @@
         
         <h4>Please spend a moment giving people some clues about the area that this atlas covers.</h4> 
         <br/> 
-         
+
         {# Probably a better way to set default checked value, not sure what's going on in jinja, #}
         <label class="checkbox">
-          <input type="checkbox" value="opt-features" name="hints-features" {% if atlas.hint_features|string == "True" %}checked="checked"{% endif %} > Does the atlas contain geographical features?
+          <input type="checkbox" name="hints_features" {% if atlas.hint_features|string == "True" %}checked="checked"{% endif %} > Does the atlas contain geographical features?
         </label>
         <label class="checkbox">
-          <input type="checkbox" value="opt-cities" name="hints-cities" {% if atlas.hint_cities|string == "True" %}checked="checked"{% endif %} > Does the atlas contain cities?
+          <input type="checkbox" name="hints-cities" {% if atlas.hint_cities|string == "True" %}checked="checked"{% endif %} > Does the atlas contain cities?
         </label>
         <label class="checkbox">
-          <input type="checkbox" value="opt-streets" name="hints-streets" {% if atlas.hint_streets|string == "True" %}checked="checked"{% endif %} > Does the atlas contain streets?
+          <input type="checkbox" name="hints-streets" {% if atlas.hint_streets|string == "True" %}checked="checked"{% endif %} > Does the atlas contain streets?
         </label>
-   
+    
         <div class="row">
             <div class="span12 twenty">
-                <p>Define a bounding box for all the maps in this atlas.</p>
-                <div id='atlas-map' style='width:100%; height:420px;'>
+                <p>Define a bounding box for all the maps in this atlas.<br/><i>Drag corners of the box on top of the map to achieve appropriate initial atlas coverage.</i></p>
+                <div id='atlas-map'>
                     <div class="zoom-controls">  
                         <a href="#" id="zoom-in">+</a> 
                         <a href="#" id="zoom-out">&ndash;</a>
@@ -56,7 +58,6 @@
                     <!--<label for="extent-lock" id="extent-lock-label">Lock extent: 
                     <input id="extent-lock" type="checkbox" checked="checked"/></label>-->
                 </div>
-                <!-- <iframe width="100%" height="420" src="http://maps.stamen.com/toner-lite/embed#12/37.7706/-122.3782"></iframe>  -->
             </div>
         </div>
     
