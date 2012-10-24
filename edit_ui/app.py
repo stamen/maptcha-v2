@@ -1,11 +1,13 @@
 from os import environ
 from os.path import dirname, join
-from mimetypes import guess_type
+from mimetypes import guess_type 
+import time,datetime
 
 from flask import Flask, request, redirect, render_template, jsonify, make_response, abort
 
 from util import connect_queue, get_config_vars
-from data import connect_domains, place_roughly, choose_map, create_atlas
+from data import connect_domains, place_roughly, choose_map, create_atlas  
+from relative_time import timesince
 
 aws_key, aws_secret, aws_prefix = get_config_vars(dirname(__file__))
 
@@ -38,11 +40,14 @@ def index():
     # will want to do this on a per client basis
     atlas_count = atlas_dom.select("select count(*) from `%s`" % atlas_db).next()  
     
-    #TODO: get last updated time
+    #TODO: get last updated time 
+    now = time.time()
+    latest_query="select timestamp from`%s` where timestamp < '%s' order by timestamp desc limit 1"%(atlas_dom.name,now)
+    latest = atlas_dom.select(latest_query,consistent_read=True).next()  
     
     #TODO: get recent list of map's for client
     
-    return render_template('index.html',atlas_count=atlas_count['Count']) 
+    return render_template('index.html',latest=latest['timestamp'],atlas_count=atlas_count['Count']) 
 
 def upload():
     '''
@@ -172,8 +177,13 @@ def check_map_status(id=None):
             for item in done:
                 rsp['finished'].append(item.name)
     
-    return jsonify(rsp)
-  
+    return jsonify(rsp) 
+    
+# template filters
+def datetimeformat(value, format='%H:%M / %d-%m-%Y'):
+    t = datetime.datetime.fromtimestamp(float(value))
+    return timesince(t)
+          
 def sumiter(s):
     ''' gets count of iterator
     '''
@@ -196,6 +206,7 @@ app.add_url_rule('/check-map-status/<id>', 'get map status', check_map_status, m
 app.error_handler_spec[None][404] = page_not_found
 
 app.add_template_filter(sumiter)
+app.add_template_filter(datetimeformat)
 
 if __name__ == '__main__':
     app.debug = True
