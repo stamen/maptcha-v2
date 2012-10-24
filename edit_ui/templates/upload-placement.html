@@ -34,7 +34,7 @@
         <h4>Please spend a moment giving people some clues about the area that this atlas covers.</h4> 
         <br/> 
          
-        <!-- not sure what's going on in jinja -->
+        {# Probably a better way to set default checked value, not sure what's going on in jinja, #}
         <label class="checkbox">
           <input type="checkbox" value="opt-features" name="hints-features" {% if atlas.hint_features|string == "True" %}checked="checked"{% endif %} > Does the atlas contain geographical features?
         </label>

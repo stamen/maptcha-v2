@@ -88,17 +88,16 @@ body{
 #address-search
 {
     position: absolute;
-    top: 15px;
-    left: 100px;  
-    background: #DDD;
-    z-index: 2; 
-    display:block; 
-    text-align:center;  
-    display:none;
+    top: 10px;
+    left: 10px;
+    background: rgba(255, 255, 255, .7);
+    z-index: 2;
+    display: block;
+    text-align: center;
 } 
 #address-search-form{
     top:0;
-    margin:5px;
+    margin: 14px 10px 0px;
 }
 
 #address-search.no-map

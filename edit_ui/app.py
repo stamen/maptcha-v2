@@ -52,7 +52,11 @@ def upload():
 def place_rough_map(id):
     '''
     '''
-    map = map_dom.get_item(id)
+    map = map_dom.get_item(id) 
+    
+    # get atlas, supplies edit ui w/ hints
+    atlas_id = map['atlas']
+    atlas = atlas_dom.get_item(atlas_id)
     
     if request.method == 'POST':
 
@@ -79,7 +83,7 @@ def place_rough_map(id):
         next_map = choose_map(map_dom, atlas_id=map['atlas'], skip_map_id=map.name)
         return redirect('/place-rough/map/%s' % next_map.name, code=303)
 
-    return render_template('place-rough-map.html', map=map)
+    return render_template('place-rough-map.html', map=map, atlas=atlas)
 
 def place_rough_atlas(id):
     '''

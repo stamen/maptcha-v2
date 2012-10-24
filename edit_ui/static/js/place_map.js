@@ -470,7 +470,15 @@
         map = new MM.Map(options['placement-map']['map-id'], layer); 
 
         map.setSize(new MM.Point(mapSize.w,mapSize.h));
-        map.setCenterZoom(new MM.Location(37.7, -122.4), 12);   
+    
+        if(atlas_hints.ul_lat && atlas_hints.ul_lon && atlas_hints.lr_lat && atlas_hints.lr_lon){
+            var ext = new MM.Extent( new MM.Location(atlas_hints.ul_lat,atlas_hints.lr_lon), new MM.Location(atlas_hints.lr_lat,atlas_hints.ul_lon) );
+            map.setExtent(ext);
+        }else{
+            map.setCenterZoom(new MM.Location(37.7, -122.4), 12); 
+        }
+        
+           
 
         $(layer.parent).css("opacity",0);
         
@@ -677,8 +685,15 @@
             var self = this; 
             
             this.geocoder = new google.maps.Geocoder();
-            this.southwest = new google.maps.LatLng(37.7077, -122.5169);
-            this.northeast = new google.maps.LatLng(37.8153, -122.3559);
+
+            if(atlas_hints){
+                this.southwest = new google.maps.LatLng(atlas_hints.lr_lat,atlas_hints.ul_lon);
+                this.northeast = new google.maps.LatLng(atlas_hints.ul_lat,atlas_hints.lr_lon); 
+            }else{
+                this.southwest = new google.maps.LatLng(37.7077, -122.5169);
+                this.northeast = new google.maps.LatLng(37.8153, -122.3559);
+            }
+            
             this.bounds = new google.maps.LatLngBounds(this.southwest, this.northeast); 
             this.input = $("#address-search").find('input');
             
