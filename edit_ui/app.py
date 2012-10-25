@@ -32,10 +32,10 @@ def static(filename):
 
 def index():
     '''
+    will want to do this filtered for client
     '''
     
     # get number of atlases
-    # will want to do this on a per client basis
     atlas_count = atlas_dom.select("select count(*) from `%s`" % atlas_dom.name).next()  
     
     #get last updated time 
@@ -111,7 +111,7 @@ def post_atlas(id=None):
     '''
     queue = connect_queue(aws_key, aws_secret, aws_prefix+'jobs')
     
-    # wrap in try/catch
+    # wrap in try/catch ???
     rsp = create_atlas(atlas_dom, map_dom, queue, request.form['url'], request.form['atlas-name'], request.form['atlas-affiliation']) 
     
     if 'error' in rsp:
@@ -137,8 +137,8 @@ def post_atlas_hints(id=None):
             lr_lat = float(request.form.get('lr_lat', None))
             lr_lon = float(request.form.get('lr_lon', None))
             has_features = bool(request.form.get('hints_features', False))
-            has_cities = bool(request.form.get('hints-citites', False))
-            has_streets = bool(request.form.get('hints-streets', False))
+            has_cities = bool(request.form.get('hints_cities', False))
+            has_streets = bool(request.form.get('hints_streets', False))
         
         
             atlas['ul_lat'] = '%.8f' % ul_lat

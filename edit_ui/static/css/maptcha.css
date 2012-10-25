@@ -157,32 +157,34 @@ td.mapThumb.finished a{
 .map-extent .handle-northeast,
 .map-extent .handle-southeast,
 .map-extent .handle-southwest {
-    width: 30px;
-    height: 30px;
+    width: 26px;
+    height: 26px;
     overflow:hidden;
-    border-radius: 15px;
-    background:yellow url('/static/styles/imgs/arrows.png') 0 0 no-repeat;
+    border-radius: 13px; 
+    background-repeat:no-repeat;
+    background-position:0 0;
+    background-color:yellow;
 }
 
 .map-extent .handle-northeast {
-    top: -15px;
-    right: -15px;
-    background-position:-20px 2px;
+    top: -13px;
+    right: -13px;
+    background-image:url('/static/styles/imgs/nesw-resize-26.png');
 }
 .map-extent .handle-southeast {
-    bottom: -15px;
-    right: -15px;
-    background-position:-75px 2px;
+    bottom: -13px;
+    right: -13px; 
+    background-image:url('/static/styles/imgs/nwse-resize-26.png');
 }
 .map-extent .handle-southwest {
-    bottom: -15px;
-    left: -15px;
-    background-position:-48px 2px;
+    bottom: -13px;
+    left: -13px;
+    background-image:url('/static/styles/imgs/nesw-resize-26.png');
 }
 .map-extent .handle-northwest {
-    top: -15px;
-    left: -15px;
-    background-position:5px 2px;
+    top: -13px;
+    left: -13px;
+    background-image:url('/static/styles/imgs/nwse-resize-26.png');
 }
 
 #extent-lock-label{
