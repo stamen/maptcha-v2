@@ -40,8 +40,12 @@ def index():
     
     #get last updated time 
     now = time.time()
-    latest_query="select timestamp from`%s` where timestamp < '%s' order by timestamp desc limit 1"%(atlas_dom.name,now)
-    latest = atlas_dom.select(latest_query,consistent_read=True).next()  
+    latest_query="select timestamp from`%s` where timestamp < '%s' order by timestamp desc limit 1"%(atlas_dom.name,now) 
+    try:
+        latest_rsp = atlas_dom.select(latest_query,consistent_read=True).next()
+        latest = latest_rsp['timestamp']
+    except:
+        latest = 0
     
     #get recent list of map's for client 
     q = "select * from `%s`"%(map_dom.name)
@@ -56,7 +60,7 @@ def index():
             map_totals['placed'] += 1
     
     
-    return render_template('index.html',latest=latest['timestamp'],atlas_count=atlas_count['Count'],maps=map_totals) 
+    return render_template('index.html',latest=latest,atlas_count=atlas_count['Count'],maps=map_totals) 
 
 def upload():
     '''
