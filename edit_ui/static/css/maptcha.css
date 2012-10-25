@@ -205,3 +205,15 @@ td.mapThumb.finished a{
     left: 3px;
     top: -2px;
 }
+.map-list-item{
+    width: 150px;
+    height: 150px;
+    display: block;
+    float: left;
+    background-repeat: no-repeat;
+    background-position: 50% 50%;
+    margin: 0 10px 10px 0;
+} 
+.map-list-item:hover{
+    opacity:.6;
+}

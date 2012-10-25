@@ -5,7 +5,7 @@ import time,datetime
 
 from flask import Flask, request, redirect, render_template, jsonify, make_response, abort
 
-from util import connect_queue, get_config_vars
+from util import connect_queue, get_config_vars, get_all_records
 from data import connect_domains, place_roughly, choose_map, create_atlas  
 from relative_time import timesince
 
@@ -33,21 +33,30 @@ def static(filename):
 def index():
     '''
     '''
-    atlas_db = aws_prefix+'atlases'
-    map_db = aws_prefix+'maps' 
     
     # get number of atlases
     # will want to do this on a per client basis
-    atlas_count = atlas_dom.select("select count(*) from `%s`" % atlas_db).next()  
+    atlas_count = atlas_dom.select("select count(*) from `%s`" % atlas_dom.name).next()  
     
-    #TODO: get last updated time 
+    #get last updated time 
     now = time.time()
     latest_query="select timestamp from`%s` where timestamp < '%s' order by timestamp desc limit 1"%(atlas_dom.name,now)
     latest = atlas_dom.select(latest_query,consistent_read=True).next()  
     
-    #TODO: get recent list of map's for client
+    #get recent list of map's for client 
+    q = "select * from `%s`"%(map_dom.name)
+    maps = get_all_records(map_dom,q)
     
-    return render_template('index.html',latest=latest['timestamp'],atlas_count=atlas_count['Count']) 
+    map_totals = {}
+    map_totals['total'] = 0
+    map_totals['placed'] = 0
+    for map in maps:
+        map_totals['total'] += 1
+        if 'version' in map:
+            map_totals['placed'] += 1
+    
+    
+    return render_template('index.html',latest=latest['timestamp'],atlas_count=atlas_count['Count'],maps=map_totals) 
 
 def upload():
     '''
@@ -166,7 +175,22 @@ def get_atlases():
                for a in atlas_dom.select(q)]
     
     return jsonify(dict(atlases=atlases)) 
+
+def get_atlases_list():
+    '''
+    '''
+    q = 'select * from `%s` where status="uploaded"' % atlas_dom.name 
+    atlases = [dict(status=a['status'], name=a.name, affiliation=a.get('affiliation','-'), title=a.get('title',a.name), uploaded=a.get('timestamp',0), maps=a.get('map_count','-'), rough_href='/place-rough/atlas/%s' % a.name)
+               for a in atlas_dom.select(q)]
+
+    return render_template('atlases-list.html', atlases=atlases)
     
+def get_maps_list(): 
+    q = "select * from `%s`"%(map_dom.name)
+    maps = get_all_records(map_dom,q)
+    return render_template('maps-list.html', maps=maps)
+    
+            
 def check_map_status(id=None):
     rsp = {'error':'unkown'}
     if id:
@@ -181,10 +205,13 @@ def check_map_status(id=None):
     return jsonify(rsp) 
     
 # template filters
-def datetimeformat(value, format='%H:%M / %d-%m-%Y'):
-    t = datetime.datetime.fromtimestamp(float(value))
-    return timesince(t)
-          
+def datetimeformat(value, relative=True, format='%b %d, %Y / %I:%M%p'):
+    t = datetime.datetime.fromtimestamp(float(value)) 
+    if relative:
+        return timesince(t)
+    else:
+        return t.strftime(format)
+             
 def sumiter(s):
     ''' gets count of iterator
     '''
@@ -202,6 +229,8 @@ app.add_url_rule('/atlases', 'get atlases', get_atlases)
 app.add_url_rule('/atlas', 'post atlas', post_atlas, methods=['POST'])
 app.add_url_rule('/atlas-hints/<id>', 'post atlas hints', post_atlas_hints, methods=['GET', 'POST'])
 app.add_url_rule('/atlas/<id>', 'get atlas', get_atlas)
+app.add_url_rule('/atlases-list', 'get atlases list', get_atlases_list)
+app.add_url_rule('/maps-list', 'get maps list', get_maps_list)
 app.add_url_rule('/check-map-status/<id>', 'get map status', check_map_status, methods=['GET']) 
 
 app.error_handler_spec[None][404] = page_not_found

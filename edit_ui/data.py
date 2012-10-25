@@ -12,7 +12,7 @@ from util import connect_domain, check_url
 from boto.exception import SDBResponseError
 
 required_fields = ['map_title', 'date', 'image_url']
-reserved_keys = ['image','large','thumb','atlas']
+reserved_keys = ['image','large','thumb','atlas','version'] #map
 
 def generate_id():
     '''
@@ -125,13 +125,7 @@ def create_atlas(domain, map_dom, queue, url, name, affiliation):
         
         message = queue.new_message('create map %s' % map.name)
         queue.write(message)
-        
 
-    #
-    # Queue the atlas for processing.
-    #
-    #message = queue.new_message('populate atlas %s' % atlas.name)
-    
 
     return {'success':atlas}
 

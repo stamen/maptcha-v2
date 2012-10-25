@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Maps</title>
+<link href="/static/css/bootstrap.css" rel="stylesheet" type="text/css" />
+<link href="/static/css/maptcha.css" rel="stylesheet" type="text/css" />
+</head>
+
+<body>
+<a name="top"></a>
+<div class="container">
+    <div class="page-header"><a href="http://maptcha.org">maptcha.org</a> / <strong>{CLIENT_NAME}</strong></div>
+    <h1>Uploaded Maps</h1>
+    {% for map in maps %}  
+    <a class="map-list-item" href="/atlas/{{ map.atlas }}" style="background-image:url('/thing/{{ map.thumb }}');"></a>
+    {% endfor %}
+        
+    <div class="footer" style="clear:both;">
+    	<a href="#top">Top &uarr;</a>
+    </div>
+</div>  
+<script type="text/javascript" src="/static/js/uploader.js"></script>
+</body>
+</html>

@@ -65,7 +65,26 @@ def get_config_vars(dir):
     
     return aws_key, aws_secret, aws_prefix
 
+def get_all_records(dom,q):
+    '''
+    Helper function to retreive all results for a query from SDB
+    returns a list of objects
+    '''
+    items = []
+    nxt = None
+    while True:
+        rsp = dom.select(q,max_items=100,consistent_read=True,next_token=nxt)
+        if rsp:
+            for r in rsp: 
+                items.append(r)
+            nxt = rsp.next_token
+            if not nxt:
+                break
+            else:
+                break    
 
+    return items
+     
 def get_server_status_code(url):
     """
     Download just the header of a URL and
