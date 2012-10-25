@@ -13,21 +13,27 @@
     <div class="container">
         <div class="page-header"><a href="http://maptcha.org">maptcha.org</a> / <a href="index.html">#################??</a></div>
         <h1>Upload </h1>
+       
+        
         <form class="form-actions" action="atlas" method="post">
             <p>Atlas Name</p>
             <p>
                 <input id="atlas-name" name="atlas-name" type="text" class="input-xxlarge"/>
                 <span class="help-inline required-color">*</span> 
+                <span class="help-inline">This field is required.</span>
             </p>
             <p>Institutional Affiliation</p>
             <p>
                 <input id="atlas-affiliation" name="atlas-affiliation" type="text" class="input-xxlarge"/>
                 <span class="help-inline required-color">*</span> 
+                <span class="help-inline">This field is required.</span>
             </p>
             <p>DropBox URL of CSV file</p>
             <p>
                 <input id="csv-file-selector" name="url" type="text" class="input-xxlarge"/>
                 <span class="help-inline required-color">*</span> 
+                <span class="help-inline">This field is required.</span>
+                <span class="help-inline">That's not a valid URL.</span>
             </p>
             <p id="csv-submit-btn">
                 <button class="btn btn-success" type="submit">Next</button>
