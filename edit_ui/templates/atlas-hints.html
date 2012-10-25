@@ -19,7 +19,7 @@
     <h1><a href="/atlas/{{ atlas.name }}">{{ atlas.title }}</a></h1>
 
 
-    <h3>Status: {{ atlas.status }}</h3>  
+<!--    <h3>Status: {{ atlas.status }}</h3>  -->
     
     <div id='atlas-hints'> 
         
@@ -30,23 +30,22 @@
         <input name="lr_lat" id="lr_lat" type="hidden" value="{{ atlas.lr_lat|float if atlas.lr_lat }}"> 
         <input name="lr_lon" id="lr_lon" type="hidden" value="{{ atlas.lr_lon|float if atlas.lr_lon }}">
         
-        <h4>Please spend a moment giving people some clues about the area that this atlas covers.</h4> 
-        <br/> 
-
+        <>Maptcha needs your help to describe the maps in this atlas. Just some hints to help the volunteers.</p> 
+        
         {# Probably a better way to set default checked value, not sure what's going on in jinja, #}
         <label class="checkbox">
-          <input type="checkbox" name="hints_features" {% if atlas.hint_features|string == "True" %}checked="checked"{% endif %} > Does the atlas contain geographical features?
+          <input type="checkbox" name="hints_features" {% if atlas.hint_features|string == "True" %}checked="checked"{% endif %} > These maps show geographical features, like rivers, mountains, or coastlines.
         </label>
         <label class="checkbox">
-          <input type="checkbox" name="hints_cities" {% if atlas.hint_cities|string == "True" %}checked="checked"{% endif %} > Does the atlas contain cities?
+          <input type="checkbox" name="hints_cities" {% if atlas.hint_cities|string == "True" %}checked="checked"{% endif %} > These maps show more than one city on the same map.
         </label>
         <label class="checkbox">
-          <input type="checkbox" name="hints_streets" {% if atlas.hint_streets|string == "True" %}checked="checked"{% endif %} > Does the atlas contain streets?
+          <input type="checkbox" name="hints_streets" {% if atlas.hint_streets|string == "True" %}checked="checked"{% endif %} > These maps are at street level.
         </label>
     
         <div class="row">
             <div class="span12 twenty">
-                <p>Define a bounding box for all the maps in this atlas.<br/><i>Drag corners of the box on top of the map to achieve appropriate initial atlas coverage.</i></p>
+                <p>Set the bounding box that would contain all the maps you're uploading. (This will help the volunteers know where to start.)</p>
                 <div id='atlas-map'>
                     <div class="zoom-controls">  
                         <a href="#" id="zoom-in">+</a> 
