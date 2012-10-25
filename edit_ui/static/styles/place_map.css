@@ -88,10 +88,9 @@ body{
 #address-search
 {
     position: absolute;
-    top: 10px;
+    top: 0px;
     left: 10px;
-    background: white;
-    background: rgba(255, 255, 255, .7);
+    background: transparent;
     z-index: 2;
     display: block;
     text-align: center;
@@ -99,6 +98,9 @@ body{
 #address-search-form{
     top:0;
     margin: 14px 10px 0px;
+} 
+#address-search-form-inner{
+    
 }
 
 #address-search.no-map
@@ -107,32 +109,42 @@ body{
     top: 0;
     left: 0;
     width: 100%;
-    height: 100%;
+    height: 100%; 
+    margin-bottom:0;
    
 }
 #address-search.no-map #address-search-form{
     position: relative;
     top: 45%;  
     margin:0;
+    background: rgba(255, 255, 255, .7 );
 }
 
     #address-search.no-map label
     {
         float: none;
         margin: 10px 0;
-        padding-top: 6px;
-        padding-bottom: 6px;
     }
     
     #address-search.no-map .explain
     {
         display: block;
-        margin-left: 10px;
         white-space: nowrap;
     }
+    
+    #address-search.no-map .explain:last-child{
+        margin-top:5px;
+    }
+    
+    #address-search .close{display:none;}
+    #address-search.no-map .close{
+        position: absolute;
+        right: 5px;  
+        display:block;
+    }
 
-    #address-search input { width: 200px; }
-    #address-search.no-map input { width: 300px; }
+    #address-search input { /*width: 200px;*/ }
+    #address-search.no-map input { /*width: 300px;*/ }
     #address-search .explain { display: none; }
     
 #footer{
@@ -147,7 +159,7 @@ body{
     background:white;
     position:relative;
     margin: 0; 
-    width:33%; 
+    width: 33.3%; 
     float:left;
 }
 #footer button{

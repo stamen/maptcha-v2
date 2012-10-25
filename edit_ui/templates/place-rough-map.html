@@ -52,12 +52,22 @@
                 
                     <div id="address-search" class="no-map">  
                         <div id="address-search-form">
-                            <div id="explain-title" class="explain">Search for a cross street you can see on the old map…</div>
-                            <label><input id="address_input" class="input-large" type="search" name="geocode" size="28" placeholder="16th St &amp; Mission St"> Find</label>
-                            <div class="explain"><small id="explain-help">You only have to type the names, like “Milton &amp; Bosworth”</small></div> 
+                            <div id="address-search-form-inner">
+                                <a href="#" class="close">x</a> 
+                                <p id="explain-title" class="explain">Search for a cross street you can see on the old map…</p> 
+                                <div class="input-append">
+                                    <input id="address_input" type="text" class="span3">
+                                    <button id="address_input_submit" type="button" class="btn">Find</button>
+                                </div>
+                                <!--<label><input id="address_input" class="input-xlarge" type="search" name="geocode" size="28" placeholder="16th St &amp; Mission St"> Find</label>-->
+                                <p class="explain muted"><small id="explain-help">You only have to type the names, like “Milton &amp; Bosworth”</small></p>
+                            </div> 
                         </div>
-                    </div> 
-                </div>
+                        
+                    </div>
+                     
+                </div><!-- end #map-box -->      
+                
             </div> <!-- end #box-wrap -->
             
         </div>  

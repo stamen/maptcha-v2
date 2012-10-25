@@ -693,7 +693,7 @@
                 this.southwest = new google.maps.LatLng(37.7077, -122.5169);
                 this.northeast = new google.maps.LatLng(37.8153, -122.3559);
             } 
-            console.log(atlas_hints)
+     
             if(atlas_hints.has_streets){
                 $('#explain-title').html(hint_attr['streets']['explain-title']);
                 $('#explain-help').html(hint_attr['streets']['explain-help']);  
@@ -713,11 +713,22 @@
             }
             
             this.bounds = new google.maps.LatLngBounds(this.southwest, this.northeast); 
-            this.input = $("#address-search").find('input');
+            this.input = $("#address_input");
             
             this.input.on("change",function(e){
-                e.preventDefault();
+                e.preventDefault(); 
+                
                 self.jumpAddress(this.value);
+            }); 
+
+            $("#address_input_submit").on('click',function(e){
+                e.preventDefault();
+                self.jumpAddress(self.input.value);
+            });  
+            
+            $("#address-search-form .close").on('click',function(e){
+                e.preventDefault();
+                $("#address-search").removeClass("no-map");
             });
         },
         onGeocoded: function(results, status){
