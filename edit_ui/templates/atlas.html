@@ -49,14 +49,31 @@
     <div class="footer">
     	<a href="#top" class="top-jumper">Top &uarr;</a>
     </div>
-</div>                                                                
+</div> 
 
 <script type="text/javascript" src="/static/js/uploader.js"></script> 
+
+{% if atlas.status != 'uploaded' %}
 <script type="text/javascript" defer> 
 var map_total = {{ atlas.map_count|default(0,true) }};
-var atlas_name = "{{ atlas.name }}";
-var progressBar = document.getElementById('maps-progress-bar');  
-poller.atlas_id = atlas_name;
+var atlas_name = "{{ atlas.name }}"; 
+var progressBar = document.getElementById('maps-progress-bar');
+
+function polling(val){
+    if(progressBar){
+       var remaining = map_total - val;
+       var w = (remaining / map_total) * 100; 
+       if(w >= 100){
+           progressBar.parentElement.style.display = 'none';
+           var status_elm = document.getElementById('atlas-status');
+           status_elm.innerText = "Status: uploaded";
+       }else{
+           progressBar.style.width = w + "%";
+       }
+    } 
+}
+poller.atlas_id = atlas_name; 
+poller.setCallback(polling);
 poller.check();
 
 
@@ -66,6 +83,8 @@ var map = new MM.Map("atlas-map", layer);
 map.setCenterZoom(new MM.Location(37.7, -122.4), 9);  
 */
 
-</script>
+</script> 
+{% endif %}
+
 </body>
 </html>

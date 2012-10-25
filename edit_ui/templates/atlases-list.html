@@ -21,7 +21,7 @@
         	<th>Affiliation</th>
         	<th>ID</th>
         </tr> 
-        {% for atlas in atlases %}  
+        {% for atlas in atlases|sort(reverse=True,attribute='uploaded') %}  
             <tr>
             	<td><a href="/atlas/{{atlas.name}}" title='link to atlas'>{{atlas.title}}</a></td> 
             	<td>{{ atlas.status }}</td>
@@ -35,7 +35,7 @@
 	</table>
         
     <div class="footer">
-    	<a href="#top">Top &uarr;</a>
+    	<a href="#top" class="top-jumper">Top &uarr;</a>
     </div>
 </div>  
 <script type="text/javascript" src="/static/js/uploader.js"></script>

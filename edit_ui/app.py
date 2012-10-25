@@ -161,10 +161,13 @@ def get_atlas(id):
     '''
     ''' 
     atlas = atlas_dom.get_item(id,consistent_read=True)
-    q = "select * from `%s` where atlas = '%s'" % (map_dom.name, atlas.name)
-    maps = map_dom.select(q,consistent_read=True)
+    if atlas:
+        q = "select * from `%s` where atlas = '%s'" % (map_dom.name, atlas.name)
+        maps = map_dom.select(q,consistent_read=True)
     
-    return render_template('atlas.html', atlas=atlas, maps=maps)
+        return render_template('atlas.html', atlas=atlas, maps=maps)
+    else:
+        abort(404)
 
 def get_atlases():
     '''
@@ -179,7 +182,7 @@ def get_atlases():
 def get_atlases_list():
     '''
     '''
-    q = 'select * from `%s` where status="uploaded"' % atlas_dom.name 
+    q = 'select * from `%s`' % atlas_dom.name 
     atlases = [dict(status=a['status'], name=a.name, affiliation=a.get('affiliation','-'), title=a.get('title',a.name), uploaded=a.get('timestamp',0), maps=a.get('map_count','-'), rough_href='/place-rough/atlas/%s' % a.name)
                for a in atlas_dom.select(q)]
 

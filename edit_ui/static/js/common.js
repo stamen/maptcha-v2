@@ -37,6 +37,7 @@ var poller = {
     queueHash:{},
     atlas_id:'',
     checkClass:'empty',
+    callback:null,
     run: function(){  
         var url = "/check-map-status/"+this.atlas_id;
         this.xhr(url);
@@ -45,32 +46,30 @@ var poller = {
         if(!this.atlas_id)return;
         
         var empties = getElementsByClass(this.checkClass); 
-        if(empties){
+        if(empties && empties.length){
             this.queueHash = {};
             for(var i=0;i<empties.length;i++){
                 var id = empties[i].getAttribute('id');
                 this.queueHash[id] = empties[i];
             }
-            this.updateProgressBar(empties.length)
-            this.run();
+            this.update(empties.length); 
+            
+            var self = this;
+            window.setTimeout(function(){self.run();},this.rate); 
+            
         }else{
-            this.updateProgressBar(0)
+            this.update(0)
         }
         
     },
-    updateProgressBar: function(t){
-       if(progressBar){
-           var remaining = map_total - t;
-           var w = (remaining / map_total) * 100; 
-           if(w >= 100){
-               progressBar.parentElement.style.display = 'none';
-               var status_elm = document.getElementById('atlas-status');
-               status_elm.innerText = "Status: uploaded";
-           }else{
-               progressBar.style.width = w + "%";
-           }
-           
+    update: function(t){ 
+       if(this.callback){
+           this.callback(t);
        }
+    },
+    setCallback:function(f){
+        f = f || null;
+        this.callback = (f.constructor && f.call && f.apply) ? f : null;
     },
     resp: function(r){ 
         if(r && r.response){
@@ -99,10 +98,8 @@ var poller = {
                     }
                 }
             } 
-            
-            var self = this;
-            window.setTimeout(function(){self.check();},this.rate);
-        } 
+        }   
+        this.check();
       
     },
     //#https://github.com/d3/d3.github.com/blob/master/d3.v2.js
