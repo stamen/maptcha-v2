@@ -7,10 +7,13 @@
 	<meta name="author" content="Sean Connelley">
 	<!-- Date: 2012-10-25 -->  
 	<style> 
-	    body{margin:20px;padding:0;font-family:'Helvetica',Arial,sans-serif;}
+	    body{margin:0px;padding:0;font-family:'Helvetica',Arial,sans-serif;} 
+	    
+	    
 	    
 	    #atlases{
-	        margin-bottom:20px;
+	        margin-bottom:20px; 
+	        display:none;
 	    }   
 	    
 	    #edit{
@@ -22,18 +25,17 @@
 	</style>
 </head>
 <body> 
-    <h1>Rough Edit Demo</h1>
-    <p>Available Atlases</p>
     <select id='atlases'></select>
     <div id='edit'>
-        <iframe src="" width="800px" height="600px"></iframe>
+        <iframe src="" width="100%" height="100%"></iframe>
     </div>
 
  
   <script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script> 
   <script> 
-    function getFeed(){
-        var feedURL = "http://127.0.0.1:8080/atlases"; 
+    function getFeed(){ 
+        var base = "http://yotb.studio.stamen.com/";
+        var feedURL = base+"/atlases"; 
         var atlases = null; 
         var currentIndex = 0;
         $.getJSON(feedURL, function(data) {
@@ -50,14 +52,14 @@
                  //console.log(option)
                  
              } 
-             console.log(frame)
-             frame.prop('src', 'http://127.0.0.1:8080'+atlases[currentIndex].rough_href);
+
+             frame.prop('src', base+atlases[currentIndex].rough_href);
              
              select.on('change',function(e){
                  var idx = this.value;
                  if(idx != currentIndex){
                      currentIndex = idx;
-                     frame.prop('src', 'http://127.0.0.1:8080'+atlases[currentIndex].rough_href);
+                     frame.prop('src', base+atlases[currentIndex].rough_href);
                  }
                  
              })
@@ -65,7 +67,8 @@
         }); 
         
     }
-    $(function(){
+    $(function(){ 
+        $("#edit").css("height",window.innerHeight + "px");
         getFeed();
     });
   </script>
