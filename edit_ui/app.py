@@ -144,7 +144,7 @@ def post_atlas_hints(id=None):
         
             return redirect('/atlas/%s' % atlas.name, code=303)
 
-        return render_template('upload-placement.html', atlas=atlas)
+        return render_template('atlas-hints.html', atlas=atlas)
     else:
         abort(404)
     
