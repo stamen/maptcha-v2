@@ -176,8 +176,9 @@ def get_atlases():
     
     atlases = [dict(status=a['status'], name=a.name, rough_href='/place-rough/atlas/%s' % a.name)
                for a in atlas_dom.select(q)]
-    
-    return jsonify(dict(atlases=atlases)) 
+    response = make_response(jsonify(dict(atlases=atlases)))
+    response.headers['Access-Control-Allow-Origin'] = "*"
+    return response
 
 def get_atlases_list():
     '''

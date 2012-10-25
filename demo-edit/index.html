@@ -1,0 +1,73 @@
+<!DOCTYPE HTML>
+<html lang="en">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+	<title>index</title>
+	<meta name="generator" content="TextMate http://macromates.com/">
+	<meta name="author" content="Sean Connelley">
+	<!-- Date: 2012-10-25 -->  
+	<style> 
+	    body{margin:20px;padding:0;font-family:'Helvetica',Arial,sans-serif;}
+	    
+	    #atlases{
+	        margin-bottom:20px;
+	    }   
+	    
+	    #edit{
+	        
+	    } 
+	    iframe{
+	        border:none;
+	    }
+	</style>
+</head>
+<body> 
+    <h1>Rough Edit Demo</h1>
+    <p>Available Atlases</p>
+    <select id='atlases'></select>
+    <div id='edit'>
+        <iframe src="" width="800px" height="600px"></iframe>
+    </div>
+
+ 
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script> 
+  <script> 
+    function getFeed(){
+        var feedURL = "http://127.0.0.1:8080/atlases"; 
+        var atlases = null; 
+        var currentIndex = 0;
+        $.getJSON(feedURL, function(data) {
+             atlases = data['atlases']; 
+             
+             var select = $("#atlases");
+             var frame = $('#edit').find('iframe');
+             for(var i=0;i<atlases.length;i++){  
+                 
+                 var option = $('<option/>');
+                 option.val(i);
+                 option.text(atlases[i].name);
+                 select.append(option);
+                 //console.log(option)
+                 
+             } 
+             console.log(frame)
+             frame.prop('src', 'http://127.0.0.1:8080'+atlases[currentIndex].rough_href);
+             
+             select.on('change',function(e){
+                 var idx = this.value;
+                 if(idx != currentIndex){
+                     currentIndex = idx;
+                     frame.prop('src', 'http://127.0.0.1:8080'+atlases[currentIndex].rough_href);
+                 }
+                 
+             })
+             
+        }); 
+        
+    }
+    $(function(){
+        getFeed();
+    });
+  </script>
+</body>
+</html>

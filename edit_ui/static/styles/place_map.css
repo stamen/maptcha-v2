@@ -140,7 +140,8 @@ body{
     #address-search.no-map .close{
         position: absolute;
         right: 5px;  
-        display:block;
+        display:block; 
+        top:-25px;
     }
 
     #address-search input { /*width: 200px;*/ }
