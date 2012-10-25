@@ -11,26 +11,26 @@
 <body>
     <a name="top"></a>
     <div class="container">
-        <div class="page-header"><a href="http://maptcha.org">maptcha.org</a> / <a href="index.html">{CLIENT_NAME}</a></div>
+        <div class="page-header"><a href="http://maptcha.org">maptcha.org</a> / <a href="index.html">#################??</a></div>
         <h1>Upload </h1>
         <form class="form-actions" action="atlas" method="post">
-            <p>Name of Atlas:</p>
+            <p>Atlas Name</p>
             <p>
                 <input id="atlas-name" name="atlas-name" type="text" class="input-xxlarge"/>
                 <span class="help-inline required-color">*</span> 
             </p>
-            <p>Institutional Affiliation:</p>
+            <p>Institutional Affiliation</p>
             <p>
                 <input id="atlas-affiliation" name="atlas-affiliation" type="text" class="input-xxlarge"/>
                 <span class="help-inline required-color">*</span> 
             </p>
-            <p>URL to Map CSV file:</p>
+            <p>DropBox URL of CSV file</p>
             <p>
                 <input id="csv-file-selector" name="url" type="text" class="input-xxlarge"/>
                 <span class="help-inline required-color">*</span> 
             </p>
             <p id="csv-submit-btn">
-                <button class="btn btn-success" type="submit">Submit</button>
+                <button class="btn btn-success" type="submit">Next</button>
             </p>
             <!--<p><a href="step2-error-check.html">Pretend like you've hit upload</a></p>-->
         </form>
@@ -38,11 +38,13 @@
     
         <div class="row">
             <div class="span4">
-                <p>To upload a series of maps into Maptcha, you need to upload a CSV that contains a row for each map. There are 4 required fields, but more is encouraged.</p>
-                <p>Here's <a href="/static/maptcha-example-csv-file.csv">an example CSV file</a> to get you started.</p>
+                <p>To upload a series of maps into Maptcha, you need to upload a CSV that contains a row for each map. You'll also need to upload all the map image files to Dropbox, and put URLs to those images in each map entry in your CSV.</p>
+                <p>Here's <strong><a href="/static/maptcha-example-csv-file.csv">an example CSV file</a></strong> you can use as a template. (Please keep the column names intact.)</p>
             </div>
             <div class="span8">
-                <h3>Map Metadata Fields <small>Red means <span class="required">required</span></small></h3>
+                <h3>Map Metadata Fields</h3>
+                
+                <p>There are 3 <span class="required">required</span> fields:</p>
             
                 <dl>
                     <dt><span class="required">Title</span></dt>
@@ -54,6 +56,8 @@
                     <dt><span class="required">Image_URL</span></dt>
                     <dd>This must be a fully qualified URL (with the http://) to a <strong>public</strong> <a href="https://www.dropbox.com/">DropBox</a> repository where Maptcha can access an actual image file. That means the URL needs to point at a .jpg or .tif. Please link to the largest possible image size.<br />
                         <code class="example">http://dropbox.com/8467/8075467309_d1eb3cee97_o.jpg</code></dd>
+                        
+                    <p>And several other recommended fields:</p>
                 
                     <dt>Place_Names</dt>
                     <dd>Please note any cities or town names you can see on the map. Please separate each place name with a comma. The more the better!<br />
