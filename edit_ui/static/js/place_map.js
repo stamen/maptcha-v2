@@ -478,7 +478,7 @@
             map.setCenterZoom(new MM.Location(37.7, -122.4), 12); 
         }
         
-           
+        exports.ymap = map;   
 
         $(layer.parent).css("opacity",0);
         
@@ -502,7 +502,8 @@
         map.addCallback("zoomed", mainMapZoomed);
         map.addCallback("extentset", updateBackgroundMap);
         map.addCallback("centered", updateBackgroundMap);
-
+       
+        
 
 
         mapCanvas = document.createElement('canvas');
