@@ -56,10 +56,26 @@ def normalize_rows(rows):
     
 def create_atlas(domain, map_dom, queue, url, name, affiliation):
     '''
-    '''
-    temp = list(DictReader(urlopen(url)))
+    ''' 
+    temp = None 
+    if not check_url(url):
+        return {'error':"There's no file at that URL: <a href='%s'>%s</a>. Please <a href='/upload'>try again</a>."%(url,url)} 
     
-    rows = normalize_rows(temp)
+    try:
+        temp = DictReader(urlopen(url))
+    except IOError:
+        return {'error':"There's no file at that URL: <a href='%s'>%s</a>. Please <a href='/upload'>try again</a>."%(url,url)}
+    
+    if not temp.fieldnames:
+        return {'error':"We couldn't work out if that file is even a CSV. Can you grab the URL again, and try another <a href='/upload'>upload</a>?"}
+    
+    try:
+        rows = normalize_rows(list(temp))
+    except:
+        return {'error':"We couldn't work out if that file is even a CSV. Can you grab the URL again, and try another <a href='/upload'>upload</a>?"}  
+        
+    
+    
     
     # normalize keys
     #keys = [key.lower().replace(' ', '_') for key in rows[0].keys()]
@@ -70,7 +86,7 @@ def create_atlas(domain, map_dom, queue, url, name, affiliation):
     # validate fields
     #
     if len(missing_fields) > 0:
-        return {'error':"Missing the following keys in you CSV file: %s"%(",".join(missing_fields))}
+        return {'error':"Your CSV doesn't have all the required columns. You must include map_title, date and image_url.<br/>Please <a href='/upload'>try again</a>."}
     
     #
     # validate images
@@ -78,15 +94,20 @@ def create_atlas(domain, map_dom, queue, url, name, affiliation):
     
     # need to know the image_col name
     #img_col = filter(lambda x: x.lower().replace(' ', '_') == "image_url", rows[0].keys())[0]
-    invalid_urls = []
+    invalids = []
     for idx, row in enumerate(rows):
-        valid_url = check_url(row['image_url'])
-        if not valid_url:
-            row_num = idx+1
-            invalid_urls.append({'idx':row_num,'err':row['image_url']})
+        row_num = idx+1
+        for req in required_fields:
+            if not row[req]:
+                invalids.append({'idx':row_num,'err':"Missing %s"%req})
+        
+        if row['image_url']:    
+            valid_url = check_url(row['image_url'])
+            if not valid_url:
+                invalids.append({'idx':row_num,'err':"Couldn't find an image at <a href='%s'>%s</a>"%(row['image_url'],row['image_url'])})
             
-    if len(invalid_urls):
-        return {'error':"There were some invalid Image URL's","rows":invalid_urls} 
+    if len(invalids):
+        return {'error':"Some of your map entries don't work, because...","rows":invalids} 
     
 
     #if 'address' not in row:

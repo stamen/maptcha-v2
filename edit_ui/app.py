@@ -47,6 +47,7 @@ def index():
     except:
         latest = 0
     
+    
     #get recent list of map's for client 
     q = "select * from `%s`"%(map_dom.name)
     maps = get_all_records(map_dom,q)
@@ -160,7 +161,15 @@ def post_atlas_hints(id=None):
         return render_template('atlas-hints.html', atlas=atlas)
     else:
         abort(404)
-    
+
+
+def get_map(id):
+    map = map_dom.get_item(id)
+    if map:
+        return render_template('map.html', map=map)
+    else:
+        abort(404)
+        
 def get_atlas(id):
     '''
     ''' 
@@ -237,6 +246,7 @@ app.add_url_rule('/atlases', 'get atlases', get_atlases)
 app.add_url_rule('/atlas', 'post atlas', post_atlas, methods=['POST'])
 app.add_url_rule('/atlas-hints/<id>', 'post atlas hints', post_atlas_hints, methods=['GET', 'POST'])
 app.add_url_rule('/atlas/<id>', 'get atlas', get_atlas)
+app.add_url_rule('/map/<id>', 'get map', get_map)
 app.add_url_rule('/atlases-list', 'get atlases list', get_atlases_list)
 app.add_url_rule('/maps-list', 'get maps list', get_maps_list)
 app.add_url_rule('/check-map-status/<id>', 'get map status', check_map_status, methods=['GET']) 

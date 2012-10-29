@@ -108,7 +108,7 @@ td.mapThumb.finished a{
     z-index: 9;
 }
 .map-extent .handles {
-    cursor: move;
+    cursor: default;
     border: 5px solid yellow;
 }
 
@@ -128,7 +128,8 @@ td.mapThumb.finished a{
 .map-extent .handle-southeast { cursor: nwse-resize; }
 .map-extent .handle-northeast,
 .map-extent .handle-southwest { cursor: nesw-resize; }
-
+.map-extent .handle-northwest{cursor: move;}
+    
 .map-extent .handle-north {
     height: 5px;
     width: 100%;
@@ -184,7 +185,7 @@ td.mapThumb.finished a{
 .map-extent .handle-northwest {
     top: -13px;
     left: -13px;
-    background-image:url('/static/styles/imgs/nwse-resize-26.png');
+    background-image:url('/static/styles/imgs/move.png');
 }
 
 #extent-lock-label{
@@ -218,4 +219,28 @@ td.mapThumb.finished a{
 } 
 .map-list-item:hover{
     opacity:.6;
+} 
+.hide{
+    display:none;
+}
+img { max-width:100% }
+
+
+body.map h1 a{
+    font-size:14px;
+    padding-left:20px;
+}
+
+#map-table table{
+    word-wrap:break-word;
+    table-layout:fixed;
+}
+#map-table table td, #map-table table th{
+    color:#333;
+}
+
+#map-table table td.prop,#map-table table th.prop{
+    font-weight:bold;
+    width:30%; 
+    color:#000;
 }

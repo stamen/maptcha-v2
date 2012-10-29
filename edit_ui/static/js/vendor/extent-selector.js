@@ -71,7 +71,7 @@ if (!com.modestmaps) {
 
             var names = [
                 "north", "south", "east", "west",
-                "northwest", "northeast", "southeast", "southwest"
+                "northwest", "southeast"
             ];
             for (var i = 0; i < names.length; i++) {
                 this.handles[names[i]] = this.createHandle(names[i]);
@@ -120,7 +120,11 @@ if (!com.modestmaps) {
 
                 case "northwest":
                     left += delta.x;
+                    right += delta.x;
                     top += delta.y;
+                    bottom += delta.y; 
+                    //left += delta.x;
+                    //top += delta.y;
                     break;
                 case "northeast":
                     right += delta.x;

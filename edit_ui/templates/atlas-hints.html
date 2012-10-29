@@ -15,11 +15,8 @@
 <body>
 <a name="top"></a>
 <div class="container">
-    <div class="page-header"><a href="http://maptcha.org">maptcha.org</a> / <a href="index.html">{CLIENT_NAME}</a></div>
+    <div class="page-header"><a href="http://maptcha.org">maptcha.org</a> / <a href="/">Historypin</a> / <strong>Hints</strong></div>
     <h1><a href="/atlas/{{ atlas.name }}">{{ atlas.title }}</a></h1>
-
-
-<!--    <h3>Status: {{ atlas.status }}</h3>  -->
     
     <div id='atlas-hints'> 
         
@@ -30,7 +27,7 @@
         <input name="lr_lat" id="lr_lat" type="hidden" value="{{ atlas.lr_lat|float if atlas.lr_lat }}"> 
         <input name="lr_lon" id="lr_lon" type="hidden" value="{{ atlas.lr_lon|float if atlas.lr_lon }}">
         
-        <>Maptcha needs your help to describe the maps in this atlas. Just some hints to help the volunteers.</p> 
+        <p>Maptcha needs your help to describe the maps in this atlas. Just some hints to help the volunteers.</p> 
         
         {# Probably a better way to set default checked value, not sure what's going on in jinja, #}
         <label class="checkbox">
@@ -106,13 +103,15 @@ zoomOut.onclick = function(){
 
 
     
-var selector = new MM.ExtentSelector(document.getElementById("extent"));
+var selector = new MM.ExtentSelector(document.getElementById("extent"));  
+
 selector.allowMoveCenter = false;
 map.addLayer(selector);
 map.addCallback('zoomed', function(m) {
     // respond to new center:
     updateSelector();
-});
+}); 
+
 selector.addCallback("extentset", function(o, ext) {
    ul_lat.value = ext.north;
    ul_lon.value = ext.west;

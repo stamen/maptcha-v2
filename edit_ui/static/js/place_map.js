@@ -70,7 +70,7 @@
 
 
 
-
+    var displayHints = false;
     var lastRot = 0;     
     
     function setCanvasObjects(){ 
@@ -94,13 +94,15 @@
         pin.strokeWidth = 1;
 
         handle.fillColor = '#F8F801';
+        
+        if(displayHints){
+            imageHint.content = '(Drag to move)';
+            imageHint.characterStyle = hintStyles;
 
-        imageHint.content = '(Drag to move)';
-        imageHint.characterStyle = hintStyles;
-
-        handleHint.content = '(Rotate & scale)';
-        handleHint.characterStyle = hintStyles;
-
+            handleHint.content = '(Rotate & scale)';
+            handleHint.characterStyle = hintStyles; 
+        }
+        
         pin.position = paper.view.center;   
         
         handle.position = addPoints(paper.view.center , new paper.Point(armLength * Math.cos(-Math.PI/3), armLength * Math.sin(-Math.PI/3)));
@@ -152,7 +154,7 @@
         circle.opacity = 1;
         circle.dashArray = [14, 7];
 
-        handleHint.position = addPoints(handle.position , new paper.Point(-170, 5)); 
+        if(displayHints)handleHint.position = addPoints(handle.position , new paper.Point(-170, 5)); 
     }
     
     function onMouseDown(event)
@@ -161,12 +163,12 @@
             downHandle = handle.position.clone();
             downMatrix = xform.clone();
             activeDrag = handle;
-            handleHint.visible = false; 
+            if(displayHints)handleHint.visible = false; 
             
 
         } else {
             activeDrag = image;
-            imageHint.visible = false;
+            if(displayHints)imageHint.visible = false;
             canvas.style.cursor = 'move';
         }
     }  
@@ -423,10 +425,17 @@
         
         handle = new paper.Group([handleBk,mark1,mark2]);
         
-        imageHint = new paper.PointText(new paper.Point(60, 25));
-        handleHint = new paper.PointText(paper.view.center);
         
-        rotator = new paper.Group([pin, handle, handleHint]);
+        var rotatorGroup = [pin, handle];
+        
+        if(displayHints){
+            imageHint = new paper.PointText(new paper.Point(60, 25));
+            handleHint = new paper.PointText(paper.view.center); 
+            rotatorGroup.push(handleHint);
+        }
+        
+        
+        rotator = new paper.Group(rotatorGroup);
         rotator.visible = false;
         
         handle.rotate(45 - handle.position.angle);
@@ -723,8 +732,8 @@
             }); 
 
             $("#address_input_submit").on('click',function(e){
-                e.preventDefault();
-                self.jumpAddress(self.input.value);
+                e.preventDefault();  
+                self.jumpAddress(self.input.val());
             });  
             
             $("#address-search-form .close").on('click',function(e){
