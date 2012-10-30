@@ -703,7 +703,7 @@
                 this.southwest = new google.maps.LatLng(37.7077, -122.5169);
                 this.northeast = new google.maps.LatLng(37.8153, -122.3559);
             } 
-     
+
             if(atlas_hints.has_streets){
                 $('#explain-title').html(hint_attr['streets']['explain-title']);
                 $('#explain-help').html(hint_attr['streets']['explain-help']);  

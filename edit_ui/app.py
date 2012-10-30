@@ -71,7 +71,10 @@ def upload():
 def place_rough_map(id):
     '''
     '''
-    map = map_dom.get_item(id) 
+    map = map_dom.get_item(id)
+    
+    if not map:
+        abort(404) 
     
     # get atlas, supplies edit ui w/ hints
     atlas_id = map['atlas']
@@ -117,7 +120,9 @@ def post_atlas(id=None):
     queue = connect_queue(aws_key, aws_secret, aws_prefix+'jobs')
     
     # wrap in try/catch ???
-    rsp = create_atlas(atlas_dom, map_dom, queue, request.form['url'], request.form['atlas-name'], request.form['atlas-affiliation']) 
+    rsp = create_atlas(atlas_dom, map_dom, queue, request.form['url'], request.form['atlas-name'], request.form['atlas-affiliation'])
+
+    
     
     if 'error' in rsp:
         return render_template('error.html',msg=rsp)
