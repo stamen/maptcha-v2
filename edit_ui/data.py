@@ -321,14 +321,15 @@ def update_map_rough_consensus(map_dom, place_dom, map):
     sizes, thetas, polygons = zip(*roughs)
     
     #
-    # Find those placements that are less than 10% off the
-    # total intersection, then just use the most recent three.
+    # Using the area containing all pairwise-overlaps between polygons (i.e.
+    # those places with two or more agreed votes), narrow the list of polygons
+    # down to only those that cover 90%+ of this area.
     #
-    intersection = reduce(lambda a, b: a.intersection(b), polygons)
+    pair_overlaps = [p1.intersection(p2) for (p1, p2) in combinations(polygons, 2)]
+    union_pairs = reduce(lambda a, b: a.union(b), pair_overlaps)
     
     good_indexes = [index for (index, polygon) in enumerate(polygons)
-                    if (intersection.area / polygon.area) > 0.9]
-    
+                    if (polygon.area / union_pairs.area) > 0.9]
     
     good_indexes = good_indexes[-3:]
     
@@ -351,8 +352,6 @@ def update_map_rough_consensus(map_dom, place_dom, map):
 
     consensus = dict(ul_lat='%.8f' % ul_lat, ul_lon='%.8f' % ul_lon,
                      lr_lat='%.8f' % lr_lat, lr_lon='%.8f' % lr_lon)
-    
-    print consensus
     
     #
     # Update the map with new information
