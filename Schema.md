@@ -6,6 +6,10 @@ Atlases
 
  * `href`: Original source URL of uploaded CSV file.
  * `status`: currently one of *empty*, *uploaded*.
+ * `timestamp`: Numeric Unix epoch upload time.
+ * `title`: Librarian-supplied title string.
+ * `affiliation`: Librarian-supplied affiliation string.
+ * `map_count`: Number of maps included in this atlas.
 
 SimpleDB domain: *prefix* + “-atlases”
 
@@ -20,6 +24,10 @@ Maps
  * `ul_lon`: Longitude of upper-left map corner consensus.
  * `lr_lat`: Latitude of lower-right map corner consensus.
  * `lr_lon`: Longitude of lower-right map corner consensus.
+ * `status`: currently one of *empty*, *finished* (uploaded).
+
+In addition, all values supplied during upload in the CSV file will be prefixed
+with “__” and included as free-form attributes.
 
 SimpleDB domain: *prefix* + “-maps”
 
