@@ -2,6 +2,8 @@ from uuid import uuid1
 from time import time
 from random import choice
 from urllib import urlopen 
+from itertools import combinations
+from math import pi, sin, cos, atan2, hypot
 from os.path import basename, splitext 
 from urlparse import urljoin, urlparse
 from csv import DictReader
@@ -10,6 +12,9 @@ import re
 from util import connect_domain, check_url
 
 from boto.exception import SDBResponseError
+from shapely.geometry import Polygon
+from ModestMaps.Geo import MercatorProjection
+from ModestMaps.Core import Point
 
 required_fields = ['map_title', 'date', 'image_url']
 reserved_keys = ['image','large','thumb','atlas','version'] #map
@@ -195,6 +200,107 @@ def place_roughly(map_dom, place_dom, map, ul_lat, ul_lon, lr_lat, lr_lon):
             if attempt == 3:
                 raise
 
+def deg2rad(deg):
+    return pi * float(deg) / 180
+
+def rad2deg(rad):
+    return 180 * float(rad) / pi
+
+def average_thetas(thetas):
+    
+    xs, ys = map(cos, thetas), map(sin, thetas)
+    x, y = sum(xs) / len(xs), sum(ys) / len(ys)
+    return atan2(y, x)
+
+def build_rough_placement_polygon(aspect, ul_lat, ul_lon, lr_lat, lr_lon):
+    '''
+    '''
+    merc = MercatorProjection(0)
+    
+    #
+    # Get the natural angle of the hypotenuse from map aspect ratio,
+    # measured from the lower-right to the upper-left corner and expressed
+    # in CCW radians from due east.
+    #
+    base_theta = atan2(1, -float(aspect))
+
+    #
+    # Convert corner lat, lons to conformal mercator projection
+    #
+    ul = merc.rawProject(Point(deg2rad(ul_lon), deg2rad(ul_lat)))
+    lr = merc.rawProject(Point(deg2rad(lr_lon), deg2rad(lr_lat)))
+    
+    #
+    # Derive dimensions of map in mercator units.
+    #
+    map_hypotenuse = hypot(ul.x - lr.x, ul.y - lr.y)
+    map_width = map_hypotenuse * sin(base_theta - pi/2)
+    map_height = map_hypotenuse * cos(base_theta - pi/2)
+    
+    print map_hypotenuse, 'hypotenuse'
+    print map_width, map_height, '--', (map_width / map_height), 'vs.', float(aspect)
+    
+    #
+    # Get the placed angle of the hypotenuse from the two placed corners,
+    # again measured from the lower-right to the upper-left corner and
+    # expressed in CCW radians from due east.
+    #
+    place_theta = atan2(ul.y - lr.y, ul.x - lr.x)
+    diff_theta = place_theta - base_theta
+    
+    print rad2deg(place_theta) - rad2deg(base_theta), 'degrees ccw'
+    print place_theta, 'vs.', place_theta - pi/2, '=', rad2deg(place_theta - pi/2)
+    
+    #
+    # Derive the other two corners of the roughly-placed map,
+    # and make a polygon in mercator units.
+    #
+    dx = map_height * sin(diff_theta)
+    dy = map_height * cos(diff_theta)
+    ur = Point(lr.x - dx, lr.y + dy)
+    
+    dx = map_width * cos(diff_theta)
+    dy = map_width * sin(diff_theta)
+    ll = Point(lr.x - dx, lr.y - dy)
+    
+    poly = Polygon([(ul.x, ul.y), (ur.x, ur.y), (lr.x, lr.y), (ll.x, ll.y), (ul.x, ul.y)])
+    
+    return map_hypotenuse, diff_theta, poly
+
+def calculate_corners(aspect, x, y, size, theta):
+    '''
+    '''
+    merc = MercatorProjection(0)
+    
+    #
+    # Get the natural angle of the hypotenuse from map aspect ratio,
+    # measured from the lower-right to the upper-left corner and expressed
+    # in CCW radians from due east.
+    #
+    base_theta = atan2(1, -float(aspect))
+    
+    place_theta = base_theta + theta
+    
+    print rad2deg(place_theta), '=', rad2deg(base_theta), '+', rad2deg(theta)
+    
+    dx = sin(place_theta - pi/2) * size/2
+    dy = cos(place_theta - pi/2) * size/2
+
+    ul = Point(x - dx, y + dy)
+    lr = Point(x + dx, y - dy)
+    
+    print (ul.x, ul.y), (lr.x, lr.y)
+    
+    ul = merc.rawUnproject(ul)
+    lr = merc.rawUnproject(lr)
+    
+    print (rad2deg(ul.x), ), (rad2deg(lr.x), rad2deg(lr.y))
+    
+    ul_lat, ul_lon = rad2deg(ul.y), rad2deg(ul.x)
+    lr_lat, lr_lon = rad2deg(lr.y), rad2deg(lr.x)
+    
+    return ul_lat, ul_lon, lr_lat, lr_lon
+
 def update_map_rough_consensus(map_dom, place_dom, map):
     '''
     '''
@@ -208,13 +314,60 @@ def update_map_rough_consensus(map_dom, place_dom, map):
     if len(placements) == 0:
         raise Exception("Got no placements - why?")
     
+    print 'Aspect ratio:', map['aspect']
+    
+    roughs = [build_rough_placement_polygon(map['aspect'], p['ul_lat'], p['ul_lon'], p['lr_lat'], p['lr_lon'])
+              for p in placements]
+    
+    print roughs
+    
+    sizes, thetas, polygons = zip(*roughs)
+    
+    avg_size = sum(sizes) / len(sizes)
+    avg_theta = average_thetas(thetas)
+    intersection = reduce(lambda a, b: a.intersection(b), polygons)
+    
+    print 'sizes', sizes
+    print 'thetas', thetas
+    
+    print 'average size', avg_size, 'and angle', avg_theta
+    
+    for (index, polygon) in enumerate(polygons):
+        print index, intersection.area / polygon.area
+    
+    good_indexes = [index for (index, polygon) in enumerate(polygons)
+                    if (intersection.area / polygon.area) > 0.9]
+    
+    good_indexes = good_indexes[-3:]
+    
+    print good_indexes
+    
+    good_sizes = [sizes[i] for i in good_indexes]
+    good_thetas = [thetas[i] for i in good_indexes]
+    good_centers = [polygons[i].centroid for i in good_indexes]
+    
+    avg_size = sum(good_sizes) / len(good_sizes)
+    avg_theta = average_thetas(good_thetas)
+    avg_x = sum([c.x for c in good_centers]) / len(good_centers)
+    avg_y = sum([c.y for c in good_centers]) / len(good_centers)
+    
+    print 'sizes', good_sizes
+    print 'thetas', [rad2deg(t) for t in good_thetas]
+    
+    print 'average size', avg_size, 'and angle', rad2deg(avg_theta)
+    
+    print 'average center', (avg_x, avg_y)
+    
+    print '--'
+    
     #### combine the placements to come up with consensus
-    ul_lat = '%.8f' % (sum([float(p['ul_lat']) for p in placements]) / len(placements))
-    ul_lon = '%.8f' % (sum([float(p['ul_lon']) for p in placements]) / len(placements))
-    lr_lat = '%.8f' % (sum([float(p['lr_lat']) for p in placements]) / len(placements))
-    lr_lon = '%.8f' % (sum([float(p['lr_lon']) for p in placements]) / len(placements))
 
-    consensus = dict(ul_lat=ul_lat, ul_lon=ul_lon, lr_lat=lr_lat, lr_lon=lr_lon)
+    ul_lat, ul_lon, lr_lat, lr_lon = calculate_corners(map['aspect'], avg_x, avg_y, avg_size, avg_theta)
+
+    consensus = dict(ul_lat='%.8f' % ul_lat, ul_lon='%.8f' % ul_lon,
+                     lr_lat='%.8f' % lr_lat, lr_lon='%.8f' % lr_lon)
+    
+    print consensus
     
     #
     # Update the map with new information
