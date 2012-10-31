@@ -25,6 +25,7 @@ Maps
  * `lr_lat`: Latitude of lower-right map corner consensus.
  * `lr_lon`: Longitude of lower-right map corner consensus.
  * `status`: currently one of *empty*, *finished* (uploaded).
+ * `aspect`: Numeric aspect ratio, width/height.
 
 In addition, all values supplied during upload in the CSV file will be prefixed
 with “__” and included as free-form attributes.

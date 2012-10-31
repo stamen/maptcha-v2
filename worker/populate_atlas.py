@@ -20,6 +20,9 @@ def create_atlas_map(atlas_dom, map_dom, bucket, map_id):
 
     key.set_contents_from_string(body.getvalue(), headers=head, policy='public-read')
     image = Image.open(body)
+    
+    width, height = image.size[0], image.size[1]
+    aspect = float(width) / float(height)
 
     #
     # Large image
@@ -44,6 +47,7 @@ def create_atlas_map(atlas_dom, map_dom, bucket, map_id):
     key.set_contents_from_string(body.getvalue(), headers=head, policy='public-read') 
     
     map['status'] = 'finished'
+    map['aspect'] = '%.9f' % aspect
     map.save()
     
     # update atlas status
