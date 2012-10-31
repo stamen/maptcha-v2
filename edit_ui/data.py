@@ -207,13 +207,17 @@ def rad2deg(rad):
     return 180 * float(rad) / pi
 
 def average_thetas(thetas):
-    
+    ''' Average together a bunch of angles.
+    '''
     xs, ys = map(cos, thetas), map(sin, thetas)
     x, y = sum(xs) / len(xs), sum(ys) / len(ys)
     return atan2(y, x)
 
 def build_rough_placement_polygon(aspect, ul_lat, ul_lon, lr_lat, lr_lon):
-    '''
+    ''' Return rough placement geometry.
+    
+        Length of map hypotenuse in mercator units, angle of hypotenuse
+        in radians counter-clockwise from due east, and footprint polygon.
     '''
     merc = MercatorProjection(0)
     
@@ -237,9 +241,6 @@ def build_rough_placement_polygon(aspect, ul_lat, ul_lon, lr_lat, lr_lon):
     map_width = map_hypotenuse * sin(base_theta - pi/2)
     map_height = map_hypotenuse * cos(base_theta - pi/2)
     
-    print map_hypotenuse, 'hypotenuse'
-    print map_width, map_height, '--', (map_width / map_height), 'vs.', float(aspect)
-    
     #
     # Get the placed angle of the hypotenuse from the two placed corners,
     # again measured from the lower-right to the upper-left corner and
@@ -247,9 +248,6 @@ def build_rough_placement_polygon(aspect, ul_lat, ul_lon, lr_lat, lr_lon):
     #
     place_theta = atan2(ul.y - lr.y, ul.x - lr.x)
     diff_theta = place_theta - base_theta
-    
-    print rad2deg(place_theta) - rad2deg(base_theta), 'degrees ccw'
-    print place_theta, 'vs.', place_theta - pi/2, '=', rad2deg(place_theta - pi/2)
     
     #
     # Derive the other two corners of the roughly-placed map,
@@ -268,7 +266,7 @@ def build_rough_placement_polygon(aspect, ul_lat, ul_lon, lr_lat, lr_lon):
     return map_hypotenuse, diff_theta, poly
 
 def calculate_corners(aspect, x, y, size, theta):
-    '''
+    ''' Return latitude, longitude corners for a geometric placement.
     '''
     merc = MercatorProjection(0)
     
@@ -279,9 +277,10 @@ def calculate_corners(aspect, x, y, size, theta):
     #
     base_theta = atan2(1, -float(aspect))
     
+    #
+    # Derive center-to-corners offset from natural angle and placement theta.
+    #
     place_theta = base_theta + theta
-    
-    print rad2deg(place_theta), '=', rad2deg(base_theta), '+', rad2deg(theta)
     
     dx = sin(place_theta - pi/2) * size/2
     dy = cos(place_theta - pi/2) * size/2
@@ -289,12 +288,11 @@ def calculate_corners(aspect, x, y, size, theta):
     ul = Point(x - dx, y + dy)
     lr = Point(x + dx, y - dy)
     
-    print (ul.x, ul.y), (lr.x, lr.y)
-    
+    #
+    # Convert back to degree latitude and longitude
+    #
     ul = merc.rawUnproject(ul)
     lr = merc.rawUnproject(lr)
-    
-    print (rad2deg(ul.x), ), (rad2deg(lr.x), rad2deg(lr.y))
     
     ul_lat, ul_lon = rad2deg(ul.y), rad2deg(ul.x)
     lr_lat, lr_lon = rad2deg(lr.y), rad2deg(lr.x)
@@ -314,54 +312,41 @@ def update_map_rough_consensus(map_dom, place_dom, map):
     if len(placements) == 0:
         raise Exception("Got no placements - why?")
     
-    print 'Aspect ratio:', map['aspect']
-    
+    #
+    # Get geometries for each rough placement.
+    #
     roughs = [build_rough_placement_polygon(map['aspect'], p['ul_lat'], p['ul_lon'], p['lr_lat'], p['lr_lon'])
               for p in placements]
     
-    print roughs
-    
     sizes, thetas, polygons = zip(*roughs)
     
-    avg_size = sum(sizes) / len(sizes)
-    avg_theta = average_thetas(thetas)
+    #
+    # Find those placements that are less than 10% off the
+    # total intersection, then just use the most recent three.
+    #
     intersection = reduce(lambda a, b: a.intersection(b), polygons)
-    
-    print 'sizes', sizes
-    print 'thetas', thetas
-    
-    print 'average size', avg_size, 'and angle', avg_theta
-    
-    for (index, polygon) in enumerate(polygons):
-        print index, intersection.area / polygon.area
     
     good_indexes = [index for (index, polygon) in enumerate(polygons)
                     if (intersection.area / polygon.area) > 0.9]
     
-    good_indexes = good_indexes[-3:]
     
-    print good_indexes
+    good_indexes = good_indexes[-3:]
     
     good_sizes = [sizes[i] for i in good_indexes]
     good_thetas = [thetas[i] for i in good_indexes]
     good_centers = [polygons[i].centroid for i in good_indexes]
     
+    #
+    # Determine average geometries for the good placements.
+    #
     avg_size = sum(good_sizes) / len(good_sizes)
     avg_theta = average_thetas(good_thetas)
     avg_x = sum([c.x for c in good_centers]) / len(good_centers)
     avg_y = sum([c.y for c in good_centers]) / len(good_centers)
     
-    print 'sizes', good_sizes
-    print 'thetas', [rad2deg(t) for t in good_thetas]
-    
-    print 'average size', avg_size, 'and angle', rad2deg(avg_theta)
-    
-    print 'average center', (avg_x, avg_y)
-    
-    print '--'
-    
-    #### combine the placements to come up with consensus
-
+    #
+    # Combine the placements to come up with consensus.
+    #
     ul_lat, ul_lon, lr_lat, lr_lon = calculate_corners(map['aspect'], avg_x, avg_y, avg_size, avg_theta)
 
     consensus = dict(ul_lat='%.8f' % ul_lat, ul_lon='%.8f' % ul_lon,
