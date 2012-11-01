@@ -79,8 +79,8 @@ var poller = {
                 // do an error handler here 
             }
 
-            if (json['finished']){ 
-                var ids = json['finished'];
+            if (json['uploaded']){ 
+                var ids = json['uploaded'];
                 for(var i=0;i<ids.length;i++){ 
                     var id = 'thumb-'+ids[i];
                     if(this.queueHash[id]){
@@ -93,7 +93,7 @@ var poller = {
 
                             } 
                             elm.classList.remove('empty');
-                            elm.classList.add('finished');
+                            elm.classList.add('uploaded');
                         }
                     }
                 }

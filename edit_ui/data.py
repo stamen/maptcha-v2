@@ -356,7 +356,8 @@ def update_map_rough_consensus(map_dom, place_dom, map):
     ul_lat, ul_lon, lr_lat, lr_lon = calculate_corners(map['aspect'], avg_x, avg_y, avg_size, avg_theta)
 
     consensus = dict(ul_lat='%.8f' % ul_lat, ul_lon='%.8f' % ul_lon,
-                     lr_lat='%.8f' % lr_lat, lr_lon='%.8f' % lr_lon)
+                     lr_lat='%.8f' % lr_lat, lr_lon='%.8f' % lr_lon,
+                     status='rough-placed')
     
     #
     # Update the map with new information

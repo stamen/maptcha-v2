@@ -215,12 +215,12 @@ def check_map_status(id=None):
     rsp = {'error':'unkown'}
     if id:
         #map = map_dom.get_item(id,consistent_read=True)
-        q = "select name from `%s` where atlas = '%s' and status = 'finished'"%(map_dom.name,id)
+        q = "select name from `%s` where atlas = '%s' and status != 'empty'"%(map_dom.name,id)
         done = map_dom.select(q,consistent_read=True)
         if done:
-            rsp = {'finished':[]}
+            rsp = {'uploaded':[]}
             for item in done:
-                rsp['finished'].append(item.name)
+                rsp['uploaded'].append(item.name)
     
     return jsonify(rsp) 
     

@@ -46,7 +46,7 @@ def create_atlas_map(atlas_dom, map_dom, bucket, map_id):
     image.save(body, 'JPEG')
     key.set_contents_from_string(body.getvalue(), headers=head, policy='public-read') 
     
-    map['status'] = 'finished'
+    map['status'] = 'uploaded'
     map['aspect'] = '%.9f' % aspect
     map.save()
     

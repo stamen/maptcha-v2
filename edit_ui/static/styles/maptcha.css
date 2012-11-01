@@ -39,7 +39,7 @@ td.mapThumb.empty{
 td.mapThumb.empty a{
     display:none;
 }
-td.mapThumb.finished a{
+td.mapThumb.uploaded a{
     display: block;
 }
 
