@@ -12,6 +12,7 @@ from os.path import realpath, dirname, join, exists
 
 from util import connect_domain, connect_queue, connect_bucket, get_config_vars
 from populate_atlas import create_atlas_map
+from tile_map import generate_map_tiles
 
 key, secret, prefix = get_config_vars(dirname(__file__)) 
 #key, secret, prefix = environ['key'], environ['secret'], environ['prefix']
@@ -39,10 +40,12 @@ if __name__ == '__main__':
             logging.info(msg)
             
             if msg.startswith('create map '):
-                create_atlas_map(atlas_dom, map_dom, bucket, msg[len('create map '):])
+                map_id = msg[len('create map '):]
+                create_atlas_map(atlas_dom, map_dom, bucket, map_id)
             
             if msg.startswith('tile map '):
-                print 'tile map', msg[len('tile map '):]
+                map_id = msg[len('tile map '):]
+                generate_map_tiles(atlas_dom, map_dom, bucket, map_id)
             
             queue.delete_message(message)
         
