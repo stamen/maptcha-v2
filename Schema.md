@@ -20,6 +20,7 @@ Maps
  * `image`: S3 object ID of raw uploaded image.
  * `large`: S3 object ID of large-sized image.
  * `thumb`: S3 object ID of thumbnail-sized image.
+ * `tiles`: S3 directory for PNG image tiles.
  * `ul_lat`: Latitude of upper-left map corner consensus.
  * `ul_lon`: Longitude of upper-left map corner consensus.
  * `lr_lat`: Latitude of lower-right map corner consensus.

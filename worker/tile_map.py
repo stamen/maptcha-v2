@@ -1,6 +1,8 @@
 import logging
+from math import pi
+from StringIO import StringIO
 from tempfile import mkdtemp
-from os.path import join, splitext, basename
+from os.path import join, splitext, basename, dirname
 from xml.etree.ElementTree import Element, ElementTree
 from subprocess import Popen, PIPE
 from urllib import urlencode
@@ -9,9 +11,10 @@ from shutil import rmtree
 from geometry import deg2rad, rad2deg, build_rough_placement_polygon
 
 from ModestMaps.Geo import MercatorProjection, Transformation, deriveTransformation
-from ModestMaps.Core import Point
+from ModestMaps.Core import Point, Coordinate
 
 from PIL import Image 
+from shapely.geometry import Polygon
 
 # Transformation from pi-based Mercator to earth radius
 terra = Transformation(6378137, 0, 0, 0, 6378137, 0)
@@ -113,6 +116,28 @@ def build_vrt(name, width, height, xform):
     
     return ElementTree(vrt)
 
+def coord2bbox(coord):
+    '''
+    '''
+    radius = pi * 6378137
+    
+    xmin = coord.column / float(2**coord.zoom) - 0.5
+    ymax = 0.5 - coord.row / float(2**coord.zoom)
+
+    xmax = xmin + 1.0 / 2**coord.zoom
+    ymin = ymax - 1.0 / 2**coord.zoom
+    
+    xmin, ymin, xmax, ymax = [2 * radius * v for v in (xmin, ymin, xmax, ymax)]
+    
+    return xmin, ymin, xmax, ymax
+
+def cut_and_upload_tiles(bucket, tifname, ul, ur, lr, ll):
+    '''
+    '''
+    coords = [Coordinate(0, 0, 0)]
+    
+    de
+
 def generate_map_tiles(atlas_dom, map_dom, bucket, map_id):
     '''
     '''
@@ -128,8 +153,8 @@ def generate_map_tiles(atlas_dom, map_dom, bucket, map_id):
     # Retrieve the original uploaded image from storage.
     #
     img = bucket.get_key(map['image'])
-    dirname = mkdtemp(prefix='gen-map-tiles-')
-    filename = join(dirname, 'image' + splitext(img.name)[1])
+    tmpdir = mkdtemp(prefix='gen-map-tiles-')
+    filename = join(tmpdir, 'image' + splitext(img.name)[1])
     
     img.get_contents_to_filename(filename)
     img = Image.open(filename)
@@ -144,6 +169,7 @@ def generate_map_tiles(atlas_dom, map_dom, bucket, map_id):
     logging.info(preview_url(ul, ur, lr, ll))
     
     ul = terra.transform(Point(*ul))
+    ur = terra.transform(Point(*ur))
     ll = terra.transform(Point(*ll))
     lr = terra.transform(Point(*lr))
     
@@ -153,10 +179,65 @@ def generate_map_tiles(atlas_dom, map_dom, bucket, map_id):
     #
     # Build a VRT file in spherical mercator projection.
     #
-    vrtname = join(dirname, 'image.vrt')
+    vrtname = join(tmpdir, 'image.vrt')
     vrt = build_vrt(basename(filename), img.size[0], img.size[1], xform)
     vrt.write(open(vrtname, 'w'))
     
-    raise Exception()
+    #
+    # Generate a GeoTIFF and upload it.
+    #
+    tifname = join(tmpdir, 'image.tif')
+    cmd = 'gdalwarp -r cubic -dstalpha -co COMPRESS=LZW'.split() + [vrtname, tifname]
+    cmd = Popen(cmd, stdout=PIPE, stderr=PIPE)
+    cmd.wait()
     
-    rmtree(dirname)
+    if cmd.returncode != 0:
+        raise Exception(cmd.returncode)
+    
+    key = bucket.new_key(join(dirname(map['image']), 'image.tif'))
+    key.set_contents_from_filename(tifname, {'Content-Type': 'image/tiff'}, policy='public-read')
+    
+    #
+    # Generate image tiles and upload them.
+    #
+    coords = [Coordinate(0, 0, 0)]
+    radius = pi * 6378137
+    
+    map_bounds = Polygon([(ul.x, ul.y), (ur.x, ur.y), (lr.x, lr.y), (ll.x, ll.y), (ul.x, ul.y)])
+    tiles_path = 'tiles-v%(version)s' % map
+    
+    while coords:
+        coord = coords.pop(0)
+        xmin, ymin, xmax, ymax = coord2bbox(coord)
+        tile_bounds = Polygon([(xmin, ymax), (xmax, ymax), (xmax, ymin), (xmin, ymin), (xmin, ymax)])
+        
+        if tile_bounds.disjoint(map_bounds):
+            continue
+        
+        tilename = join(tmpdir, 'tile.tif')
+
+        cmd = 'gdalwarp -r cubic -ts 256 256'.split()
+        cmd += ('-te %(xmin).6f %(ymin).6f %(xmax).6f %(ymax).6f' % locals()).split()
+        cmd += ['-overwrite', tifname, tilename]
+        cmd = Popen(cmd, stdout=PIPE, stderr=PIPE)
+        cmd.wait()
+        
+        buffer = StringIO()
+        tile = Image.open(tilename)
+        tile.save(buffer, 'PNG')
+        
+        key = '%s/%d/%d/%d.png' % (tiles_path, coord.zoom, coord.column, coord.row)
+        key = bucket.new_key(join(dirname(map['image']), key))
+        key.set_contents_from_string(buffer.getvalue(), {'Content-Type': 'image/jpeg'}, policy='public-read')
+        
+        if coord.zoom < 12:
+            coords.append(coord.zoomBy(1))
+            coords.append(coord.zoomBy(1).right())
+            coords.append(coord.zoomBy(1).right().down())
+            coords.append(coord.zoomBy(1).down())
+        
+    rmtree(tmpdir)
+    
+    logging.info('Set %s on %s' % (repr(dict(tiles=tiles_path)), map.name))
+    
+    map_dom.put_attributes(map.name, dict(tiles=tiles_path), expected_value=['version', map['version']])
