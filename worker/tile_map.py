@@ -2,6 +2,7 @@ import logging
 from tempfile import mkdtemp
 from os.path import join, splitext, basename
 from xml.etree.ElementTree import Element, ElementTree
+from subprocess import Popen, PIPE
 from urllib import urlencode
 from shutil import rmtree
 
@@ -13,9 +14,9 @@ from ModestMaps.Core import Point
 from PIL import Image 
 
 # Transformation from pi-based Mercator to earth radius
-T = Transformation(6378137, 0, 0, 0, 6378137, 0)
+terra = Transformation(6378137, 0, 0, 0, 6378137, 0)
 
-def showme(ul, ur, lr, ll):
+def preview_url(ul, ur, lr, ll):
     '''
     '''
     merc = MercatorProjection(0)
@@ -27,12 +28,17 @@ def showme(ul, ur, lr, ll):
     
     q = dict(width='512', height='384', module='map')
 
-    ulx, uly, urx, ury, lrx, lry, llx, lly = [rad2deg(v) for v in (ul.x, ul.y, ur.x, ur.y, lr.x, lr.y, ll.x, ll.y)]
+    ulx, uly, urx, ury, lrx, lry, llx, lly \
+        = [rad2deg(v) for v in (ul.x, ul.y, ur.x, ur.y, lr.x, lr.y, ll.x, ll.y)]
 
-    q.update(dict(polygons=','.join(['%.6f' % v for v in (ulx, uly, urx, ury, lrx, lry, llx, lly, ulx, uly)])))
-    q.update(dict(bbox=','.join(('%.6f' % min(ulx, urx, lrx, llx), '%.6f' % max(uly, ury, lry, lly), '%.6f' % max(ulx, urx, lrx, llx), '%.6f' % min(uly, ury, lry, lly)))))
+    xmin, ymin = min(ulx, urx, lrx, llx), min(uly, ury, lry, lly)
+    xmax, ymax = max(uly, ury, lry, lly), max(ulx, urx, lrx, llx)
+    perimeter = (ulx, uly, urx, ury, lrx, lry, llx, lly, ulx, uly)
+
+    q.update(dict(polygons=','.join(['%.4f' % v for v in perimeter])))
+    q.update(dict(bbox=','.join(('%.4f' % xmin, '%.4f' % ymax, '%.4f' % xmax, '%.4f' % ymin))))
     
-    print 'http://pafciu17.dev.openstreetmap.org/?' + urlencode(q)
+    return 'http://pafciu17.dev.openstreetmap.org/?' + urlencode(q)
 
 def build_vrt(name, width, height, xform):
     '''
@@ -118,46 +124,38 @@ def generate_map_tiles(atlas_dom, map_dom, bucket, map_id):
             logging.error('Map %s missing key "%s"' % (map.name, key))
             return
     
-    print map['version']
-    print map['ul_lat'], map['ul_lon'], map['lr_lat'], map['lr_lon']
-    
-    size, theta, (ul, ur, lr, ll) \
-        = build_rough_placement_polygon(map['aspect'], map['ul_lat'], map['ul_lon'], map['lr_lat'], map['lr_lon'])
-    
-    showme(ul, ur, lr, ll)
-    
-
-    
-    ul = T.transform(Point(*ul))
-    ll = T.transform(Point(*ll))
-    lr = T.transform(Point(*lr))
-    
-    print 'Corners:', ul, ll, lr
-    
-    
-    
+    #
+    # Retrieve the original uploaded image from storage.
+    #
     img = bucket.get_key(map['image'])
     dirname = mkdtemp(prefix='gen-map-tiles-')
     filename = join(dirname, 'image' + splitext(img.name)[1])
     
-    print filename
-    
     img.get_contents_to_filename(filename)
     img = Image.open(filename)
     w, h = img.size
-    print w, h
     
-    from math import hypot
-    print hypot(lr.x - ll.x, lr.y - ll.y) / w,
-    print hypot(ll.x - ul.x, ll.y - ul.y) / h
+    #
+    # Calculate a geo transformation based on three corner points.
+    #
+    size, theta, (ul, ur, lr, ll) \
+        = build_rough_placement_polygon(map['aspect'], map['ul_lat'], map['ul_lon'], map['lr_lat'], map['lr_lon'])
+    
+    logging.info(preview_url(ul, ur, lr, ll))
+    
+    ul = terra.transform(Point(*ul))
+    ll = terra.transform(Point(*ll))
+    lr = terra.transform(Point(*lr))
     
     args = (0, 0, ul.x, ul.y, 0, h, ll.x, ll.y, w, h, lr.x, lr.y)
     xform = deriveTransformation(*args)
     
-    print xform.ax, xform.bx, xform.cx, xform.ay, xform.by, xform.cy
-    
+    #
+    # Build a VRT file in spherical mercator projection.
+    #
+    vrtname = join(dirname, 'image.vrt')
     vrt = build_vrt(basename(filename), img.size[0], img.size[1], xform)
-    vrt.write(open(join(dirname, 'image.vrt'), 'w'))
+    vrt.write(open(vrtname, 'w'))
     
     raise Exception()
     
