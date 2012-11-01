@@ -172,7 +172,7 @@ def choose_map(map_dom, atlas_id=None, skip_map_id=None):
         
     return map
 
-def place_roughly(map_dom, place_dom, map, ul_lat, ul_lon, lr_lat, lr_lon):
+def place_roughly(map_dom, place_dom, queue, map, ul_lat, ul_lon, lr_lat, lr_lon):
     '''
     '''
     #
@@ -195,7 +195,12 @@ def place_roughly(map_dom, place_dom, map, ul_lat, ul_lon, lr_lat, lr_lon):
     for attempt in (1, 2, 3):
         try:
             update_map_rough_consensus(map_dom, place_dom, map)
+
+            message = queue.new_message('tile map %s' % map.name)
+            queue.write(message)
+
             break
+
         except SDBResponseError, e:
             if attempt == 3:
                 raise

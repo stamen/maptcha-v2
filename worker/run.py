@@ -24,6 +24,8 @@ if __name__ == '__main__':
 
     bucket = connect_bucket(key, secret, prefix+'stuff')
     queue = connect_queue(key, secret, prefix+'jobs')
+    map_dom = connect_domain(key, secret, prefix+'maps')
+    atlas_dom = connect_domain(key, secret, prefix+'atlases')
     
     while time() < due:
         try:
@@ -37,9 +39,10 @@ if __name__ == '__main__':
             logging.info(msg)
             
             if msg.startswith('create map '):
-                map_dom = connect_domain(key, secret, prefix+'maps')
-                atlas_dom = connect_domain(key, secret, prefix+'atlases')
                 create_atlas_map(atlas_dom, map_dom, bucket, msg[len('create map '):])
+            
+            if msg.startswith('tile map '):
+                print 'tile map', msg[len('tile map '):]
             
             queue.delete_message(message)
         

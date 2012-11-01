@@ -14,6 +14,8 @@ aws_key, aws_secret, aws_prefix = get_config_vars(dirname(__file__))
 atlas_dom, map_dom, roughplace_dom \
     = connect_domains(aws_key, aws_secret, aws_prefix)
 
+queue = connect_queue(aws_key, aws_secret, aws_prefix+'jobs')
+
 def thing(path):
     '''
     '''
@@ -94,7 +96,7 @@ def place_rough_map(id):
             lr_lat = float(request.form.get('lr_lat', None))
             lr_lon = float(request.form.get('lr_lon', None))
             
-            place_roughly(map_dom, roughplace_dom, map, ul_lat, ul_lon, lr_lat, lr_lon)
+            place_roughly(map_dom, roughplace_dom, queue, map, ul_lat, ul_lon, lr_lat, lr_lon)
         
         elif request.form.get('action', None) == 'skip':
             pass
@@ -117,12 +119,8 @@ def place_rough_atlas(id):
 def post_atlas(id=None):
     '''
     '''
-    queue = connect_queue(aws_key, aws_secret, aws_prefix+'jobs')
-    
     # wrap in try/catch ???
     rsp = create_atlas(atlas_dom, map_dom, queue, request.form['url'], request.form['atlas-name'], request.form['atlas-affiliation'])
-
-    
     
     if 'error' in rsp:
         return render_template('error.html',msg=rsp)
