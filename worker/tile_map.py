@@ -1,9 +1,10 @@
 import logging
-from math import pi
 from StringIO import StringIO
 from tempfile import mkdtemp
+from math import pi, hypot, log, ceil
 from os.path import join, splitext, basename, dirname
 from xml.etree.ElementTree import Element, ElementTree
+from multiprocessing import Process, JoinableQueue
 from subprocess import Popen, PIPE
 from urllib import urlencode
 from shutil import rmtree
@@ -131,12 +132,80 @@ def coord2bbox(coord):
     
     return xmin, ymin, xmax, ymax
 
-def cut_and_upload_tiles(bucket, tifname, ul, ur, lr, ll):
+def native_zoom(w, h, ul, lr):
+    '''
+    '''
+    # pixel size of spherical mercator tile at z=12
+    m12_px_size = hypot(2*pi*6378137, 2*pi*6378137) / hypot(2**20, 2**20)
+
+    # pixel size of image
+    img_px_size = hypot(ul.x - lr.x, ul.y - lr.y) / hypot(w, h)
+    
+    # best native zoom level of image
+    return 12 + log(m12_px_size / img_px_size) / log(2)
+
+def cut_map_tiles(src_name, queue, ul, ur, lr, ll, max_zoom):
     '''
     '''
     coords = [Coordinate(0, 0, 0)]
+    radius = pi * 6378137
     
-    de
+    map_bounds = Polygon([(ul.x, ul.y), (ur.x, ur.y), (lr.x, lr.y), (ll.x, ll.y), (ul.x, ul.y)])
+    
+    while coords:
+        coord = coords.pop(0)
+        xmin, ymin, xmax, ymax = coord2bbox(coord)
+        tile_bounds = Polygon([(xmin, ymax), (xmax, ymax), (xmax, ymin), (xmin, ymin), (xmin, ymax)])
+        
+        if tile_bounds.disjoint(map_bounds):
+            continue
+        
+        tilename = join(dirname(src_name), 'tile-%(zoom)d-%(column)d-%(row)d.tif' % coord.__dict__)
+
+        cmd = 'gdalwarp -r cubicspline -dstalpha -ts 256 256'.split()
+        cmd += ('-te %(xmin).6f %(ymin).6f %(xmax).6f %(ymax).6f' % locals()).split()
+        cmd += ['-overwrite', src_name, tilename]
+        cmd = Popen(cmd, stdout=PIPE, stderr=PIPE)
+        cmd.wait()
+        
+        if cmd.returncode != 0:
+            print cmd.stderr.read()
+            raise Exception('Error in gdalwarp')
+        
+        queue.put((coord, tilename))
+        
+        if coord.zoom < max_zoom:
+            coords.append(coord.zoomBy(1))
+            coords.append(coord.zoomBy(1).right())
+            coords.append(coord.zoomBy(1).right().down())
+            coords.append(coord.zoomBy(1).down())
+
+def upload_map_tiles(queue, bucket, dirname):
+    '''
+    '''
+    while True:
+        try:
+            coord, tilename = queue.get(timeout=10)
+        except:
+            break
+        
+        buffer = StringIO()
+        tile = Image.open(tilename)
+        tile.save(buffer, 'PNG')
+        
+        key = '%s/%d/%d/%d.png' \
+            % (dirname, coord.zoom, coord.column, coord.row)
+
+        try:
+            key = bucket.new_key(key)
+            key.set_contents_from_string(buffer.getvalue(), {'Content-Type': 'image/png'}, policy='public-read')
+
+        except:
+            queue.put((coord, tilename))
+            logging.error(repr(key))
+        
+        else:
+            logging.info(repr(key))
 
 def generate_map_tiles(atlas_dom, map_dom, bucket, map_id):
     '''
@@ -154,10 +223,10 @@ def generate_map_tiles(atlas_dom, map_dom, bucket, map_id):
     #
     img = bucket.get_key(map['image'])
     tmpdir = mkdtemp(prefix='gen-map-tiles-')
-    filename = join(tmpdir, 'image' + splitext(img.name)[1])
+    imgname = join(tmpdir, basename(img.name))
     
-    img.get_contents_to_filename(filename)
-    img = Image.open(filename)
+    img.get_contents_to_filename(imgname)
+    img = Image.open(imgname)
     w, h = img.size
     
     #
@@ -180,64 +249,35 @@ def generate_map_tiles(atlas_dom, map_dom, bucket, map_id):
     # Build a VRT file in spherical mercator projection.
     #
     vrtname = join(tmpdir, 'image.vrt')
-    vrt = build_vrt(basename(filename), img.size[0], img.size[1], xform)
+    vrt = build_vrt(basename(imgname), img.size[0], img.size[1], xform)
     vrt.write(open(vrtname, 'w'))
     
-    #
-    # Generate a GeoTIFF and upload it.
-    #
-    tifname = join(tmpdir, 'image.tif')
-    cmd = 'gdalwarp -r cubic -dstalpha -co COMPRESS=LZW'.split() + [vrtname, tifname]
-    cmd = Popen(cmd, stdout=PIPE, stderr=PIPE)
-    cmd.wait()
-    
-    if cmd.returncode != 0:
-        raise Exception(cmd.returncode)
-    
-    key = bucket.new_key(join(dirname(map['image']), 'image.tif'))
-    key.set_contents_from_filename(tifname, {'Content-Type': 'image/tiff'}, policy='public-read')
+    key = bucket.new_key(join(dirname(map['image']), 'image.vrt'))
+    key.set_contents_from_filename(vrtname, {'Content-Type': 'application/gdal-vrt+xml'}, policy='public-read')
     
     #
     # Generate image tiles and upload them.
     #
-    coords = [Coordinate(0, 0, 0)]
-    radius = pi * 6378137
-    
-    map_bounds = Polygon([(ul.x, ul.y), (ur.x, ur.y), (lr.x, lr.y), (ll.x, ll.y), (ul.x, ul.y)])
-    tiles_path = 'tiles-v%(version)s' % map
-    
-    while coords:
-        coord = coords.pop(0)
-        xmin, ymin, xmax, ymax = coord2bbox(coord)
-        tile_bounds = Polygon([(xmin, ymax), (xmax, ymax), (xmax, ymin), (xmin, ymin), (xmin, ymax)])
-        
-        if tile_bounds.disjoint(map_bounds):
-            continue
-        
-        tilename = join(tmpdir, 'tile.tif')
+    queue = JoinableQueue()
+    tiles = join(dirname(map['image']), 'tiles-v%(version)s' % map)
 
-        cmd = 'gdalwarp -r cubic -ts 256 256'.split()
-        cmd += ('-te %(xmin).6f %(ymin).6f %(xmax).6f %(ymax).6f' % locals()).split()
-        cmd += ['-overwrite', tifname, tilename]
-        cmd = Popen(cmd, stdout=PIPE, stderr=PIPE)
-        cmd.wait()
-        
-        buffer = StringIO()
-        tile = Image.open(tilename)
-        tile.save(buffer, 'PNG')
-        
-        key = '%s/%d/%d/%d.png' % (tiles_path, coord.zoom, coord.column, coord.row)
-        key = bucket.new_key(join(dirname(map['image']), key))
-        key.set_contents_from_string(buffer.getvalue(), {'Content-Type': 'image/jpeg'}, policy='public-read')
-        
-        if coord.zoom < 12:
-            coords.append(coord.zoomBy(1))
-            coords.append(coord.zoomBy(1).right())
-            coords.append(coord.zoomBy(1).right().down())
-            coords.append(coord.zoomBy(1).down())
-        
+    uploader1 = Process(target=upload_map_tiles, args=(queue, bucket, tiles))
+    uploader2 = Process(target=upload_map_tiles, args=(queue, bucket, tiles))
+    
+    uploader1.start()
+    uploader2.start()
+    
+    max_zoom = round(1 + native_zoom(w, h, ul, lr))
+    cut_map_tiles(vrtname, queue, ul, ur, lr, ll, max_zoom)
+    
+    uploader1.join()
+    uploader2.join()
+    
+    #
+    # Clean up.
+    #
     rmtree(tmpdir)
     
-    logging.info('Set %s on %s' % (repr(dict(tiles=tiles_path)), map.name))
+    logging.info('Set %s on %s' % (repr(dict(tiles=basename(tiles))), map.name))
     
-    map_dom.put_attributes(map.name, dict(tiles=tiles_path), expected_value=['version', map['version']])
+    map_dom.put_attributes(map.name, dict(tiles=basename(tiles)), expected_value=['version', map['version']])
