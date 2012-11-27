@@ -234,6 +234,7 @@ def tile(path):
     '''
     tms_path = '.'.join(path.split('.')[:-1])
     bucket = aws_prefix+'stuff'
+    opaque = False
 
     image = Image.new('RGBA', (256, 256), (0, 0, 0, 0))
     items = map_dom.select('select tiles from `%s` where image is not null order by image desc' % map_dom.name)
@@ -247,16 +248,21 @@ def tile(path):
         except IOError:
             continue
         
-        print 'Pasting', url
-        
         fresh_img = Image.new('RGBA', (256, 256), (0, 0, 0, 0))
         fresh_img.paste(tile_img, (0, 0), tile_img)
         fresh_img.paste(image, (0, 0), image)
         image = fresh_img
         
         if Stat(image).extrema[3][0] > 0:
+            opaque = True
             break
         
+    if not opaque:
+        url = 'http://tile.stamen.com/toner-lite/%s.png' % tms_path
+        tile_img = Image.open(StringIO(urlopen(url).read()))
+        tile_img.paste(image, (0, 0), image)
+        image = tile_img
+    
     bytes = StringIO()
     image.save(bytes, 'JPEG')
     
