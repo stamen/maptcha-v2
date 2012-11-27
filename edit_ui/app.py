@@ -3,6 +3,11 @@ from os.path import dirname, join
 from mimetypes import guess_type 
 import time,datetime
 
+from PIL import Image
+from PIL.ImageStat import Stat
+from StringIO import StringIO
+from urllib import urlopen
+
 from flask import Flask, request, redirect, render_template, jsonify, make_response, abort
 
 from util import connect_queue, get_config_vars, get_all_records
@@ -224,6 +229,42 @@ def check_map_status(id=None):
     
     return jsonify(rsp) 
     
+def tile(path):
+    '''
+    '''
+    tms_path = '.'.join(path.split('.')[:-1])
+    bucket = aws_prefix+'stuff'
+
+    image = Image.new('RGBA', (256, 256), (0, 0, 0, 0))
+    items = map_dom.select('select tiles from `%s` where image is not null order by image desc' % map_dom.name)
+
+    for item in items:
+        s3_path = 'maps/%s/%s/%s.png' % (item.name, item['tiles'], tms_path)
+        url = 'http://%(bucket)s.s3.amazonaws.com/%(s3_path)s' % locals()
+        
+        try:
+            tile_img = Image.open(StringIO(urlopen(url).read()))
+        except IOError:
+            continue
+        
+        print 'Pasting', url
+        
+        fresh_img = Image.new('RGBA', (256, 256), (0, 0, 0, 0))
+        fresh_img.paste(tile_img, (0, 0), tile_img)
+        fresh_img.paste(image, (0, 0), image)
+        image = fresh_img
+        
+        if Stat(image).extrema[3][0] > 0:
+            break
+        
+    bytes = StringIO()
+    image.save(bytes, 'JPEG')
+    
+    resp = make_response(bytes.getvalue(), 200)
+    resp.headers['Content-Type'] = 'image/jpeg'
+
+    return resp
+
 # template filters
 def datetimeformat(value, relative=True, format='%b %d, %Y / %I:%M%p'):
     t = datetime.datetime.fromtimestamp(float(value)) 
@@ -253,6 +294,7 @@ app.add_url_rule('/map/<id>', 'get map', get_map)
 app.add_url_rule('/atlases-list', 'get atlases list', get_atlases_list)
 app.add_url_rule('/maps-list', 'get maps list', get_maps_list)
 app.add_url_rule('/check-map-status/<id>', 'get map status', check_map_status, methods=['GET']) 
+app.add_url_rule('/tile/<path:path>', 'tile', tile)
 
 app.error_handler_spec[None][404] = page_not_found
 
