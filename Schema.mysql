@@ -16,7 +16,7 @@ CREATE TABLE atlases
     `title`         TEXT,
     
     -- Librarian-supplied affiliation string.
-    `affiliatiion`  TEXT,
+    `affiliation`   TEXT,
     
     -- Number of maps included in this atlas.
     `map_count`     INT UNSIGNED
