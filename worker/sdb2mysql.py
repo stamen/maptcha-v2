@@ -10,6 +10,8 @@ def quote_string(value):
 
 if __name__ == '__main__':
 
+    print 'TRUNCATE placements;'
+
     for place in place_dom.select('select * from `%s`' % place_dom.name):
         
         cols = ['map', 'timestamp', 'ul_lat', 'ul_lon', 'lr_lat', 'lr_lon']
@@ -19,6 +21,8 @@ if __name__ == '__main__':
         cols[0] = 'map_id'
 
         print 'INSERT INTO placements (%s) VALUES (%s);' % (', '.join(cols), ', '.join(vals))
+
+    print 'TRUNCATE maps;'
 
     for map in map_dom.select('select * from `%s`' % map_dom.name):
         cols, vals = ['id'], [quote_string(map.name)]
@@ -31,6 +35,8 @@ if __name__ == '__main__':
         cols[1] = 'atlas_id'
 
         print 'INSERT INTO maps (%s) VALUES (%s);' % (', '.join(cols), ', '.join(vals))
+
+    print 'TRUNCATE atlases;'
 
     for atlas in atlas_dom.select('select * from `%s`' % atlas_dom.name):
         cols, vals = ['id'], [quote_string(atlas.name)]
