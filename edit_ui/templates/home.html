@@ -119,7 +119,7 @@ a.zoom-out {
     <div id="search" class="span5">
         <div class="input-append">
           <input class="span3" id="search-place-input" type="text">
-          <button class="btn" type="button">Find</button>
+          <button id="search-place-submit" class="btn" type="button">Find</button>
         </div> 
     </div> 
     
@@ -148,20 +148,22 @@ function setupAutoComplete(){
       types: ['(cities)']
     };
     var input = $("#search-place-input");
+    
+    
+    function setBounds(m){
+        if(!autoComplete)return; 
+        var ext = m.getExtent();
+        var sw = new google.maps.LatLng(ext.south,ext.west),
+            ne = new google.maps.LatLng(ext.north,ext.east),
+            bounds = new google.maps.LatLngBounds(sw,ne);
+        autoComplete.setBounds(bounds);
+    }
             
     autoComplete = new google.maps.places.Autocomplete(input[0], autocomplete_options);   
-    //autoComplete.bindTo('bounds', map);
-    
-    input.on('keypress',function(e){  
-       if (e.keyCode == 13) {
-           e.preventDefault();
-       }
-    });
-    
 
-    google.maps.event.addListener(autoComplete, 'place_changed', function() {
+    google.maps.event.addListener(autoComplete, 'place_changed', function() {  
         var place = autoComplete.getPlace();
-        
+        if(!place)return;
         if (!place.geometry) { 
             return;
         } 
@@ -180,10 +182,24 @@ function setupAutoComplete(){
                 lng = loc.lng();
             map.setCenter(new MM.Location(lat,lng));
         }
-
-        
-        
     });
+    
+    // TODO: add a defer to this...
+    map.addCallback('drawn', function(m) {
+        setBounds(m);
+    });
+
+    input.on('keypress',function(e){  
+        if (e.keyCode == 13) {
+            e.preventDefault();
+        }   
+    });    
+    
+    $("#search-place-submit").on("click",function(e){
+        e.preventDefault();
+        input.trigger("change");
+    });
+    
 }     
 function setMap(){
     //var template = 'tile/{Z}/{X}/{Y}.png';
