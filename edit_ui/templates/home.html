@@ -139,7 +139,30 @@ a.zoom-out {
     </div>
 </div> 
 
-<script>
+<script> 
+//http://unscriptable.com/2009/03/20/debouncing-javascript-methods/
+var debounce = function (func, threshold, execAsap) {
+ 
+    var timeout;
+ 
+    return function debounced () {
+        var obj = this, args = arguments;
+        function delayed () {
+            if (!execAsap)
+                func.apply(obj, args);
+            timeout = null; 
+        };
+ 
+        if (timeout)
+            clearTimeout(timeout);
+        else if (execAsap)
+            func.apply(obj, args);
+ 
+        timeout = setTimeout(delayed, threshold || 100); 
+    };
+ 
+}
+
 var map,nw,se,ext;
 
 function setupAutoComplete(){ 
@@ -149,16 +172,6 @@ function setupAutoComplete(){
     };
     var input = $("#search-place-input");
     
-    
-    function setBounds(m){
-        if(!autoComplete)return; 
-        var ext = m.getExtent();
-        var sw = new google.maps.LatLng(ext.south,ext.west),
-            ne = new google.maps.LatLng(ext.north,ext.east),
-            bounds = new google.maps.LatLngBounds(sw,ne);
-        autoComplete.setBounds(bounds);
-    }
-            
     autoComplete = new google.maps.places.Autocomplete(input[0], autocomplete_options);   
 
     google.maps.event.addListener(autoComplete, 'place_changed', function() {  
@@ -184,9 +197,20 @@ function setupAutoComplete(){
         }
     });
     
-    // TODO: add a defer to this...
-    map.addCallback('drawn', function(m) {
-        setBounds(m);
+    
+    function setBounds(m){ 
+        if(!autoComplete)return;
+        m = m || map; 
+        var ext = m.getExtent();
+        var sw = new google.maps.LatLng(ext.south,ext.west),
+            ne = new google.maps.LatLng(ext.north,ext.east),
+            bounds = new google.maps.LatLngBounds(sw,ne);  
+        
+        autoComplete.setBounds(bounds);
+    }
+    var setBounds_ = debounce(setBounds,250);//;$.debounce( 250, setBounds ); 
+    map.addCallback('drawn', function(m) { 
+         setBounds_();
     });
 
     input.on('keypress',function(e){  
@@ -232,5 +256,6 @@ $(function(){
     setMap();
 })
 </script>
+
 </body>
 </html>
