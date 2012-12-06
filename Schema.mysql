@@ -1,0 +1,85 @@
+DROP TABLE IF EXISTS atlases;
+
+CREATE TABLE atlases
+(
+    
+    `id`            VARCHAR(64) PRIMARY KEY,
+    
+    -- Original source URL of uploaded CSV file.
+    `href`          TEXT,
+    `status`        ENUM('empty', 'uploaded'),
+    
+    -- Numeric Unix epoch upload time.
+    `timestamp`     BIGINT UNSIGNED,
+    
+    -- Librarian-supplied title string.
+    `title`         TEXT,
+    
+    -- Librarian-supplied affiliation string.
+    `affiliatiion`  TEXT,
+    
+    -- Number of maps included in this atlas.
+    `map_count`     INT UNSIGNED
+    
+) ENGINE=InnoDB;
+
+
+
+DROP TABLE IF EXISTS maps;
+
+CREATE TABLE maps
+(
+    
+    `id`            VARCHAR(64) PRIMARY KEY,
+    `atlas_id`      VARCHAR(64),
+    
+    -- S3 object ID of raw uploaded image.
+    `image`         TEXT,
+    
+    -- S3 object ID of large-sized image.
+    `large`         TEXT,
+    
+    -- S3 object ID of thumbnail-sized image.
+    `thumb`         TEXT,
+    
+    -- S3 directory for PNG image tiles.
+    `tiles`         TEXT,
+    
+    -- Coordinates of map corners consensus.
+    `ul_lat`        DOUBLE,
+    `ul_lon`        DOUBLE,
+    `lr_lat`        DOUBLE,
+    `lr_lon`        DOUBLE,
+
+    -- Numeric aspect ratio, width/height.
+    `aspect`        FLOAT,
+
+    `status`        ENUM('empty', 'uploaded'),
+
+    -- In addition, all values supplied during upload in the
+    -- CSV file will be placed in this blob in JSON format.
+    `extras_json`   BLOB,
+    
+    INDEX atlas (atlas_id)
+    
+) ENGINE=InnoDB;
+
+
+
+DROP TABLE IF EXISTS placements;
+
+CREATE TABLE placements
+(
+    
+    `map_id`        VARCHAR(64),
+    `timestamp`     BIGINT UNSIGNED,
+    
+    -- Coordinates of map corners placement.
+    `ul_lat`        DOUBLE,
+    `ul_lon`        DOUBLE,
+    `lr_lat`        DOUBLE,
+    `lr_lon`        DOUBLE,
+    
+    INDEX map (map_id)
+    
+) ENGINE=InnoDB;
