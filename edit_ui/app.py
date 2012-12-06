@@ -245,7 +245,7 @@ def tile(path):
         
         try:
             tile_img = Image.open(StringIO(urlopen(url).read()))
-        except IOError:
+        except IOError: 
             continue
         
         fresh_img = Image.new('RGBA', (256, 256), (0, 0, 0, 0))
@@ -258,6 +258,7 @@ def tile(path):
             break
         
     if not opaque:
+        
         url = 'http://tile.stamen.com/toner-lite/%s.png' % tms_path
         tile_img = Image.open(StringIO(urlopen(url).read()))
         tile_img.paste(image, (0, 0), image)
@@ -271,6 +272,9 @@ def tile(path):
 
     return resp
 
+def home():
+    return render_template('home.html')
+    
 # template filters
 def datetimeformat(value, relative=True, format='%b %d, %Y / %I:%M%p'):
     t = datetime.datetime.fromtimestamp(float(value)) 
@@ -300,7 +304,8 @@ app.add_url_rule('/map/<id>', 'get map', get_map)
 app.add_url_rule('/atlases-list', 'get atlases list', get_atlases_list)
 app.add_url_rule('/maps-list', 'get maps list', get_maps_list)
 app.add_url_rule('/check-map-status/<id>', 'get map status', check_map_status, methods=['GET']) 
-app.add_url_rule('/tile/<path:path>', 'tile', tile)
+app.add_url_rule('/tile/<path:path>', 'tile', tile) 
+app.add_url_rule('/home', 'home', home)
 
 app.error_handler_spec[None][404] = page_not_found
 

@@ -3,30 +3,107 @@
 <head>
 <meta charset="utf-8" />
 <title>Home</title>
+
+<meta name="google" value="notranslate" />
+<meta name="robots" content="INDEX,FOLLOW" />
+
 <link href="/static/styles/vendor/bootstrap-mod.css" rel="stylesheet" type="text/css" />
 <link href="/static/styles/maptcha.css" rel="stylesheet" type="text/css" />
 
 <script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
-<script type="text/javascript" src="http://maps.google.com/maps/api/js?sensor=false"></script>
+<script type="text/javascript" src="http://maps.google.com/maps/api/js?libraries=places&sensor=false"></script>
 <script type="text/javascript" src="/static/js/vendor/modestmaps.min.js"></script>
 <script type="text/javascript" src="http://maps.stamen.com/js/tile.stamen.js?v1.2.0"></script>
 
 
 <style> 
+.container-fluid {
+    padding:0;
+}
+#header,#map-controls,#search{
+    position:absolute; 
+    z-index:10;
+}
+#header{
+    background:white;
+    background:rgba(255,255,255,.8);
+}  
+.page-header{ 
+    padding:0;
+    margin:0;
+    border:none;
+    line-height: 50px;
+    font-size: 18px;
+    font-weight: bold;
+}
+.page-header a{
+    margin-left: 20px;
+    color:black;
+}
+.page-header a:hover{ 
+    text-decoration:underline;
+}
+#search{
+    top:70px;
+}
+#search .btn{
+    margin-left:2px;
+}
+
 #map-wrap{
-    position:relative;  
-    min-height: 600px;
-    height: auto !important;
-    height: 600px; 
+    position: fixed;
+    width: 100%; 
+    height: 100%; 
 }   
 
 #map-pane{
     position:relative;
     width:100%;
-    min-height: 600px;
-    height: auto !important;
-    height: 600px;
+    height:100%;
     
+}
+
+#map-controls {
+    position: absolute;
+    z-index: 10;
+    top:120px; 
+    left:0px;
+}
+#map-controls a {
+    display: block;
+    width: 33px;
+    height: 33px;
+    background: white;
+    color: black;
+    text-align: center;
+    line-height: 29px;
+    text-decoration: none;
+    font-size: 24px;
+    font-weight: bold;
+    margin-bottom: 7px;
+    border:1px solid #ddd;
+    -webkit-transition: color .3s ease-in-out;
+    -moz-transition: color .3s ease-in-out;
+    -o-transition: color .3s ease-in-out;
+    transition: color .3s ease-in-out; 
+    
+    -webkit-box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.23);
+    -moz-box-shadow:    2px 2px 4px rgba(0, 0, 0, 0.23);
+    box-shadow:         2px 2px 4px rgba(0, 0, 0, 0.23);
+}
+a.zoom-out {
+    line-height: 30px;
+}
+#map-controls a:hover {
+    color:#aaa;
+} 
+.no-select {
+            user-select: none;
+         -o-user-select: none;
+        -ms-user-select: none;
+       -moz-user-select: none;
+     -khtml-user-select: none;
+    -webkit-user-select: none;
 }
 </style>
 </head>
@@ -34,15 +111,28 @@
 <body> 
 
 <a name="top"></a>
-<div class="container">
-    <div class="row"> 
-        <div class="page-header span12"><a href="http://maptcha.org">maptcha.org</a> / <strong>Historypin</strong></div>
-    </div>
-    <div class="row">
-        <div id="map-wrap" class="span12">
-             <div id="map-pane"></div> 
+<div class="container-fluid">
+    <div id="header" class="row-fluid"> 
+        <div class="page-header span12"><a href="http://maptcha.org">maptcha.org</a></div>  
+    </div> 
+    
+    <div id="search" class="span5">
+        <div class="input-append">
+          <input class="span3" id="search-place-input" type="text">
+          <button class="btn" type="button">Find</button>
         </div> 
+    </div> 
+    
+    <div id="map-controls" class="span2 no-select">
+        <a href="#" class="zoom-in">+</a> 
+        <a href="#" class="zoom-out">–</a>
     </div>
+    
+    
+    <div id="map-wrap">
+         <div id="map-pane"></div> 
+    </div>   
+
         
     <div class="footer">
     	<!--<a href="#top" class="top-jumper">Top &uarr;</a>-->
@@ -50,11 +140,55 @@
 </div> 
 
 <script>
-var map,nw,se,ext;     
-function setMap(){
-    var template = 'tile/{Z}/{X}/{Y}.png';
+var map,nw,se,ext;
+
+function setupAutoComplete(){ 
+    var autoComplete;
+    var autocomplete_options = {
+      types: ['(cities)']
+    };
+    var input = $("#search-place-input");
+            
+    autoComplete = new google.maps.places.Autocomplete(input[0], autocomplete_options);   
+    //autoComplete.bindTo('bounds', map);
     
-    //var template = 'http://c.tiles.mapbox.com/v3/mapbox.mapbox-light/{Z}/{X}/{Y}.png';
+    input.on('keypress',function(e){  
+       if (e.keyCode == 13) {
+           e.preventDefault();
+       }
+    });
+    
+
+    google.maps.event.addListener(autoComplete, 'place_changed', function() {
+        var place = autoComplete.getPlace();
+        
+        if (!place.geometry) { 
+            return;
+        } 
+        
+        
+        if(place.geometry.viewport){
+            var viewport = place.geometry.viewport,
+                ne = viewport.getNorthEast(),
+                sw = viewport.getSouthWest(),
+                locations = [{lat: ne.lat(), lon: ne.lng()}, {lat: sw.lat(), lon: sw.lng()}];
+
+            map.setExtent(locations);  
+        }else if(place.geometry.location){
+            var loc = place.geometry.location,
+                lat = loc.lat(),
+                lng = loc.lng();
+            map.setCenter(new MM.Location(lat,lng));
+        }
+
+        
+        
+    });
+}     
+function setMap(){
+    //var template = 'tile/{Z}/{X}/{Y}.png';
+    
+    var template = 'http://c.tiles.mapbox.com/v3/mapbox.mapbox-light/{Z}/{X}/{Y}.png';
     var provider = new MM.TemplatedLayer(template);
     map = new MM.Map('map-pane', provider);
 
@@ -65,7 +199,17 @@ function setMap(){
     nw = new com.modestmaps.Location(89,-179);
     se = new com.modestmaps.Location(-89,179);
     ext = new com.modestmaps.Extent(nw,se);
-    //map.setExtent(ext,true);
+    //map.setExtent(ext,true); 
+    setupAutoComplete();
+    
+    $(".zoom-in").on("click",function(e){
+        e.preventDefault();
+        map.zoomIn();
+    });
+    $(".zoom-out").on("click",function(e){
+        e.preventDefault();
+        map.zoomOut();
+    });
     
 }
 $(function(){
