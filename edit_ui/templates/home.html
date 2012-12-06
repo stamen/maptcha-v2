@@ -16,7 +16,7 @@
 <script type="text/javascript" src="http://maps.stamen.com/js/tile.stamen.js?v1.2.0"></script>
 
 
-<style> 
+<style type="text/css"> 
 .container-fluid {
     padding:0;
 }
@@ -112,11 +112,11 @@ a.zoom-out {
 
 <a name="top"></a>
 <div class="container-fluid">
-    <div id="header" class="row-fluid"> 
+    <div id="header" class="row-fluid no-select"> 
         <div class="page-header span12"><a href="http://maptcha.org">maptcha.org</a></div>  
     </div> 
     
-    <div id="search" class="span5">
+    <div id="search" class="span5 no-select">
         <div class="input-append">
           <input class="span3" id="search-place-input" type="text">
           <button id="search-place-submit" class="btn" type="button">Find</button>
@@ -134,12 +134,13 @@ a.zoom-out {
     </div>   
 
         
-    <div class="footer">
+    <div class="footer"> 
     	<!--<a href="#top" class="top-jumper">Top &uarr;</a>-->
     </div>
 </div> 
 
-<script> 
+<script type="text/javascript"> 
+
 //http://unscriptable.com/2009/03/20/debouncing-javascript-methods/
 var debounce = function (func, threshold, execAsap) {
  
@@ -163,10 +164,9 @@ var debounce = function (func, threshold, execAsap) {
  
 }
 
-var map,nw,se,ext;
+var map,nw,se,ext,autoComplete;
 
 function setupAutoComplete(){ 
-    var autoComplete;
     var autocomplete_options = {
       types: ['(cities)']
     };
@@ -180,7 +180,6 @@ function setupAutoComplete(){
         if (!place.geometry) { 
             return;
         } 
-        
         
         if(place.geometry.viewport){
             var viewport = place.geometry.viewport,
@@ -208,7 +207,7 @@ function setupAutoComplete(){
         
         autoComplete.setBounds(bounds);
     }
-    var setBounds_ = debounce(setBounds,250);//;$.debounce( 250, setBounds ); 
+    var setBounds_ = debounce(setBounds,250);
     map.addCallback('drawn', function(m) { 
          setBounds_();
     });
@@ -219,34 +218,37 @@ function setupAutoComplete(){
         }   
     });    
     
-    $("#search-place-submit").on("click",function(e){
+    $("#search-place-submit").on("click touchstart",function(e){
         e.preventDefault();
         input.trigger("change");
     });
     
 }     
 function setMap(){
-    var template = 'tile/{Z}/{X}/{Y}.png';
     
-    //var template = 'http://c.tiles.mapbox.com/v3/mapbox.mapbox-light/{Z}/{X}/{Y}.png';
-    var provider = new MM.TemplatedLayer(template);
-    map = new MM.Map('map-pane', provider);
+    var mapslayer = new MM.TemplatedLayer('tile/{Z}/{X}/{Y}.png');
+    var baselayer = new MM.StamenTileLayer("toner-lite");
+
+    map = new MM.Map('map-pane', baselayer);
 
     var ll = new MM.Location(37.854, -122.413);  
-    map.setCenterZoom(ll,9);
+    map.setCenterZoom(ll,9); 
     
+    map.addLayer(mapslayer);
     
     nw = new com.modestmaps.Location(89,-179);
     se = new com.modestmaps.Location(-89,179);
     ext = new com.modestmaps.Extent(nw,se);
-    //map.setExtent(ext,true); 
+    //map.setExtent(ext,true);
+    
+     
     setupAutoComplete();
     
-    $(".zoom-in").on("click",function(e){
+    $(".zoom-in").on("click touchstart",function(e){
         e.preventDefault();
         map.zoomIn();
     });
-    $(".zoom-out").on("click",function(e){
+    $(".zoom-out").on("click touchstart",function(e){
         e.preventDefault();
         map.zoomOut();
     });

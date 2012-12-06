@@ -273,6 +273,21 @@ def tile(path):
     return resp
 
 def home():
+    """
+    items = map_dom.select('select tiles from `%s` where image is not null order by image desc' % map_dom.name)
+    
+    locations = []
+    loc_names = ['lr_lon','lr_lat','ul_lon','ul_lat']
+    for item in items:
+        map = map_dom.get_item(item.name)
+        if map:
+            for loc_name in loc_names:
+                if loc_name in map:
+                    locations.append(map[loc_name])
+
+    """
+    
+        
     return render_template('home.html')
     
 # template filters
