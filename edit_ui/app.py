@@ -292,7 +292,9 @@ def home():
     
         
     return render_template('home.html')
-    
+
+
+
 # template filters
 def datetimeformat(value, relative=True, format='%b %d, %Y / %I:%M%p'):
     t = datetime.datetime.fromtimestamp(float(value)) 

@@ -107,7 +107,7 @@ def check_url(url,is_img=False):
     """
     # see also http://stackoverflow.com/questions/2924422
     good_codes = [httplib.OK, httplib.FOUND, httplib.MOVED_PERMANENTLY,httplib.METHOD_NOT_ALLOWED]
-    good_types = ('image/png', 'image/jpeg', 'image/gif') 
+    good_types = ('image/png', 'image/jpeg','image/jpg', 'image/gif','image/tiff','image/tif')  
     status,mime_type = get_server_status_code(url)
 
     result = status in good_codes

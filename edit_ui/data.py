@@ -19,6 +19,7 @@ import json
 
 required_fields = ['map_title', 'date', 'image_url']
 reserved_keys = ['image','large','thumb','atlas','version'] #map
+add_missing_map_titles = True
 
 def generate_id():
     '''
@@ -73,6 +74,8 @@ def normalize_keys(keys):
         normalized[idx] = 'image_url'
     
     out = {}
+    #add_missing_map_titles
+        
     for index, item in enumerate(keys):
         out[item] = normalized[index]
     return out  
@@ -81,12 +84,17 @@ def create_atlas(domain, map_dom, queue, url, name, affiliation):
     '''
     ''' 
     temp = None 
+    
     """
     if not check_url(url):
         return {'error':"There's no file at that URL: <a href='%s'>%s</a>. Please <a href='/upload'>try again</a>."%(url,url)} 
-    """
+    """ 
+   
     try:
-        temp = DictReader(urlopen(url))
+        """
+         work around for new-line character seen in unquoted field...do you need to open the file in universal-newline mode 
+        """
+        temp = DictReader( urlopen(url).read().splitlines() )
     except IOError:
         return {'error':"There's no file at that URL: <a href='%s'>%s</a>. Please <a href='/upload'>try again</a>."%(url,url)}
     
@@ -98,15 +106,21 @@ def create_atlas(domain, map_dom, queue, url, name, affiliation):
         rows = normalize_rows(list(temp),fields)
     except:
         return {'error':"We couldn't work out if that file is even a CSV. Can you grab the URL again, and try another <a href='/upload'>upload</a>?"} 
-        
     
+    
+    if 'map_title' not in rows[0].keys() and add_missing_map_titles:
+        ct = 0
+        for row in rows:
+            row['map_title'] = "map%s"%ct
+            ct += 1 
+            
     missing_fields = validate_required_fields(rows[0].keys()) 
     
     #
     # validate fields
     #
     if len(missing_fields) > 0:
-        return {'error':"Your CSV doesn't have all the required columns. You must include map_title, date and image_url.<br/>Please <a href='/upload'>try again</a>."}
+        return {'error':"CSV is missing <strong>%s</strong> column.<br/>All CSV's must have these required columns: %s.<br/>Please <a href='/upload'>try again</a>."%(",".join(missing_fields),",".join(required_fields))}
     
     #
     # validate images
@@ -124,7 +138,7 @@ def create_atlas(domain, map_dom, queue, url, name, affiliation):
         if row['image_url']:    
             valid_url = check_url(row['image_url'],True) # this will check HEAD for content-type && status code
             if not valid_url:
-                invalids.append({'idx':row_num,'err':"Image at <a href='%s'>%s</a> failed!<br/><i>It may not be the right type ('png','jpg','gif') or the url provided is invalid.</i>"%(row['image_url'],row['image_url'])})
+                invalids.append({'idx':row_num,'err':"Image at <a href='%s'>%s</a> failed!<br/><i>It may not be the right type ('png','jpg','gif','tif') or the url provided is invalid.</i>"%(row['image_url'],row['image_url'])})
             
     if len(invalids):
         return {'error':"Some of your map entries don't work, because...","rows":invalids} 
