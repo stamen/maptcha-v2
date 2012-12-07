@@ -20,7 +20,7 @@
     <ul> 
        
         {% for row in msg.rows %}  
-        <li>ROW {{row.idx}}: {{row.err}}</li>
+        <li>ROW {{row.idx}}: {{row.err | safe}}</li>
         {% endfor %} 
         
     </ul>

@@ -100,11 +100,6 @@ def create_atlas(domain, map_dom, queue, url, name, affiliation):
         return {'error':"We couldn't work out if that file is even a CSV. Can you grab the URL again, and try another <a href='/upload'>upload</a>?"} 
         
     
-    
-    
-    # normalize keys
-    #keys = [key.lower().replace(' ', '_') for key in rows[0].keys()]
-    
     missing_fields = validate_required_fields(rows[0].keys()) 
     
     #
@@ -127,16 +122,13 @@ def create_atlas(domain, map_dom, queue, url, name, affiliation):
                 invalids.append({'idx':row_num,'err':"Missing %s"%req})
         
         if row['image_url']:    
-            valid_url = check_url(row['image_url'])
+            valid_url = check_url(row['image_url'],True) # this will check HEAD for content-type && status code
             if not valid_url:
-                invalids.append({'idx':row_num,'err':"Couldn't find an image at <a href='%s'>%s</a>"%(row['image_url'],row['image_url'])})
+                invalids.append({'idx':row_num,'err':"Image at <a href='%s'>%s</a> failed!<br/><i>It may not be the right type ('png','jpg','gif') or the url provided is invalid.</i>"%(row['image_url'],row['image_url'])})
             
     if len(invalids):
         return {'error':"Some of your map entries don't work, because...","rows":invalids} 
     
-
-    #if 'address' not in row:
-        #raise ValueError('Missing "address" in %(url)s' % locals())
 
     #
     # Add an entry for the atlas to the atlases table.
