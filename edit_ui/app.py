@@ -9,6 +9,7 @@ from StringIO import StringIO
 from urllib import urlopen
 
 from flask import Flask, request, redirect, render_template, jsonify, make_response, abort
+from mysql.connector import connect
 
 from util import connect_queue, get_config_vars, get_all_records
 from data import connect_domains, place_roughly, choose_map, create_atlas  
@@ -20,6 +21,9 @@ atlas_dom, map_dom, roughplace_dom \
     = connect_domains(aws_key, aws_secret, aws_prefix)
 
 queue = connect_queue(aws_key, aws_secret, aws_prefix+'jobs')
+
+def mysql_connection():
+    return connect(user='yotb', password='y0tb', database='yotb_migurski', autocommit=True)
 
 def thing(path):
     '''
@@ -78,6 +82,9 @@ def upload():
 def place_rough_map(id):
     '''
     '''
+    conn = mysql_connection()
+    mysql = conn.cursor()
+
     map = map_dom.get_item(id)
     
     if not map:
@@ -101,7 +108,7 @@ def place_rough_map(id):
             lr_lat = float(request.form.get('lr_lat', None))
             lr_lon = float(request.form.get('lr_lon', None))
             
-            place_roughly(map_dom, roughplace_dom, queue, map, ul_lat, ul_lon, lr_lat, lr_lon)
+            place_roughly(map_dom, mysql, queue, map, ul_lat, ul_lon, lr_lat, lr_lon)
         
         elif request.form.get('action', None) == 'skip':
             pass
@@ -110,8 +117,13 @@ def place_rough_map(id):
             raise Exception('Mission or invalid "action"')
         
         next_map = choose_map(map_dom, atlas_id=map['atlas'], skip_map_id=map.name)
+        
+        conn.close()
+        
         return redirect('/place-rough/map/%s' % next_map.name, code=303)
-
+    
+    conn.close()
+    
     return render_template('place-rough-map.html', map=map, atlas=atlas)
 
 def place_rough_atlas(id):

@@ -172,21 +172,16 @@ def choose_map(map_dom, atlas_id=None, skip_map_id=None):
         
     return map
 
-def place_roughly(map_dom, place_dom, queue, map, ul_lat, ul_lon, lr_lat, lr_lon):
+def place_roughly(map_dom, mysql, queue, map, ul_lat, ul_lon, lr_lat, lr_lon):
     '''
     '''
     #
     # Generate a new placement and save it.
     #
-    placement = place_dom.new_item(generate_id())
-    
-    placement['map'] = map.name
-    placement['timestamp'] = int(time())
-    placement['ul_lat'] = '%.8f' % ul_lat
-    placement['ul_lon'] = '%.8f' % ul_lon
-    placement['lr_lat'] = '%.8f' % lr_lat
-    placement['lr_lon'] = '%.8f' % lr_lon
-    placement.save()
+    mysql.execute('''INSERT INTO placements
+                     (map_id, timestamp, ul_lat, ul_lon, lr_lat, lr_lon)
+                     VALUES (%s, %s, %s, %s, %s, %s)''',
+                  (map.name, int(time()), ul_lat, ul_lon, lr_lat, lr_lon))
     
     #
     # Update the map item with current placement agreement.
@@ -194,7 +189,7 @@ def place_roughly(map_dom, place_dom, queue, map, ul_lat, ul_lon, lr_lat, lr_lon
     #
     for attempt in (1, 2, 3):
         try:
-            update_map_rough_consensus(map_dom, place_dom, map)
+            update_map_rough_consensus(map_dom, mysql, map)
 
             message = queue.new_message('tile map %s' % map.name)
             queue.write(message)
@@ -304,14 +299,18 @@ def calculate_corners(aspect, x, y, size, theta):
     
     return ul_lat, ul_lon, lr_lat, lr_lon
 
-def update_map_rough_consensus(map_dom, place_dom, map):
+def update_map_rough_consensus(map_dom, mysql, map):
     '''
     '''
     #
     # Get all other existing placements and fresh version of the map.
     #
-    q = 'select * from `%s` where map = "%s"' % (place_dom.name, map.name)
-    placements = list(place_dom.select(q, consistent_read=True))
+    mysql.execute('''SELECT ul_lat, ul_lon, lr_lat, lr_lon
+                     FROM placements
+                     WHERE map_id = %s''', (map.name, ))
+    
+    placements = mysql.fetchall()
+    
     map = map_dom.get_item(map.name, consistent_read=True)
     
     if len(placements) == 0:
@@ -320,8 +319,8 @@ def update_map_rough_consensus(map_dom, place_dom, map):
     #
     # Get geometries for each rough placement.
     #
-    roughs = [build_rough_placement_polygon(map['aspect'], p['ul_lat'], p['ul_lon'], p['lr_lat'], p['lr_lon'])
-              for p in placements]
+    roughs = [build_rough_placement_polygon(map['aspect'], ul_lat, ul_lon, lr_lat, lr_lon)
+              for (ul_lat, ul_lon, lr_lat, lr_lon) in placements]
     
     sizes, thetas, polygons = zip(*roughs)
     
