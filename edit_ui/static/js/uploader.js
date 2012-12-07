@@ -1,3 +1,8 @@
+var errorMsgs = {
+    'filetype' : "Only 'csv' & 'txt' file extensions accepted.",
+    'url': "That's not a valid URL."
+}
+
 window.onload = function(){
     var fileSelector = document.getElementById('csv-file-selector'); 
     if(fileSelector){
@@ -34,21 +39,28 @@ window.onload = function(){
                                 if(!helps[t].classList.contains('valid-url'))helps[t].classList.add('hide');
                              } 
                              
-                             if(elm.name == "url"){
+                             if(elm.name == "url"){ 
+                                 
+                                 // 
+                                 var help = elm.parentNode.getElementsByClassName('valid-url')[0];
                                  if(!validateURL(elm.value)){ 
                                      valid = false;
-                                     elm.parentNode.getElementsByClassName('valid-url')[0].classList.remove('hide');
+                                     help.innerHTML = errorMsgs['url'];
+                                     help.classList.remove('hide');
+                                     
                                  }else if(!validateFileType(elm.value)){ 
-                                     valid = false;
-                                     elm.parentNode.getElementsByClassName('valid-url')[0].classList.remove('hide');
+                                     valid = false;  
+                                     help.innerHTML = errorMsgs['filetype'];
+                                     help.classList.remove('hide');
+                                    
                                  }else{
-                                     elm.parentNode.getElementsByClassName('valid-url')[0].classList.add('hide');
+                                     help.classList.add('hide');
                                  }
                              }
                         }
                     }
                 }
-                
+
                 return valid; 
                 
             }
@@ -103,7 +115,9 @@ window.onload = function(){
 String.prototype.trim = String.prototype.trim || function trim() { return this.replace(/^\s\s*/, '').replace(/\s\s*$/, ''); };
 
 function validateFileType(url){
-    var accepted = ['csv'];
+    var accepted = ['csv','txt']; 
+    url = url.split("?")[0]; 
+    
     var extension = url.split('.').pop();  
     return (accepted.indexOf(extension.trim()) != -1) ? true : false;
 }

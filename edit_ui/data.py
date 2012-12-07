@@ -14,7 +14,8 @@ from util import connect_domain, check_url
 from boto.exception import SDBResponseError
 from shapely.geometry import Polygon
 from ModestMaps.Geo import MercatorProjection
-from ModestMaps.Core import Point
+from ModestMaps.Core import Point 
+import json
 
 required_fields = ['map_title', 'date', 'image_url']
 reserved_keys = ['image','large','thumb','atlas','version'] #map
@@ -44,28 +45,46 @@ def slugify(w):
     w = w.strip().lower()
     return re.sub(r'\W+','_',w)
         
-def normalize_rows(rows):
+def normalize_rows(rows,fields):
     normalized = []
-    for row in rows:
+    for row in rows: 
+
         obj = {}
         for item in row:
-            norm_key = slugify(item)
+            obj[fields[item]] = row[item] 
 
-            if norm_key in reserved_keys:
-                norm_key = "__" + norm_key
-                
-            obj[norm_key] = row[item]
         normalized.append(obj) 
-        
-    return normalized
+
+    return normalized 
     
+def normalize_keys(keys):
+    normalized = []
+    for key in keys:
+        norm_key = slugify(key)
+
+        if norm_key in reserved_keys:
+            norm_key = "__" + norm_key 
+            
+        normalized.append( norm_key ) 
+        
+    # example.csv uses "dropbox_image_url" as image field name...
+    if 'dropbox_image_url' in normalized and 'image_url' not in normalized: 
+        idx = normalized.index('dropbox_image_url')
+        normalized[idx] = 'image_url'
+    
+    out = {}
+    for index, item in enumerate(keys):
+        out[item] = normalized[index]
+    return out  
+      
 def create_atlas(domain, map_dom, queue, url, name, affiliation):
     '''
     ''' 
     temp = None 
+    """
     if not check_url(url):
         return {'error':"There's no file at that URL: <a href='%s'>%s</a>. Please <a href='/upload'>try again</a>."%(url,url)} 
-    
+    """
     try:
         temp = DictReader(urlopen(url))
     except IOError:
@@ -75,9 +94,10 @@ def create_atlas(domain, map_dom, queue, url, name, affiliation):
         return {'error':"We couldn't work out if that file is even a CSV. Can you grab the URL again, and try another <a href='/upload'>upload</a>?"}
     
     try:
-        rows = normalize_rows(list(temp))
+        fields = normalize_keys(temp.fieldnames)
+        rows = normalize_rows(list(temp),fields)
     except:
-        return {'error':"We couldn't work out if that file is even a CSV. Can you grab the URL again, and try another <a href='/upload'>upload</a>?"}  
+        return {'error':"We couldn't work out if that file is even a CSV. Can you grab the URL again, and try another <a href='/upload'>upload</a>?"} 
         
     
     
