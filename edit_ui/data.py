@@ -21,6 +21,7 @@ required_fields = ['map_title', 'date', 'image_url']
 reserved_keys = ['image','large','thumb','atlas','version'] #map
 add_missing_map_titles = True
 
+
 def generate_id():
     '''
     '''
@@ -87,7 +88,7 @@ def create_atlas(domain, map_dom, queue, url, name, affiliation):
     
     """
     if not check_url(url):
-        return {'error':"There's no file at that URL: <a href='%s'>%s</a>. Please <a href='/upload'>try again</a>."%(url,url)} 
+        return {'error':"There's no file at that URL: <a href='%s'>%s</a>.<br/><i>CSV files must be publicly accessible.</i><br/>Please <a href='/upload'>try again</a>."%(url,url)} 
     """ 
    
     try:
@@ -96,16 +97,16 @@ def create_atlas(domain, map_dom, queue, url, name, affiliation):
         """
         temp = DictReader( urlopen(url).read().splitlines() )
     except IOError:
-        return {'error':"There's no file at that URL: <a href='%s'>%s</a>. Please <a href='/upload'>try again</a>."%(url,url)}
+        return {'error':"There's no file at that URL: <a href='%s'>%s</a>.<br/><i>CSV files must be publicly accessible.</i><br/>Please <a href='/upload'>try again</a>."%(url,url)}
     
     if not temp.fieldnames:
-        return {'error':"We couldn't work out if that file is even a CSV. Can you grab the URL again, and try another <a href='/upload'>upload</a>?"}
+        return {'error': "We couldn't work out if that file is even a CSV.<br/><i>Please make sure the URL is pointing to an actual CSV file, and not a web page to download or view the CSV file</i><br/>Can you grab the URL again, and try another <a href='/upload'>upload</a>?"}
     
     try:
         fields = normalize_keys(temp.fieldnames)
         rows = normalize_rows(list(temp),fields)
     except:
-        return {'error':"We couldn't work out if that file is even a CSV. Can you grab the URL again, and try another <a href='/upload'>upload</a>?"} 
+        return {'error': "We couldn't work out if that file is even a CSV.<br/><i>Please make sure the URL is pointing to an actual CSV file, and not a web page to download or view the CSV file</i><br/>Can you grab the URL again, and try another <a href='/upload'>upload</a>?"} 
     
     
     if 'map_title' not in rows[0].keys() and add_missing_map_titles:
@@ -137,7 +138,7 @@ def create_atlas(domain, map_dom, queue, url, name, affiliation):
         if row['image_url']:    
             valid_url = check_url(row['image_url'],True) # this will check HEAD for content-type && status code
             if not valid_url:
-                invalids.append({'idx':row_num,'err':"Image at <a href='%s'>%s</a> failed!<br/><i>It may not be the right type: 'png', 'jpg', 'gif', or 'tif'.</i><br/><i>Or the url provided is invalid.</i>"%(row['image_url'],row['image_url'])})
+                invalids.append({'idx':row_num,'err':"Image at <a href='%s'>%s</a> failed!<br/><i>It may not be the right type: 'png', 'jpg', 'gif', or 'tif'.</i><br/><i>Or the image url provided is invalid.</i><br/><i>Or the image url may not be publicly accessible.</i>"%(row['image_url'],row['image_url'])})
             
     if len(invalids):
         return {'error':"Some of your map entries failed, because...","rows":invalids} 
