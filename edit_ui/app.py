@@ -45,34 +45,19 @@ def index():
     '''
     will want to do this filtered for client
     '''
-    
-    # get number of atlases
-    atlas_count = atlas_dom.select("select count(*) from `%s`" % atlas_dom.name).next()  
-    
-    #get last updated time 
-    now = time.time()
-    latest_query="select timestamp from`%s` where timestamp < '%s' order by timestamp desc limit 1"%(atlas_dom.name,now) 
-    try:
-        latest_rsp = atlas_dom.select(latest_query,consistent_read=True).next()
-        latest = latest_rsp['timestamp']
-    except:
-        latest = 0
-    
-    
-    #get recent list of map's for client 
-    q = "select * from `%s`"%(map_dom.name)
-    maps = get_all_records(map_dom,q)
-    
-    map_totals = {}
-    map_totals['total'] = 0
-    map_totals['placed'] = 0
-    for map in maps:
-        map_totals['total'] += 1
-        if 'version' in map:
-            map_totals['placed'] += 1
-    
-    
-    return render_template('index.html',latest=latest,atlas_count=atlas_count['Count'],maps=map_totals) 
+    conn = mysql_connection()
+    mysql = conn.cursor()
+
+    # get number of atlases and last-updated time
+    mysql.execute('SELECT COUNT(id), MAX(timestamp) FROM atlases')
+    (atlas_count, latest) = mysql.fetchone()
+
+    # get map numbers
+    mysql.execute('''SELECT COUNT(id), SUM(IF(status = 'placed-roughly', 1, 0)) FROM maps''')
+    total, placed = mysql.fetchone()
+    map_totals = dict(total=total, placed=placed)
+
+    return render_template('index.html', latest=latest, atlas_count=atlas_count, maps=map_totals) 
 
 def upload():
     '''
