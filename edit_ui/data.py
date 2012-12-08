@@ -157,21 +157,22 @@ def create_atlas(domain, mysql, queue, url, name, affiliation):
     return {'success':atlas}
 
              
-def choose_map(map_dom, atlas_id=None, skip_map_id=None):
+def choose_map(mysql, atlas_id=None, skip_map_id=None):
+    ''' Select a sort-of random Map ID.
     '''
-    '''
-    q = ['select * from `%s`' % (map_dom.name), 'limit 100']
+    if atlas_id is None:
+        mysql.execute('SELECT id FROM maps')
     
-    if atlas_id:
-        q.insert(1, 'where atlas = "%s"' % atlas_id)
+    else:
+        mysql.execute('SELECT id FROM maps WHERE atlas_id = %s', [atlas_id])
     
-    maps = list(map_dom.select(' '.join(q)))
-    map = choice(maps)
+    map_ids = [map_id for (map_id, ) in mysql.fetchall()]
+    map_id = choice(map_ids)
     
-    while map.name == skip_map_id and len(maps) > 1:
-        map = choice(maps)
-        
-    return map
+    while map_id == skip_map_id and len(map_ids) > 1:
+        map_id = choice(map_ids)
+    
+    return map_id
 
 def place_roughly(map_dom, mysql, queue, map, ul_lat, ul_lon, lr_lat, lr_lon):
     '''

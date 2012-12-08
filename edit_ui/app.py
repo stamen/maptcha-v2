@@ -116,11 +116,11 @@ def place_rough_map(id):
         else:
             raise Exception('Mission or invalid "action"')
         
-        next_map = choose_map(map_dom, atlas_id=map['atlas'], skip_map_id=map.name)
+        next_map_id = choose_map(mysql, atlas_id=map['atlas'], skip_map_id=map.name)
         
         conn.close()
         
-        return redirect('/place-rough/map/%s' % next_map.name, code=303)
+        return redirect('/place-rough/map/%s' % next_map_id, code=303)
     
     conn.close()
     
@@ -129,9 +129,14 @@ def place_rough_map(id):
 def place_rough_atlas(id):
     '''
     '''
-    map = choose_map(map_dom, atlas_id=id)
+    conn = mysql_connection()
+    mysql = conn.cursor()
+
+    map_id = choose_map(mysql, atlas_id=id)
     
-    return redirect('/place-rough/map/%s' % map.name)    
+    conn.close()
+
+    return redirect('/place-rough/map/%s' % map_id)
 
 def post_atlas(id=None):
     '''
