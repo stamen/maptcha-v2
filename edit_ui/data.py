@@ -174,7 +174,7 @@ def choose_map(mysql, atlas_id=None, skip_map_id=None):
     
     return map_id
 
-def place_roughly(map_dom, mysql, queue, map, ul_lat, ul_lon, lr_lat, lr_lon):
+def place_roughly(mysql, queue, map, ul_lat, ul_lon, lr_lat, lr_lon):
     '''
     '''
     #
@@ -191,7 +191,7 @@ def place_roughly(map_dom, mysql, queue, map, ul_lat, ul_lon, lr_lat, lr_lon):
     #
     for attempt in (1, 2, 3):
         try:
-            update_map_rough_consensus(map_dom, mysql, map)
+            update_map_rough_consensus(mysql, map)
 
             message = queue.new_message('tile map %s' % map.name)
             queue.write(message)
@@ -301,7 +301,7 @@ def calculate_corners(aspect, x, y, size, theta):
     
     return ul_lat, ul_lon, lr_lat, lr_lon
 
-def update_map_rough_consensus(map_dom, mysql, map):
+def update_map_rough_consensus(mysql, map):
     '''
     '''
     #
@@ -312,16 +312,17 @@ def update_map_rough_consensus(map_dom, mysql, map):
                      WHERE map_id = %s''', (map.name, ))
     
     placements = mysql.fetchall()
-    
-    map = map_dom.get_item(map.name, consistent_read=True)
-    
+
     if len(placements) == 0:
         raise Exception("Got no placements - why?")
+    
+    mysql.execute('SELECT aspect FROM maps WHERE id = %s', [map.name])
+    (map_aspect, ) = mysql.fetchone()
     
     #
     # Get geometries for each rough placement.
     #
-    roughs = [build_rough_placement_polygon(map['aspect'], ul_lat, ul_lon, lr_lat, lr_lon)
+    roughs = [build_rough_placement_polygon(map_aspect, ul_lat, ul_lon, lr_lat, lr_lon)
               for (ul_lat, ul_lon, lr_lat, lr_lon) in placements]
     
     sizes, thetas, polygons = zip(*roughs)
@@ -354,20 +355,12 @@ def update_map_rough_consensus(map_dom, mysql, map):
     #
     # Combine the placements to come up with consensus.
     #
-    ul_lat, ul_lon, lr_lat, lr_lon = calculate_corners(map['aspect'], avg_x, avg_y, avg_size, avg_theta)
-
-    consensus = dict(ul_lat='%.8f' % ul_lat, ul_lon='%.8f' % ul_lon,
-                     lr_lat='%.8f' % lr_lat, lr_lon='%.8f' % lr_lon,
-                     status='rough-placed')
+    ul_lat, ul_lon, lr_lat, lr_lon = calculate_corners(map_aspect, avg_x, avg_y, avg_size, avg_theta)
     
     #
     # Update the map with new information
     #
-    
-    if 'version' not in map:
-        consensus['version'] = 1
-        map_dom.put_attributes(map.name, consensus, expected_value=['version', False])
-    
-    else:
-        consensus['version'] = 1 + int(map['version'])
-        map_dom.put_attributes(map.name, consensus, expected_value=['version', map['version']])
+    mysql.execute('''UPDATE maps
+                     SET ul_lat=%s, ul_lon=%s, lr_lat=%s, lr_lon=%s, status='rough-placed'
+                     WHERE id = %s''',
+                  [ul_lat, ul_lon, lr_lat, lr_lon, map.name])
