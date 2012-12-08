@@ -7,6 +7,7 @@ from math import pi, sin, cos, atan2, hypot
 from os.path import basename, splitext 
 from urlparse import urljoin, urlparse
 from csv import DictReader
+from json import dumps
 import re 
 
 from util import connect_domain, check_url
@@ -59,7 +60,7 @@ def normalize_rows(rows):
         
     return normalized
     
-def create_atlas(domain, map_dom, queue, url, name, affiliation):
+def create_atlas(domain, mysql, queue, url, name, affiliation):
     '''
     ''' 
     temp = None 
@@ -137,21 +138,21 @@ def create_atlas(domain, map_dom, queue, url, name, affiliation):
         scheme, host, path, q, p, f = urlparse(row['image_url'])
 
         image_name = basename(path)
-        map = map_dom.new_item(str(uuid1()))
-        map['image'] = 'maps/%s/%s' % (map.name, image_name)
-        map['large'] = 'maps/%s/%s-large.jpg' % (map.name, splitext(image_name)[0])
-        map['thumb'] = 'maps/%s/%s-thumb.jpg' % (map.name, splitext(image_name)[0])
-        map['atlas'] = atlas.name
-        map['status'] = 'empty'
+        map_id = generate_id()
+        map_img = 'maps/%s/%s' % (map.name, image_name)
+        map_lrg = 'maps/%s/%s-large.jpg' % (map.name, splitext(image_name)[0])
+        map_thb = 'maps/%s/%s-thumb.jpg' % (map.name, splitext(image_name)[0])
+        map_atl = atlas.name
+        map_sts = 'empty'
+        map_ext = dumps(row)
         
-        for item in row:
-            map[item] = row[item]
-            
-        map.save() 
+        mysql.execute('''INSERT INTO maps
+                         (id, atlas_id, image, large, thumb, status, extras_json)
+                         VALUES (%s, %s, %s, %s, %s, %s, %s)''',
+                      (map_id, map_atl, map_img, map_lrg, map_thb, map_sts, map_ext))
         
-        message = queue.new_message('create map %s' % map.name)
+        message = queue.new_message('create map %s' % map_id)
         queue.write(message)
-
 
     return {'success':atlas}
 

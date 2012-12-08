@@ -136,9 +136,14 @@ def place_rough_atlas(id):
 def post_atlas(id=None):
     '''
     '''
+    conn = mysql_connection()
+    mysql = conn.cursor()
+
     # wrap in try/catch ???
-    rsp = create_atlas(atlas_dom, map_dom, queue, request.form['url'], request.form['atlas-name'], request.form['atlas-affiliation'])
+    rsp = create_atlas(atlas_dom, mysql, queue, request.form['url'], request.form['atlas-name'], request.form['atlas-affiliation'])
     
+    conn.close()
+
     if 'error' in rsp:
         return render_template('error.html',msg=rsp)
     elif 'success' in rsp:
