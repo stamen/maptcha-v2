@@ -23,7 +23,13 @@ dd {
 
 .submit {
 	text-align: right;
+} 
+
+tr.map-row.error{
+    background-color: #F2DEDE;
+    border-color: #EED3D7;
 }
+
 td.mapThumb {
 	text-align: center;
 } 
@@ -31,16 +37,19 @@ td.mapThumb {
 	margin-left: auto; margin-right: auto;
 }
 
-td.mapThumb.empty{
+tr.map-row.empty td.mapThumb{
     width:150px;
     height:150px;
     background:url('/static/styles/imgs/loading.gif') 50% 50% no-repeat;
 }
-td.mapThumb.empty a{
+tr.map-row.empty td.mapThumb a{
     display:none;
 }
-td.mapThumb.uploaded a{
+tr.map-row.uploaded td.mapThumb a{
     display: block;
+} 
+td.map-title{
+    white-space: nowrap;
 }
 
 .bigMap {

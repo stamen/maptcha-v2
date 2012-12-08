@@ -127,7 +127,6 @@ def create_atlas(domain, map_dom, queue, url, name, affiliation):
     # 
     
     # need to know the image_col name
-    #img_col = filter(lambda x: x.lower().replace(' ', '_') == "image_url", rows[0].keys())[0]
     invalids = []
     for idx, row in enumerate(rows):
         row_num = idx+1
@@ -138,10 +137,10 @@ def create_atlas(domain, map_dom, queue, url, name, affiliation):
         if row['image_url']:    
             valid_url = check_url(row['image_url'],True) # this will check HEAD for content-type && status code
             if not valid_url:
-                invalids.append({'idx':row_num,'err':"Image at <a href='%s'>%s</a> failed!<br/><i>It may not be the right type ('png','jpg','gif','tif') or the url provided is invalid.</i>"%(row['image_url'],row['image_url'])})
+                invalids.append({'idx':row_num,'err':"Image at <a href='%s'>%s</a> failed!<br/><i>It may not be the right type: 'png', 'jpg', 'gif', or 'tif'.</i><br/><i>Or the url provided is invalid.</i>"%(row['image_url'],row['image_url'])})
             
     if len(invalids):
-        return {'error':"Some of your map entries don't work, because...","rows":invalids} 
+        return {'error':"Some of your map entries failed, because...","rows":invalids} 
     
 
     #
