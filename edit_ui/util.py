@@ -84,7 +84,7 @@ def get_all_records(dom,q):
                 break    
 
     return items
-     
+    
 def get_server_status_code(url):
     """
     Download just the header of a URL and

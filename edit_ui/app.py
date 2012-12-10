@@ -6,7 +6,7 @@ import time,datetime
 from PIL import Image
 from PIL.ImageStat import Stat
 from StringIO import StringIO
-from urllib import urlopen
+from urllib import urlopen, quote_plus
 
 from flask import Flask, request, redirect, render_template, jsonify, make_response, abort
 
@@ -24,7 +24,11 @@ queue = connect_queue(aws_key, aws_secret, aws_prefix+'jobs')
 def thing(path):
     '''
     '''
-    bucket = aws_prefix+'stuff'
+    bucket = aws_prefix+'stuff' 
+    
+    # URL encode path, because S3 URL's are encoded
+    path = quote_plus(path,safe="/")
+    
     return redirect('http://%(bucket)s.s3.amazonaws.com/%(path)s' % locals())
 
 def static(filename):

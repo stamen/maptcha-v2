@@ -4,6 +4,7 @@ from os.path import basename, splitext
 from urlparse import urljoin, urlparse
 from mimetypes import guess_type
 from PIL import Image 
+from urllib import unquote_plus, quote_plus
 
 def create_atlas_map(atlas_dom, map_dom, bucket, map_id):
     '''
@@ -26,10 +27,12 @@ def create_atlas_map(atlas_dom, map_dom, bucket, map_id):
         map['aspect'] = '%.9f' % 1.0 
         map.save()
     else:
+        # NOTE: decoding map image names, because S3 will double encode
+        
         #
         # Full-size image
         #
-        key = bucket.new_key(map['image'])
+        key = bucket.new_key(unquote_plus(map['image']))
         head = {'Content-Type': guess_type(map_url)[0]}
         key.set_contents_from_string(body.getvalue(), headers=head, policy='public-read')
 
@@ -39,7 +42,7 @@ def create_atlas_map(atlas_dom, map_dom, bucket, map_id):
         #
         # Large image
         #
-        key = bucket.new_key(map['large'])
+        key = bucket.new_key(unquote_plus(map['large']))
         head = {'Content-Type': 'image/jpeg'}
         body = StringIO()
 
@@ -50,7 +53,7 @@ def create_atlas_map(atlas_dom, map_dom, bucket, map_id):
         #
         # Thumbnail image
         #
-        key = bucket.new_key(map['thumb'])
+        key = bucket.new_key(unquote_plus(map['thumb']))
         head = {'Content-Type': 'image/jpeg'}
         body = StringIO()
 

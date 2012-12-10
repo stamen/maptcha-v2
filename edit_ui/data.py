@@ -1,7 +1,7 @@
 from uuid import uuid1
 from time import time
 from random import choice
-from urllib import urlopen 
+from urllib import urlopen
 from itertools import combinations
 from math import pi, sin, cos, atan2, hypot
 from os.path import basename, splitext 
@@ -18,7 +18,7 @@ from ModestMaps.Core import Point
 import json
 
 required_fields = ['map_title', 'date', 'image_url']
-reserved_keys = ['image','large','thumb','atlas','version'] #map 
+reserved_keys = ['image','large','thumb','atlas','version','aspect'] #map 
 
 # forgive 'map_title' requirement to upload a csv
 add_missing_map_titles = True
