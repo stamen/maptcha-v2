@@ -222,6 +222,10 @@ def generate_map_tiles(atlas_dom, map_dom, bucket, map_id):
     # Retrieve the original uploaded image from storage.
     #
     img = bucket.get_key(map['image'])
+    if not img:
+        logging.error("No image found for map: %s"%(map.name))
+        return 
+        
     tmpdir = mkdtemp(prefix='gen-map-tiles-')
     imgname = join(tmpdir, basename(img.name))
     

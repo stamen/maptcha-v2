@@ -357,18 +357,22 @@ def update_map_rough_consensus(map_dom, place_dom, map):
     # those places with two or more agreed votes), narrow the list of polygons
     # down to only those that cover 90%+ of this area.
     #
-    pair_overlaps = [p1.intersection(p2) for (p1, p2) in combinations(polygons, 2)]
-    union_pairs = reduce(lambda a, b: a.union(b), pair_overlaps)
+    pair_overlaps = [p1.intersection(p2) for (p1, p2) in combinations(polygons, 2)]  
     
+    if len(pair_overlaps) <= 0:
+        raise Exception("No overlaps!")   
+        
+    union_pairs = reduce(lambda a, b: a.union(b), pair_overlaps)
+
     good_indexes = [index for (index, polygon) in enumerate(polygons)
                     if (polygon.area / union_pairs.area) > 0.9]
-    
+
     good_indexes = good_indexes[-3:]
-    
+
     good_sizes = [sizes[i] for i in good_indexes]
     good_thetas = [thetas[i] for i in good_indexes]
     good_centers = [polygons[i].centroid for i in good_indexes]
-    
+
     #
     # Determine average geometries for the good placements.
     #
@@ -376,7 +380,7 @@ def update_map_rough_consensus(map_dom, place_dom, map):
     avg_theta = average_thetas(good_thetas)
     avg_x = sum([c.x for c in good_centers]) / len(good_centers)
     avg_y = sum([c.y for c in good_centers]) / len(good_centers)
-    
+
     #
     # Combine the placements to come up with consensus.
     #
