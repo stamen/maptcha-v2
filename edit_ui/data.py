@@ -18,7 +18,9 @@ from ModestMaps.Core import Point
 import json
 
 required_fields = ['map_title', 'date', 'image_url']
-reserved_keys = ['image','large','thumb','atlas','version'] #map
+reserved_keys = ['image','large','thumb','atlas','version'] #map 
+
+# forgive 'map_title' requirement to upload a csv
 add_missing_map_titles = True
 
 
@@ -75,8 +77,7 @@ def normalize_keys(keys):
         normalized[idx] = 'image_url'
     
     out = {}
-    #add_missing_map_titles
-        
+            
     for index, item in enumerate(keys):
         out[item] = normalized[index]
     return out  
