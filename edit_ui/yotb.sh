@@ -16,6 +16,8 @@ LOGFILE="yotb-gunicorn.log"
 COMMAND="gunicorn --daemon --user www-data --workers 4 --bind $ADDRESS --log-file $LOGFILE"
 COMMAND="gunicorn --daemon --workers 4 --bind $ADDRESS --log-file $LOGFILE"
 
+cd $DIRNAME
+
 start_server () {
   if [ -f $PIDFILE ]; then
     #pid exists, check if running
@@ -25,7 +27,7 @@ start_server () {
     fi
   fi
   echo "starting ${ADDRESS}"
-  cd $DIRNAME && $COMMAND --pid $PIDFILE app:app
+  $COMMAND --pid $PIDFILE app:app
 }
 
 stop_server () {
