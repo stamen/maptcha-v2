@@ -35,7 +35,7 @@
     <ol>
         <li>Upload a bunch of huge maps somewhere on the web and make a note of their URLs. We call this set of maps an "atlas."</li>
         <li>Upload a spreadsheet that describes all your maps in CSV format. See below for more information on what fields are required in the spreadsheet.</li>
-        <li>Complete the upload form above, giving your "atlas" a name, telling Maptcha which institution you are from, and providing the URL to your CSV file. Maptcha will do the rest.</li>
+        <li>Complete the upload form above, giving your "atlas" a name, telling Maptcha which institution you are from, and providing the URL to your <strong>publicly</strong> available CSV file. Maptcha will do the rest.</li>
     </ol>
     <h3>Map Metadata Fields</h3>
     
@@ -43,15 +43,18 @@
     
     <p>There are 3 <span class="required">required</span> fields:</p>
     <dl>
-        <dt><span class="required">Title</span></dt>
-        <dd> A name for each map.<br />
-            <code class="example">Entrance to San Francisco Bay California.</code> </dd>
         <dt><span class="required">Date</span></dt>
         <dd>When the map was made. A year is enough information.<br />
             <code class="example">1859</code></dd>
+            
         <dt><span class="required">Image_URL</span></dt>
-        <dd>This must be a fully qualified URL (with the http://) to a <strong>public</strong> file on the web where Maptcha can access an actual image file. That means the URL needs to point at a .jpg or .tif. Please link to the largest possible image size.<br />
+        <dd>This must be a fully qualified URL (with the http://) to a <strong>public</strong> file on the web where Maptcha can access an actual image file. That means the URL needs to point at a .jpg, .png or .tif. Please link to the largest possible image size.<br />
             <code class="example">http://dropbox.com/8467/8075467309_d1eb3cee97_o.jpg</code></dd>
+         
+        <dt><span class="required">Title</span></dt>
+        <dd> A name for each map.<br />
+            <code class="example">Entrance to San Francisco Bay California.</code> </dd>
+             
         <p>And several other recommended fields:</p>
         <dt>Place_Names</dt>
         <dd>Please note any cities or town names you can see on the map. Please separate each place name with a comma. The more the better!<br />

@@ -91,7 +91,7 @@ def get_server_status_code(url):
     return the server's status code.
     """
     # http://stackoverflow.com/questions/1140661
-    host, path = urlparse.urlparse(url)[1:3]    # elems [1] and [2]
+    host, path = urlparse.urlparse(url)[1:3] # elems [1] and [2]
     try:
         conn = httplib.HTTPConnection(host)
         conn.request('HEAD', path) 
