@@ -300,6 +300,11 @@ def home():
     return render_template('home.html')
 
 
+def faq():
+    return render_template('faq.html')   
+
+def faq_public():
+    return render_template('faq-public.html')
 
 # template filters
 def datetimeformat(value, relative=True, format='%b %d, %Y / %I:%M%p'):
@@ -331,7 +336,9 @@ app.add_url_rule('/atlases-list', 'get atlases list', get_atlases_list)
 app.add_url_rule('/maps-list', 'get maps list', get_maps_list)
 app.add_url_rule('/check-map-status/<id>', 'get map status', check_map_status, methods=['GET']) 
 app.add_url_rule('/tile/<path:path>', 'tile', tile) 
-app.add_url_rule('/home', 'home', home)
+app.add_url_rule('/home', 'home', home) 
+app.add_url_rule('/faq', 'faq', faq) 
+app.add_url_rule('/faq-public', 'faq-public', faq_public)
 
 app.error_handler_spec[None][404] = page_not_found
 
