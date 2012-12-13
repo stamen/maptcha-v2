@@ -183,7 +183,7 @@ def place_roughly(mysql, queue, map, ul_lat, ul_lon, lr_lat, lr_lon):
     mysql.execute('''INSERT INTO placements
                      (map_id, timestamp, ul_lat, ul_lon, lr_lat, lr_lon)
                      VALUES (%s, %s, %s, %s, %s, %s)''',
-                  (map.name, int(time()), ul_lat, ul_lon, lr_lat, lr_lon))
+                  (map['id'], int(time()), ul_lat, ul_lon, lr_lat, lr_lon))
     
     #
     # Update the map item with current placement agreement.
@@ -193,7 +193,7 @@ def place_roughly(mysql, queue, map, ul_lat, ul_lon, lr_lat, lr_lon):
         try:
             update_map_rough_consensus(mysql, map)
 
-            message = queue.new_message('tile map %s' % map.name)
+            message = queue.new_message('tile map %s' % map['id'])
             queue.write(message)
 
             break
@@ -309,14 +309,14 @@ def update_map_rough_consensus(mysql, map):
     #
     mysql.execute('''SELECT ul_lat, ul_lon, lr_lat, lr_lon
                      FROM placements
-                     WHERE map_id = %s''', (map.name, ))
+                     WHERE map_id = %s''', (map['id'], ))
     
     placements = mysql.fetchall()
 
     if len(placements) == 0:
         raise Exception("Got no placements - why?")
     
-    mysql.execute('SELECT aspect FROM maps WHERE id = %s', [map.name])
+    mysql.execute('SELECT aspect FROM maps WHERE id = %s', [map['id']])
     (map_aspect, ) = mysql.fetchone()
     
     #
@@ -363,4 +363,4 @@ def update_map_rough_consensus(mysql, map):
     mysql.execute('''UPDATE maps
                      SET ul_lat=%s, ul_lon=%s, lr_lat=%s, lr_lon=%s, status='rough-placed'
                      WHERE id = %s''',
-                  [ul_lat, ul_lon, lr_lat, lr_lon, map.name])
+                  [ul_lat, ul_lon, lr_lat, lr_lon, map['id']])

@@ -59,7 +59,7 @@ def index():
     will want to do this filtered for client
     '''
     conn = mysql_connection()
-    mysql = conn.cursor()
+    mysql = conn.cursor(cursor_class=MySQLCursorDict)
 
     # get number of atlases and last-updated time
     mysql.execute('SELECT COUNT(id), MAX(timestamp) FROM atlases')
@@ -81,16 +81,18 @@ def place_rough_map(id):
     '''
     '''
     conn = mysql_connection()
-    mysql = conn.cursor()
+    mysql = conn.cursor(cursor_class=MySQLCursorDict)
 
-    map = map_dom.get_item(id)
+    # get atlas, supplies edit ui w/ hints
+    mysql.execute('SELECT * FROM maps WHERE id = %s', (id, ))
+    map = mysql.fetchdict()
     
     if not map:
         abort(404) 
     
     # get atlas, supplies edit ui w/ hints
-    atlas_id = map['atlas']
-    atlas = atlas_dom.get_item(atlas_id)
+    mysql.execute('SELECT * FROM atlases WHERE id = %s', (map['atlas_id'], ))
+    atlas = mysql.fetchdict()
     
     if request.method == 'POST':
 
@@ -114,7 +116,7 @@ def place_rough_map(id):
         else:
             raise Exception('Mission or invalid "action"')
         
-        next_map_id = choose_map(mysql, atlas_id=map['atlas'], skip_map_id=map.name)
+        next_map_id = choose_map(mysql, atlas_id=map['atlas_id'], skip_map_id=map['id'])
         
         conn.close()
         
@@ -128,7 +130,7 @@ def place_rough_atlas(id):
     '''
     '''
     conn = mysql_connection()
-    mysql = conn.cursor()
+    mysql = conn.cursor(cursor_class=MySQLCursorDict)
 
     map_id = choose_map(mysql, atlas_id=id)
     
@@ -140,7 +142,7 @@ def post_atlas(id=None):
     '''
     '''
     conn = mysql_connection()
-    mysql = conn.cursor()
+    mysql = conn.cursor(cursor_class=MySQLCursorDict)
 
     # wrap in try/catch ???
     rsp = create_atlas(atlas_dom, mysql, queue, request.form['url'], request.form['atlas-name'], request.form['atlas-affiliation'])
@@ -161,7 +163,12 @@ def page_not_found(error):
 def post_atlas_hints(id=None): 
     '''
     '''
-    atlas = atlas_dom.get_item(id,consistent_read=True)
+    conn = mysql_connection()
+    mysql = conn.cursor(cursor_class=MySQLCursorDict)
+
+    mysql.execute('SELECT * FROM atlases WHERE id = %s', (id, ))
+    atlas = mysql.fetchdict()
+    
     if atlas:
         if request.method == 'POST': 
         
