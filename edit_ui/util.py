@@ -65,6 +65,8 @@ def get_config_vars(dir):
     
     return aws_key, aws_secret, aws_prefix
 
+
+
 def get_all_records(dom,q):
     '''
     Helper function to retreive all results for a query from SDB
@@ -117,4 +119,4 @@ def check_url(url,is_img=False):
     if is_img:
         result = mime_type in good_types
 
-    return result
+    return result 

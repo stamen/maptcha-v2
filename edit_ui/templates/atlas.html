@@ -38,7 +38,7 @@
         {% for map in maps %}  
             <tr class="map-row {{map.status}}">
             	<td class="mapThumb" id="thumb-{{map.id}}"><a href="/map/{{ map.id }}"><img src="/thing/{{ map.thumb }}" /></a></td>
-            	<td class="map-title">{{map.map_title}} / <a href="/place-rough/map/{{ map.id }}">Edit</a></td>
+            	<td class="map-title">{{map.map_title}} <br />            	    <a href="/place-rough/map/{{ map.id }}">Try Rough Placement</a></td>
             	<td>{{map.date}}</td> 
             	<td><a href="{{map.image_url}}" title='link to image'>{{map.image_url}}</a></td>
             </tr> 

@@ -11,9 +11,9 @@
 <a name="top"></a>
 <div class="container">
     <div class="page-header"><a href="http://maptcha.org">maptcha.org</a> / <a href="/">Historypin</a> / <strong>Maps</strong></div>
-    <h1>Maps</h1>
+    <h1>Maps &nbsp;&nbsp;&nbsp;&nbsp;<small><a href="#">all</a> | <a href="#">placed</a> | <a href="#">not placed</a></small></h1>
     {% for map in maps %}  
-    <a class="map-list-item" href="/map/{{ map.name }}" style="background-image:url('/thing/{{ map.thumb }}');"></a>
+    <a class="map-list-item" title="{{ map.img_title }}" href="/map/{{ map.name }}" style="background-image:url('/thing/{{ map.thumb }}');"></a>
     {% endfor %}
         
     <div class="footer" style="clear:both;">

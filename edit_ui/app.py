@@ -342,7 +342,7 @@ def tile(path):
             image = fresh_img
         
         if Stat(image).extrema[3][0] > 0:
-            opaque = True
+            opaque = True         
             break  
     
     if not opaque:
@@ -360,30 +360,17 @@ def tile(path):
 
     return resp
 
-def home():
-    """
-    items = map_dom.select('select tiles from `%s` where image is not null order by image desc' % map_dom.name)
-    
-    locations = []
-    loc_names = ['lr_lon','lr_lat','ul_lon','ul_lat']
-    for item in items:
-        map = map_dom.get_item(item.name)
-        if map:
-            for loc_name in loc_names:
-                if loc_name in map:
-                    locations.append(map[loc_name])
-
-    """
-    
-        
+def map_sandwich():
     return render_template('home.html')
-
 
 def faq():
     return render_template('faq.html')   
 
 def faq_public():
     return render_template('faq-public.html')
+    
+def docs():
+    return render_template('docs.html')  
 
 # template filters
 def datetimeformat(value, relative=True, format='%b %d, %Y / %I:%M%p'):
@@ -415,9 +402,10 @@ app.add_url_rule('/atlases-list', 'get atlases list', get_atlases_list)
 app.add_url_rule('/maps-list', 'get maps list', get_maps_list)
 app.add_url_rule('/check-map-status/<id>', 'get map status', check_map_status, methods=['GET']) 
 app.add_url_rule('/tile/<path:path>', 'tile', tile) 
-app.add_url_rule('/home', 'home', home) 
+app.add_url_rule('/map-sandwich', 'map-sandwich', map_sandwich) 
 app.add_url_rule('/faq', 'faq', faq) 
 app.add_url_rule('/faq-public', 'faq-public', faq_public)
+app.add_url_rule('/docs', 'docs', docs)
 
 app.error_handler_spec[None][404] = page_not_found
 
