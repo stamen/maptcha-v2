@@ -263,7 +263,7 @@ def tile(path):
             image = fresh_img
         
         if Stat(image).extrema[3][0] > 0:
-            opaque = True
+            opaque = True         
             break  
     
     if not opaque:
