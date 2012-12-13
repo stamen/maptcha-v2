@@ -311,17 +311,24 @@ def check_map_status(id=None):
 def tile(path):
     '''
     ''' 
+    conn = mysql_connection()
+    mysql = conn.cursor(cursor_class=MySQLCursorDict)
     
     tms_path = '.'.join(path.split('.')[:-1])
     bucket = aws_prefix+'stuff'
     opaque = False
 
     image = Image.new('RGBA', (256, 256), (0, 0, 0, 0))
-    items = map_dom.select('select tiles from `%s` where image is not null order by image desc' % map_dom.name)
+    
+    mysql.execute('SELECT id, tiles FROM maps WHERE image IS NOT NULL ORDER BY id DESC')
+    
+    items = mysql.fetchdicts()
+    
+    conn.close()
 
     for item in items:
         if 'tiles' in item:
-            s3_path = 'maps/%s/%s/%s.png' % (item.name, item['tiles'], tms_path)
+            s3_path = 'maps/%s/%s/%s.png' % (item['id'], item['tiles'], tms_path)
             url = 'http://%(bucket)s.s3.amazonaws.com/%(s3_path)s' % locals()
         
             try:
