@@ -16,7 +16,6 @@ dd {
     font-size:18px;
 }
 
-
 .twenty {
 	margin-top: 20px;
 }
@@ -94,7 +93,7 @@ td.map-title{
     display: block;
     width: 33px;
     height: 33px;
-    background: #F8F801;
+    background: #ffff33;
     color: black;
     text-align: center;
     line-height: 29px;
