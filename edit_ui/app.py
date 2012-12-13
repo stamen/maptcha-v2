@@ -222,10 +222,16 @@ def get_atlas(id):
 def get_atlases():
     '''
     '''
-    q = 'select status from `%s` where status="uploaded"' % atlas_dom.name
+    conn = mysql_connection()
+    mysql = conn.cursor(cursor_class=MySQLCursorDict)
     
-    atlases = [dict(status=a['status'], name=a.name, rough_href='/place-rough/atlas/%s' % a.name)
-               for a in atlas_dom.select(q)]
+    mysql.execute('''SELECT id, status, CONCAT("/place-rough/atlas/", id) AS rough_href
+                     FROM atlases WHERE status="uploaded"''')
+
+    atlases = mysql.fetchdicts()
+    
+    conn.close()
+
     response = make_response(jsonify(dict(atlases=atlases)))
     response.headers['Access-Control-Allow-Origin'] = "*"
     return response
@@ -233,9 +239,15 @@ def get_atlases():
 def get_atlases_list():
     '''
     '''
-    q = 'select * from `%s`' % atlas_dom.name 
-    atlases = [dict(status=a['status'], name=a.name, affiliation=a.get('affiliation','-'), title=a.get('title',a.name), uploaded=a.get('timestamp',0), maps=a.get('map_count','-'), rough_href='/place-rough/atlas/%s' % a.name)
-               for a in atlas_dom.select(q)]
+    conn = mysql_connection()
+    mysql = conn.cursor(cursor_class=MySQLCursorDict)
+    
+    mysql.execute('''SELECT *, CONCAT("/place-rough/atlas/", id) AS rough_href
+                     FROM atlases WHERE status="uploaded"''')
+
+    atlases = mysql.fetchdicts()
+    
+    conn.close()
 
     return render_template('atlases-list.html', atlases=atlases)
     
