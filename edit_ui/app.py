@@ -287,20 +287,26 @@ def get_maps_list():
     return render_template('maps-list.html', maps=maps)
             
 def check_map_status(id=None):
-    rsp = {'error':'unkown'}
-    if id:
-        #map = map_dom.get_item(id,consistent_read=True)
-        q = "select name,status from `%s` where atlas = '%s' and status != 'empty'"%(map_dom.name,id)
-        done = map_dom.select(q,consistent_read=True)
-        if done:
-            rsp = {'uploaded':[]}
-            for item in done:
-                o = {}
-                o['name'] = item.name
-                o['status'] = item['status']
-                rsp['uploaded'].append(o)
+    '''
+    '''
+    if not id:
+        return jsonify({'error':'unkown'})
     
-    return jsonify(rsp) 
+    conn = mysql_connection()
+    mysql = conn.cursor(cursor_class=MySQLCursorDict)
+    
+    mysql.execute('SELECT id, status FROM maps WHERE atlas_id = %s AND status != "empty"', (id, ))
+    
+    maps = mysql.fetchdicts()
+    
+    conn.close()
+    
+    uploaded = []
+    
+    for map in maps:
+        uploaded.append({'name': map['id'], 'status': map['status']})
+
+    return jsonify({'uploaded': uploaded})
     
 def tile(path):
     '''
