@@ -265,13 +265,13 @@ def tile(path):
         if Stat(image).extrema[3][0] > 0:
             opaque = True
             break  
-
-        if not opaque:
-            url = 'http://tile.stamen.com/toner-lite/%s.png' % tms_path
-            tile_img = Image.open(StringIO(urlopen(url).read()))
-            tile_img.paste(image, (0, 0), image)
-            image = tile_img
-
+    
+    if not opaque:
+        url = 'http://tile.stamen.com/toner-lite/%s.png' % tms_path
+        tile_img = Image.open(StringIO(urlopen(url).read()))
+        tile_img.paste(image, (0, 0), image)
+        image = tile_img
+        
 
     bytes = StringIO()
     image.save(bytes, 'JPEG')
