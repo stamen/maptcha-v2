@@ -83,7 +83,7 @@ def normalize_keys(keys):
         out[item] = normalized[index]
     return out  
       
-def create_atlas(domain, mysql, queue, url, name, affiliation):
+def create_atlas(mysql, queue, url, name, affiliation):
     '''
     ''' 
     temp = None 
@@ -149,14 +149,16 @@ def create_atlas(domain, mysql, queue, url, name, affiliation):
     #
     # Add an entry for the atlas to the atlases table.
     #
-    atlas = domain.new_item(str(uuid1()))
-    atlas['href'] = url
-    atlas['timestamp'] = time()
-    atlas['title'] = name
-    atlas['affiliation'] = affiliation
-    atlas['map_count'] = len(rows)
-    atlas['status'] = 'processing maps'
-    atlas.save()
+    atlas_id = generate_id()
+    
+    mysql.execute('''INSERT INTO atlases
+                     (id, href, status, timestamp, title, affiliation, map_count)
+                     VALUES (%s, %s, %s, %s, %s, %s, %s)''',
+                  (atlas_id, url, 'processing maps', time(), name, affiliation, len(rows)))
+    
+    mysql.execute('SELECT * FROM atlases WHERE Id = %s', (atlas_id, ))
+    
+    atlas = mysql.fetchdict()
     
     #
     # add maps
@@ -169,7 +171,7 @@ def create_atlas(domain, mysql, queue, url, name, affiliation):
         map_img = 'maps/%s/%s' % (map.name, image_name)
         map_lrg = 'maps/%s/%s-large.jpg' % (map.name, splitext(image_name)[0])
         map_thb = 'maps/%s/%s-thumb.jpg' % (map.name, splitext(image_name)[0])
-        map_atl = atlas.name
+        map_atl = atlas_id
         map_sts = 'empty'
         map_ext = dumps(row)
         

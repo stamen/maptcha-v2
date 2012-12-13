@@ -149,7 +149,7 @@ def post_atlas(id=None):
     mysql = conn.cursor(cursor_class=MySQLCursorDict)
 
     # wrap in try/catch ???
-    rsp = create_atlas(atlas_dom, mysql, queue, request.form['url'], request.form['atlas-name'], request.form['atlas-affiliation'])
+    rsp = create_atlas(mysql, queue, request.form['url'], request.form['atlas-name'], request.form['atlas-affiliation'])
     
     conn.close()
 
