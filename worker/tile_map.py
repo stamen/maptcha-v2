@@ -279,6 +279,9 @@ def generate_map_tiles(atlas_dom, map_dom, bucket, map_id):
     uploader2.start()
     
     max_zoom = round(1 + native_zoom(w, h, ul, lr))
+    logging.info("max_zoom from native_zoom: %s"%(max_zoom))
+    # cap zoom at 18
+    max_zoom = min(max_zoom,18.0)
     cut_map_tiles(vrtname, queue, ul, ur, lr, ll, max_zoom)
     
     uploader1.join()

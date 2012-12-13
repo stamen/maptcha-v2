@@ -222,8 +222,9 @@ def place_roughly(map_dom, place_dom, queue, map, ul_lat, ul_lon, lr_lat, lr_lon
     for attempt in (1, 2, 3):
         try:
             update_map_rough_consensus(map_dom, place_dom, map)
-
+            
             message = queue.new_message('tile map %s' % map.name)
+            
             queue.write(message)
 
             break
@@ -359,33 +360,37 @@ def update_map_rough_consensus(map_dom, place_dom, map):
     #
     pair_overlaps = [p1.intersection(p2) for (p1, p2) in combinations(polygons, 2)]  
     
-    if len(pair_overlaps) <= 0:
-        raise Exception("No overlaps!")   
+    if len(pair_overlaps) > 0:
         
-    union_pairs = reduce(lambda a, b: a.union(b), pair_overlaps)
+        union_pairs = reduce(lambda a, b: a.union(b), pair_overlaps)
 
-    good_indexes = [index for (index, polygon) in enumerate(polygons)
-                    if (polygon.area / union_pairs.area) > 0.9]
+        good_indexes = [index for (index, polygon) in enumerate(polygons)
+                        if (polygon.area / union_pairs.area) > 0.9]
 
-    good_indexes = good_indexes[-3:]
+        good_indexes = good_indexes[-3:]
 
-    good_sizes = [sizes[i] for i in good_indexes]
-    good_thetas = [thetas[i] for i in good_indexes]
-    good_centers = [polygons[i].centroid for i in good_indexes]
+        good_sizes = [sizes[i] for i in good_indexes]
+        good_thetas = [thetas[i] for i in good_indexes]
+        good_centers = [polygons[i].centroid for i in good_indexes]
 
-    #
-    # Determine average geometries for the good placements.
-    #
-    avg_size = sum(good_sizes) / len(good_sizes)
-    avg_theta = average_thetas(good_thetas)
-    avg_x = sum([c.x for c in good_centers]) / len(good_centers)
-    avg_y = sum([c.y for c in good_centers]) / len(good_centers)
+        #
+        # Determine average geometries for the good placements.
+        #
+        avg_size = sum(good_sizes) / len(good_sizes)
+        avg_theta = average_thetas(good_thetas)
+        avg_x = sum([c.x for c in good_centers]) / len(good_centers)
+        avg_y = sum([c.y for c in good_centers]) / len(good_centers)
 
-    #
-    # Combine the placements to come up with consensus.
-    #
-    ul_lat, ul_lon, lr_lat, lr_lon = calculate_corners(map['aspect'], avg_x, avg_y, avg_size, avg_theta)
-
+        #
+        # Combine the placements to come up with consensus.
+        #
+        ul_lat, ul_lon, lr_lat, lr_lon = calculate_corners(map['aspect'], avg_x, avg_y, avg_size, avg_theta)
+    else:
+        ul_lat = float(placements[0]['ul_lat'])
+        ul_lon = float(placements[0]['ul_lon'])
+        lr_lat = float(placements[0]['lr_lat']) 
+        lr_lon = float(placements[0]['lr_lon'])
+        
     consensus = dict(ul_lat='%.8f' % ul_lat, ul_lon='%.8f' % ul_lon,
                      lr_lat='%.8f' % lr_lat, lr_lon='%.8f' % lr_lon,
                      status='rough-placed')
