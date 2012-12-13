@@ -3,30 +3,107 @@
 <head>
 <meta charset="utf-8" />
 <title>Home</title>
+
+<meta name="google" value="notranslate" />
+<meta name="robots" content="INDEX,FOLLOW" />
+
 <link href="/static/styles/vendor/bootstrap-mod.css" rel="stylesheet" type="text/css" />
 <link href="/static/styles/maptcha.css" rel="stylesheet" type="text/css" />
 
 <script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
-<script type="text/javascript" src="http://maps.google.com/maps/api/js?sensor=false"></script>
+<script type="text/javascript" src="http://maps.google.com/maps/api/js?libraries=places&sensor=false"></script>
 <script type="text/javascript" src="/static/js/vendor/modestmaps.min.js"></script>
 <script type="text/javascript" src="http://maps.stamen.com/js/tile.stamen.js?v1.2.0"></script>
 
 
-<style> 
+<style type="text/css"> 
+.container-fluid {
+    padding:0;
+}
+#header,#map-controls,#search{
+    position:absolute; 
+    z-index:10;
+}
+#header{
+    background:white;
+    background:rgba(255,255,255,.8);
+}  
+.page-header{ 
+    padding:0;
+    margin:0;
+    border:none;
+    line-height: 50px;
+    font-size: 18px;
+    font-weight: bold;
+}
+.page-header a{
+    margin-left: 20px;
+    color:black;
+}
+.page-header a:hover{ 
+    text-decoration:underline;
+}
+#search{
+    top:70px;
+}
+#search .btn{
+    margin-left:2px;
+}
+
 #map-wrap{
-    position:relative;  
-    min-height: 600px;
-    height: auto !important;
-    height: 600px; 
+    position: fixed;
+    width: 100%; 
+    height: 100%; 
 }   
 
 #map-pane{
     position:relative;
     width:100%;
-    min-height: 600px;
-    height: auto !important;
-    height: 600px;
+    height:100%;
     
+}
+
+#map-controls {
+    position: absolute;
+    z-index: 10;
+    top:120px; 
+    left:0px;
+}
+#map-controls a {
+    display: block;
+    width: 33px;
+    height: 33px;
+    background: white;
+    color: black;
+    text-align: center;
+    line-height: 29px;
+    text-decoration: none;
+    font-size: 24px;
+    font-weight: bold;
+    margin-bottom: 7px;
+    border:1px solid #ddd;
+    -webkit-transition: color .3s ease-in-out;
+    -moz-transition: color .3s ease-in-out;
+    -o-transition: color .3s ease-in-out;
+    transition: color .3s ease-in-out; 
+    
+    -webkit-box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.23);
+    -moz-box-shadow:    2px 2px 4px rgba(0, 0, 0, 0.23);
+    box-shadow:         2px 2px 4px rgba(0, 0, 0, 0.23);
+}
+a.zoom-out {
+    line-height: 30px;
+}
+#map-controls a:hover {
+    color:#aaa;
+} 
+.no-select {
+            user-select: none;
+         -o-user-select: none;
+        -ms-user-select: none;
+       -moz-user-select: none;
+     -khtml-user-select: none;
+    -webkit-user-select: none;
 }
 </style>
 </head>
@@ -34,43 +111,153 @@
 <body> 
 
 <a name="top"></a>
-<div class="container">
-    <div class="row"> 
-        <div class="page-header span12"><a href="http://maptcha.org">maptcha.org</a> / <strong>Historypin</strong></div>
-    </div>
-    <div class="row">
-        <div id="map-wrap" class="span12">
-             <div id="map-pane"></div> 
+<div class="container-fluid">
+    <div id="header" class="row-fluid no-select"> 
+        <div class="page-header span12"><a href="http://maptcha.org">maptcha.org</a> | <a href="/faq-public">FAQ</a></div>  
+    </div> 
+    
+    <div id="search" class="span5 no-select">
+        <div class="input-append">
+          <input class="span3" id="search-place-input" type="text">
+          <button id="search-place-submit" class="btn" type="button">Find</button>
         </div> 
+    </div> 
+    
+    <div id="map-controls" class="span2 no-select">
+        <a href="#" class="zoom-in">+</a> 
+        <a href="#" class="zoom-out">–</a>
     </div>
+    
+    
+    <div id="map-wrap">
+         <div id="map-pane"></div> 
+    </div>   
+
         
-    <div class="footer">
+    <div class="footer"> 
     	<!--<a href="#top" class="top-jumper">Top &uarr;</a>-->
     </div>
 </div> 
 
-<script>
-var map,nw,se,ext;     
-function setMap(){
-    var template = 'tile/{Z}/{X}/{Y}.png';
+<script type="text/javascript"> 
+
+//http://unscriptable.com/2009/03/20/debouncing-javascript-methods/
+var debounce = function (func, threshold, execAsap) {
+ 
+    var timeout;
+ 
+    return function debounced () {
+        var obj = this, args = arguments;
+        function delayed () {
+            if (!execAsap)
+                func.apply(obj, args);
+            timeout = null; 
+        };
+ 
+        if (timeout)
+            clearTimeout(timeout);
+        else if (execAsap)
+            func.apply(obj, args);
+ 
+        timeout = setTimeout(delayed, threshold || 100); 
+    };
+ 
+}
+
+var map,nw,se,ext,autoComplete;
+
+function setupAutoComplete(){ 
+    var autocomplete_options = {
+      types: ['(cities)']
+    };
+    var input = $("#search-place-input");
     
-    //var template = 'http://c.tiles.mapbox.com/v3/mapbox.mapbox-light/{Z}/{X}/{Y}.png';
-    var provider = new MM.TemplatedLayer(template);
-    map = new MM.Map('map-pane', provider);
+    autoComplete = new google.maps.places.Autocomplete(input[0], autocomplete_options);   
+
+    google.maps.event.addListener(autoComplete, 'place_changed', function() {  
+        var place = autoComplete.getPlace();
+        if(!place)return;
+        if (!place.geometry) { 
+            return;
+        } 
+        
+        if(place.geometry.viewport){
+            var viewport = place.geometry.viewport,
+                ne = viewport.getNorthEast(),
+                sw = viewport.getSouthWest(),
+                locations = [{lat: ne.lat(), lon: ne.lng()}, {lat: sw.lat(), lon: sw.lng()}];
+
+            map.setExtent(locations);  
+        }else if(place.geometry.location){
+            var loc = place.geometry.location,
+                lat = loc.lat(),
+                lng = loc.lng();
+            map.setCenter(new MM.Location(lat,lng));
+        }
+    });
+    
+    
+    function setBounds(m){ 
+        if(!autoComplete)return;
+        m = m || map; 
+        var ext = m.getExtent();
+        var sw = new google.maps.LatLng(ext.south,ext.west),
+            ne = new google.maps.LatLng(ext.north,ext.east),
+            bounds = new google.maps.LatLngBounds(sw,ne);  
+        
+        autoComplete.setBounds(bounds);
+    }
+    var setBounds_ = debounce(setBounds,250);
+    map.addCallback('drawn', function(m) { 
+         setBounds_();
+    });
+
+    input.on('keypress',function(e){  
+        if (e.keyCode == 13) {
+            e.preventDefault();
+        }   
+    });    
+    
+    $("#search-place-submit").on("click touchstart",function(e){
+        e.preventDefault();
+        input.trigger("change");
+    });
+    
+}     
+function setMap(){
+    
+    var mapslayer = new MM.TemplatedLayer('tile/{Z}/{X}/{Y}.png');
+    var baselayer = new MM.StamenTileLayer("toner-lite");
+
+    map = new MM.Map('map-pane', baselayer);
 
     var ll = new MM.Location(37.854, -122.413);  
-    map.setCenterZoom(ll,9);
+    map.setCenterZoom(ll,9); 
     
+    map.addLayer(mapslayer);
     
     nw = new com.modestmaps.Location(89,-179);
     se = new com.modestmaps.Location(-89,179);
     ext = new com.modestmaps.Extent(nw,se);
     //map.setExtent(ext,true);
     
+     
+    setupAutoComplete();
+    
+    $(".zoom-in").on("click touchstart",function(e){
+        e.preventDefault();
+        map.zoomIn();
+    });
+    $(".zoom-out").on("click touchstart",function(e){
+        e.preventDefault();
+        map.zoomOut();
+    });
+    
 }
 $(function(){
     setMap();
 })
 </script>
+
 </body>
 </html>

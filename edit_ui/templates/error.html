@@ -11,7 +11,7 @@
 <a name="top"></a>
 <div class="container">
     <div class="page-header"><a href="http://maptcha.org">maptcha.org</a> / <a href="/">Historypin</a> / <strong>Upload Errors</strong></div>
-    <h1>Uh oh. Something's wrong.</h1>
+    <h1>Hmm. That didn't work.</h1>
 
     
     <div class="alert alert-error">{{msg.error|safe}}</div>  
@@ -20,13 +20,13 @@
     <ul> 
        
         {% for row in msg.rows %}  
-        <li>ROW {{row.idx}}: {{row.err}}</li>
+        <li>ROW {{row.idx}}: {{row.err | safe}}</li>
         {% endfor %} 
         
     </ul>
     {% endif %}
     
-    <p>Please <a href="/upload">try again</a></p>
+    <p>Please <a href="/upload">try again</a>.</p>
     
     <div class="footer">
     	<!--<a href="#top">Top &uarr;</a>-->

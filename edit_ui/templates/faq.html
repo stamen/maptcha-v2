@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>FAQ</title>
+<link href="/static/styles/vendor/bootstrap-mod.css" rel="stylesheet" type="text/css" /> 
+<link href="/static/styles/maptcha.css" rel="stylesheet" type="text/css" />
+</head>
+
+<body>
+<a name="top"></a>
+<div class="container">
+    <div class="page-header"><a href="http://maptcha.org">maptcha.org</a> / <a href="/">Historypin</a> / <strong>FAQ</strong></div>
+    <h1>Frequently Asked Questions</h1>
+    <h3>What is Maptcha?</h3>
+    <p>Maptcha is a web-based interface doing rough placements of historical maps on modern geography. </p>
+    <p>The first version of maptcha.org was <a href="http://mike.teczno.com/notes/sanborn-maptcha.html">launched by Mike Migurski</a> in July 2011, using the <a href="http://www.davidrumsey.com/blog/2011/6/27/pre-earthquake-san-francisco-1905-sanborn-insurance-atlas">1905 Sanborn Fire Insurance Atlas</a> as its first map series test case. The atlas contained about 700 pages of street level maps of San Francisco, and when it was launched, volunteers from around the world used the site to place each page on to a modern map of the city, all within a few days, which was a wonderful surprise!</p>
+    <p> The application was further developed in 2012 by Stamen Design in San Francisco, under a grant from <a href="http://west.stanford.edu/"> The Bill Lane Center for the American West</a> at Stanford University to support for the 2013<a href="http://www.yearofthebay.org">Year of the Bay</a> project, crowdsourcing a new history of the San Francisco Bay Area.</p>
+    <h3>How do I get started?</h3>
+    <p>There are 4 basic steps to <a href="/upload">uploading</a> a set of maps to Maptcha:</p>
+    <ol>
+        <li><strong><em>Select a set of historical maps</em></strong> you'd like to upload to Maptcha, and place the digital versions somewhere public on the web. Public here just means somewhere online that isn't password-protected. Maptcha calls this set of maps an &quot;atlas.&quot;<br>
+            &nbsp; </li>
+        <li><strong><em>Create a spreadsheet that describes each of the maps</em></strong> you've selected, a row in the spreadsheet for each map. You'll need to export that information as a CSV file from your spreadsheet, and upload it somewhere public on the web. There's a service called Dropbox that is handy for this sort of thing. See below for more information on what you need to include in the CSV.<br>
+            &nbsp; </li>
+        <li><strong><em>Tell Maptcha where that CSV file is</em></strong> located, give your atlas a name, and state your institutional affiliation, then hit Next.<br>
+        &nbsp; </li>
+        <li><strong><em>Provide some simple geographical hints</em></strong> about the atlas, like, any particular map features (street-level, coastlines etc) and for city-name clues to help determine a bounding box that contains all the maps in the atlas. This will come in handy later, for volunteers who are placing the maps to begin in the right general area.</li>
+    </ol>
+    <h3>What's an atlas?</h3>
+    <p>Your old maps and the CSV file of basic metadata about them is what we call an atlas.</p>
+    <p>One of the reasons we think the first version of Maptcha worked so well is that volunteers could see the potential end of their work placing each page of the Sanborn atlas. Giving people a sense of progress of the task at hand is useful, compared with having to slog through an overwhelmingly large list of millions of old maps.    </p>
+    <h3>What's the best way to create my CSV?</h3>
+    <p>It's easiest to work with a spreadsheet first. You can download <a href="/static/maptcha-example-csv-file.csv">an example CSV file</a> to get started with, and have a look at the <a href="/upload">more detailed field-level specification</a> on the upload page.<br>
+    </p>
+    <h3>What fields do I need in my CSV for each map?</h3>
+    <p>There are only 3 required fields for each map: </p>
+    <ol>
+        <li><em>Title</em> of the map,</li>
+        <li> <em>Date</em> the map was created, and</li>
+        <li><em>Image_URL</em> is the fully qualified URL that will direct Maptcha to the digital map image file.</li>
+    </ol>
+    <p>There are lots of other suggested fields too. You can see the <a href="/upload">full list</a> on the upload page.<br>
+    </p>
+    <h3>Can I play with the map placement tool?</h3>
+    <p>Definitely! <br>
+    </p>
+    <h3>Do you have a naming convention I should use?</h3>
+    <p>No. The only things Maptcha requires you use are: public images &amp; CSV files and the 3 required fields for each map. Just use names that you'll recognize later.<br>
+    </p>
+    <h3>Is there a file size limit on map images?</h3>
+    <p>Not that we've hit yet. In fact, the bigger the original image, the better. It really helps for volunteers to be able to zoom in at high detail for some placement tasks.<br>
+    </p>
+    <h3>What image file formats do you accept?</h3>
+    <p>Maptcha can process .JPG, .TIF, .PNG and .GIF. If your images are any other format, the process will fail.<br>
+    </p>
+    <h3>Where do I put my images and CSV so Maptcha can get to them?</h3>
+    <p>You can put your files anywhere that's publicly accessible on the web. That means not on an intranet, not behind a password, not on your local hard drive. If Maptcha can't access any of the files, the process will fail.</p>
+    <p>You might like to look at using  <a href="http://dropbox.com">Dropbox</a>. (We're not connected to them, we just think it's a good, free service that makes it super easy to share files.)<br>
+    </p>
+    <h3>Is there an automated way for me to do all this?</h3>
+    <p>Wouldn't that be great?! Not yet, sorry. </p>
+    <p>If you or your employer is interested to improve Maptcha's functionality, you might be interested to partner with us, Stamen Design, to find funding to make that happen. If so, please <a href="mailto:info@stamen.com?subject=An enquiry from maptcha.org">get in touch</a>.<br>
+    </p>
+    <h3>Can Maptcha integrate with my catalog?</h3>
+    <p>Wouldn't that be great?!?! Not yet, sorry. </p>
+    <p>If you or your employer is interested to improve Maptcha's functionality, you might be interested to partner with us, Stamen Design, to find funding to make that happen. If so, please <a href="mailto:info@stamen.com?subject=An enquiry from maptcha.org">get in touch</a>.<br>
+    </p>
+    <h3><strong>How do I get the geodata back out again?</strong></h3>
+    <p>Check out the <a href="/docs">Developer Docs</a>, or look for S3 links to the tileset &amp; GeoTIFFs  per map.</p>
+<div class="footer" style="clear:both;">
+    	<a href="#top" class="top-jumper">Top &uarr;</a>
+    </div>
+</div>  
+</body>
+</html>

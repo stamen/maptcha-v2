@@ -6,7 +6,7 @@ import time,datetime
 from PIL import Image
 from PIL.ImageStat import Stat
 from StringIO import StringIO
-from urllib import urlopen
+from urllib import urlopen, quote_plus
 
 from flask import Flask, request, redirect, render_template, jsonify, make_response, abort
 from mysql.connector import connect, cursor
@@ -41,7 +41,11 @@ class MySQLCursorDict(cursor.MySQLCursor):
 def thing(path):
     '''
     '''
-    bucket = aws_prefix+'stuff'
+    bucket = aws_prefix+'stuff' 
+    
+    # URL encode path, because S3 URL's are encoded
+    path = quote_plus(path,safe="/")
+    
     return redirect('http://%(bucket)s.s3.amazonaws.com/%(path)s' % locals())
 
 def static(filename):
@@ -268,18 +272,22 @@ def check_map_status(id=None):
     rsp = {'error':'unkown'}
     if id:
         #map = map_dom.get_item(id,consistent_read=True)
-        q = "select name from `%s` where atlas = '%s' and status != 'empty'"%(map_dom.name,id)
+        q = "select name,status from `%s` where atlas = '%s' and status != 'empty'"%(map_dom.name,id)
         done = map_dom.select(q,consistent_read=True)
         if done:
             rsp = {'uploaded':[]}
             for item in done:
-                rsp['uploaded'].append(item.name)
+                o = {}
+                o['name'] = item.name
+                o['status'] = item['status']
+                rsp['uploaded'].append(o)
     
     return jsonify(rsp) 
     
 def tile(path):
     '''
-    '''
+    ''' 
+    
     tms_path = '.'.join(path.split('.')[:-1])
     bucket = aws_prefix+'stuff'
     opaque = False
@@ -288,29 +296,31 @@ def tile(path):
     items = map_dom.select('select tiles from `%s` where image is not null order by image desc' % map_dom.name)
 
     for item in items:
-        s3_path = 'maps/%s/%s/%s.png' % (item.name, item['tiles'], tms_path)
-        url = 'http://%(bucket)s.s3.amazonaws.com/%(s3_path)s' % locals()
+        if 'tiles' in item:
+            s3_path = 'maps/%s/%s/%s.png' % (item.name, item['tiles'], tms_path)
+            url = 'http://%(bucket)s.s3.amazonaws.com/%(s3_path)s' % locals()
         
-        try:
-            tile_img = Image.open(StringIO(urlopen(url).read()))
-        except IOError:
-            continue
+            try:
+                tile_img = Image.open(StringIO(urlopen(url).read()))
+            except IOError: 
+                continue
         
-        fresh_img = Image.new('RGBA', (256, 256), (0, 0, 0, 0))
-        fresh_img.paste(tile_img, (0, 0), tile_img)
-        fresh_img.paste(image, (0, 0), image)
-        image = fresh_img
+            fresh_img = Image.new('RGBA', (256, 256), (0, 0, 0, 0))
+            fresh_img.paste(tile_img, (0, 0), tile_img)
+            fresh_img.paste(image, (0, 0), image)
+            image = fresh_img
         
         if Stat(image).extrema[3][0] > 0:
             opaque = True
-            break
-        
+            break  
+    
     if not opaque:
         url = 'http://tile.stamen.com/toner-lite/%s.png' % tms_path
         tile_img = Image.open(StringIO(urlopen(url).read()))
         tile_img.paste(image, (0, 0), image)
         image = tile_img
-    
+        
+
     bytes = StringIO()
     image.save(bytes, 'JPEG')
     
@@ -318,6 +328,31 @@ def tile(path):
     resp.headers['Content-Type'] = 'image/jpeg'
 
     return resp
+
+def home():
+    """
+    items = map_dom.select('select tiles from `%s` where image is not null order by image desc' % map_dom.name)
+    
+    locations = []
+    loc_names = ['lr_lon','lr_lat','ul_lon','ul_lat']
+    for item in items:
+        map = map_dom.get_item(item.name)
+        if map:
+            for loc_name in loc_names:
+                if loc_name in map:
+                    locations.append(map[loc_name])
+
+    """
+    
+        
+    return render_template('home.html')
+
+
+def faq():
+    return render_template('faq.html')   
+
+def faq_public():
+    return render_template('faq-public.html')
 
 # template filters
 def datetimeformat(value, relative=True, format='%b %d, %Y / %I:%M%p'):
@@ -348,7 +383,10 @@ app.add_url_rule('/map/<id>', 'get map', get_map)
 app.add_url_rule('/atlases-list', 'get atlases list', get_atlases_list)
 app.add_url_rule('/maps-list', 'get maps list', get_maps_list)
 app.add_url_rule('/check-map-status/<id>', 'get map status', check_map_status, methods=['GET']) 
-app.add_url_rule('/tile/<path:path>', 'tile', tile)
+app.add_url_rule('/tile/<path:path>', 'tile', tile) 
+app.add_url_rule('/home', 'home', home) 
+app.add_url_rule('/faq', 'faq', faq) 
+app.add_url_rule('/faq-public', 'faq-public', faq_public)
 
 app.error_handler_spec[None][404] = page_not_found
 

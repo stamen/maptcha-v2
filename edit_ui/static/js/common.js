@@ -48,9 +48,10 @@ var poller = {
         var empties = getElementsByClass(this.checkClass); 
         if(empties && empties.length){
             this.queueHash = {};
-            for(var i=0;i<empties.length;i++){
-                var id = empties[i].getAttribute('id');
-                this.queueHash[id] = empties[i];
+            for(var i=0;i<empties.length;i++){ 
+                var imgTD = empties[i].getElementsByClassName('mapThumb')[0];
+                var id = imgTD.getAttribute('id');
+                this.queueHash[id] = imgTD;
             }
             this.update(empties.length); 
             
@@ -82,7 +83,8 @@ var poller = {
             if (json['uploaded']){ 
                 var ids = json['uploaded'];
                 for(var i=0;i<ids.length;i++){ 
-                    var id = 'thumb-'+ids[i];
+                    var id = 'thumb-'+ids[i]['name'];
+                    var status = ids[i]['status'];
                     if(this.queueHash[id]){
                         var elm = this.queueHash[id];
                         if(elm){
@@ -91,9 +93,15 @@ var poller = {
                                 img = img[0];
                                 img.setAttribute('src',img.getAttribute('src'));
 
-                            } 
-                            elm.classList.remove('empty');
-                            elm.classList.add('uploaded');
+                            }
+                             
+                            elm.parentNode.classList.remove('empty');
+                            
+                            if(status == 'uploaded'){
+                                elm.parentNode.classList.add('uploaded');
+                            }else{
+                                elm.parentNode.classList.add('error');
+                            }
                         }
                     }
                 }

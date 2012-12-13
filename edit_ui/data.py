@@ -1,7 +1,7 @@
 from uuid import uuid1
 from time import time
 from random import choice
-from urllib import urlopen 
+from urllib import urlopen
 from itertools import combinations
 from math import pi, sin, cos, atan2, hypot
 from os.path import basename, splitext 
@@ -15,10 +15,15 @@ from util import connect_domain, check_url
 from boto.exception import SDBResponseError
 from shapely.geometry import Polygon
 from ModestMaps.Geo import MercatorProjection
-from ModestMaps.Core import Point
+from ModestMaps.Core import Point 
+import json
 
 required_fields = ['map_title', 'date', 'image_url']
-reserved_keys = ['image','large','thumb','atlas','version'] #map
+reserved_keys = ['image','large','thumb','atlas','version','aspect'] #map 
+
+# forgive 'map_title' requirement to upload a csv
+add_missing_map_titles = True
+
 
 def generate_id():
     '''
@@ -45,61 +50,86 @@ def slugify(w):
     w = w.strip().lower()
     return re.sub(r'\W+','_',w)
         
-def normalize_rows(rows):
+def normalize_rows(rows,fields):
     normalized = []
-    for row in rows:
+    for row in rows: 
+
         obj = {}
         for item in row:
-            norm_key = slugify(item)
+            obj[fields[item]] = row[item] 
 
-            if norm_key in reserved_keys:
-                norm_key = "__" + norm_key
-                
-            obj[norm_key] = row[item]
         normalized.append(obj) 
-        
-    return normalized
+
+    return normalized 
     
+def normalize_keys(keys):
+    normalized = []
+    for key in keys:
+        norm_key = slugify(key)
+
+        if norm_key in reserved_keys:
+            norm_key = "__" + norm_key 
+            
+        normalized.append( norm_key ) 
+        
+    # example.csv uses "dropbox_image_url" as image field name...
+    if 'dropbox_image_url' in normalized and 'image_url' not in normalized: 
+        idx = normalized.index('dropbox_image_url')
+        normalized[idx] = 'image_url'
+    
+    out = {}
+            
+    for index, item in enumerate(keys):
+        out[item] = normalized[index]
+    return out  
+      
 def create_atlas(domain, mysql, queue, url, name, affiliation):
     '''
     ''' 
     temp = None 
-    if not check_url(url):
-        return {'error':"There's no file at that URL: <a href='%s'>%s</a>. Please <a href='/upload'>try again</a>."%(url,url)} 
     
+    """
+    if not check_url(url):
+        return {'error':"There's no file available to Maptcha at <a href='%s'>%s</a>.<br/><i>CSV files cannot be private or password protected.</i><br/>Please make sure the file is publicly available and <a href='/upload'>try again</a>."%(url,url)} 
+    """ 
+   
     try:
-        temp = DictReader(urlopen(url))
+        """
+         work around for new-line character seen in unquoted field...do you need to open the file in universal-newline mode 
+        """
+        temp = DictReader( urlopen(url).read().splitlines() )
     except IOError:
-        return {'error':"There's no file at that URL: <a href='%s'>%s</a>. Please <a href='/upload'>try again</a>."%(url,url)}
+        return {'error':"There's no file available to Maptcha at <a href='%s'>%s</a>.<br/><i>CSV files cannot be private or password protected.</i><br/>Please make sure the file is publicly available and <a href='/upload'>try again</a>."%(url,url)}
     
     if not temp.fieldnames:
-        return {'error':"We couldn't work out if that file is even a CSV. Can you grab the URL again, and try another <a href='/upload'>upload</a>?"}
+        return {'error': "We can't tell if that file is a CSV, or not.<br/><i>Please make sure the URL you provided points to an actual CSV file, and not a web page that lets people download or view the CSV file.</i><br/>Please check the URL you're supplying ends in .csv and <a href='/upload'>try again</a>."}
     
     try:
-        rows = normalize_rows(list(temp))
+        fields = normalize_keys(temp.fieldnames)
+        rows = normalize_rows(list(temp),fields)
     except:
-        return {'error':"We couldn't work out if that file is even a CSV. Can you grab the URL again, and try another <a href='/upload'>upload</a>?"}  
-        
+        return {'error': "We can't tell if that file is a CSV, or not.<br/><i>Please make sure the URL you provided points to an actual CSV file, and not a web page that lets people download or view the CSV file.</i><br/>Please check the URL you're supplying ends in .csv and <a href='/upload'>try again</a>."} 
     
     
-    
-    # normalize keys
-    #keys = [key.lower().replace(' ', '_') for key in rows[0].keys()]
-    
+    if 'map_title' not in rows[0].keys() and add_missing_map_titles:
+        ct = 0
+        for row in rows:
+            row['map_title'] = "map%s"%ct
+            ct += 1 
+            
     missing_fields = validate_required_fields(rows[0].keys()) 
     
     #
     # validate fields
     #
     if len(missing_fields) > 0:
-        return {'error':"Your CSV doesn't have all the required columns. You must include map_title, date and image_url.<br/>Please <a href='/upload'>try again</a>."}
+        return {'error':"Your CSV is missing <strong>%s</strong> column.<br/>Every map contained in your CSV must have metadata for these required columns: %s.<br/>Please correct this and <a href='/upload'>try again</a>."%(",".join(missing_fields),",".join(required_fields))}
     
     #
     # validate images
     # 
     
     # need to know the image_col name
-    #img_col = filter(lambda x: x.lower().replace(' ', '_') == "image_url", rows[0].keys())[0]
     invalids = []
     for idx, row in enumerate(rows):
         row_num = idx+1
@@ -108,16 +138,13 @@ def create_atlas(domain, mysql, queue, url, name, affiliation):
                 invalids.append({'idx':row_num,'err':"Missing %s"%req})
         
         if row['image_url']:    
-            valid_url = check_url(row['image_url'])
+            valid_url = check_url(row['image_url'],True) # this will check HEAD for content-type && status code
             if not valid_url:
-                invalids.append({'idx':row_num,'err':"Couldn't find an image at <a href='%s'>%s</a>"%(row['image_url'],row['image_url'])})
+                invalids.append({'idx':row_num,'err':"We couldn't find an image at <a href='%s'>%s</a>.<br/><br />Maptcha can recognize the following formats: 'png', 'jpg', 'gif', or 'tif', and can only download public files that aren't protected by a password.<br/><i>Please check the URLs to your image(s), make any corrections in your CSV, and try again.</i>"%(row['image_url'],row['image_url'])})
             
     if len(invalids):
-        return {'error':"Some of your map entries don't work, because...","rows":invalids} 
+        return {'error':"Some of your map uploads failed because...","rows":invalids} 
     
-
-    #if 'address' not in row:
-        #raise ValueError('Missing "address" in %(url)s' % locals())
 
     #
     # Add an entry for the atlas to the atlases table.
@@ -332,30 +359,42 @@ def update_map_rough_consensus(mysql, map):
     # those places with two or more agreed votes), narrow the list of polygons
     # down to only those that cover 90%+ of this area.
     #
-    pair_overlaps = [p1.intersection(p2) for (p1, p2) in combinations(polygons, 2)]
-    union_pairs = reduce(lambda a, b: a.union(b), pair_overlaps)
+    pair_overlaps = [p1.intersection(p2) for (p1, p2) in combinations(polygons, 2)]  
     
-    good_indexes = [index for (index, polygon) in enumerate(polygons)
-                    if (polygon.area / union_pairs.area) > 0.9]
-    
-    good_indexes = good_indexes[-3:]
-    
-    good_sizes = [sizes[i] for i in good_indexes]
-    good_thetas = [thetas[i] for i in good_indexes]
-    good_centers = [polygons[i].centroid for i in good_indexes]
-    
-    #
-    # Determine average geometries for the good placements.
-    #
-    avg_size = sum(good_sizes) / len(good_sizes)
-    avg_theta = average_thetas(good_thetas)
-    avg_x = sum([c.x for c in good_centers]) / len(good_centers)
-    avg_y = sum([c.y for c in good_centers]) / len(good_centers)
-    
-    #
-    # Combine the placements to come up with consensus.
-    #
-    ul_lat, ul_lon, lr_lat, lr_lon = calculate_corners(map_aspect, avg_x, avg_y, avg_size, avg_theta)
+    if len(pair_overlaps) > 0:
+        
+        union_pairs = reduce(lambda a, b: a.union(b), pair_overlaps)
+
+        good_indexes = [index for (index, polygon) in enumerate(polygons)
+                        if (polygon.area / union_pairs.area) > 0.9]
+
+        good_indexes = good_indexes[-3:]
+
+        good_sizes = [sizes[i] for i in good_indexes]
+        good_thetas = [thetas[i] for i in good_indexes]
+        good_centers = [polygons[i].centroid for i in good_indexes]
+
+        #
+        # Determine average geometries for the good placements.
+        #
+        avg_size = sum(good_sizes) / len(good_sizes)
+        avg_theta = average_thetas(good_thetas)
+        avg_x = sum([c.x for c in good_centers]) / len(good_centers)
+        avg_y = sum([c.y for c in good_centers]) / len(good_centers)
+
+        #
+        # Combine the placements to come up with consensus.
+        #
+        ul_lat, ul_lon, lr_lat, lr_lon = calculate_corners(map['aspect'], avg_x, avg_y, avg_size, avg_theta)
+    else:
+        ul_lat = float(placements[0]['ul_lat'])
+        ul_lon = float(placements[0]['ul_lon'])
+        lr_lat = float(placements[0]['lr_lat']) 
+        lr_lon = float(placements[0]['lr_lon'])
+        
+    consensus = dict(ul_lat='%.8f' % ul_lat, ul_lon='%.8f' % ul_lon,
+                     lr_lat='%.8f' % lr_lat, lr_lon='%.8f' % lr_lon,
+                     status='rough-placed')
     
     #
     # Update the map with new information

@@ -6,7 +6,7 @@ from os.path import join, splitext, basename, dirname
 from xml.etree.ElementTree import Element, ElementTree
 from multiprocessing import Process, JoinableQueue
 from subprocess import Popen, PIPE
-from urllib import urlencode
+from urllib import urlencode, unquote_plus
 from shutil import rmtree
 
 from geometry import deg2rad, rad2deg, build_rough_placement_polygon
@@ -164,7 +164,7 @@ def cut_map_tiles(src_name, queue, ul, ur, lr, ll, max_zoom):
 
         cmd = 'gdalwarp -r cubicspline -dstalpha -ts 256 256'.split()
         cmd += ('-te %(xmin).6f %(ymin).6f %(xmax).6f %(ymax).6f' % locals()).split()
-        cmd += ['-overwrite', src_name, tilename]
+        cmd += ['-overwrite', src_name, tilename] 
         cmd = Popen(cmd, stdout=PIPE, stderr=PIPE)
         cmd.wait()
         
@@ -221,7 +221,18 @@ def generate_map_tiles(atlas_dom, map_dom, bucket, map_id):
     #
     # Retrieve the original uploaded image from storage.
     #
+    
     img = bucket.get_key(map['image'])
+    if not img:
+        # started using unqoute_plus to name the keys, to handle double encoding of file names on S3
+        img = bucket.get_key(unquote_plus(map['image']))
+    
+    # ok give up
+    if not img:
+        logging.error("No image found for map: %s"%(map.name))
+        return 
+    
+    
     tmpdir = mkdtemp(prefix='gen-map-tiles-')
     imgname = join(tmpdir, basename(img.name))
     
@@ -268,6 +279,9 @@ def generate_map_tiles(atlas_dom, map_dom, bucket, map_id):
     uploader2.start()
     
     max_zoom = round(1 + native_zoom(w, h, ul, lr))
+    logging.info("max_zoom from native_zoom: %s"%(max_zoom))
+    # cap zoom at 18
+    max_zoom = min(max_zoom,18.0)
     cut_map_tiles(vrtname, queue, ul, ur, lr, ll, max_zoom)
     
     uploader1.join()
