@@ -30,14 +30,6 @@ def generate_id():
     '''
     return str(uuid1())
 
-def connect_domains(key, secret, prefix):
-    '''
-    '''
-    suffixes = 'atlases', 'maps', 'rough_placements'
-    domains = [connect_domain(key, secret, prefix+suffix) for suffix in suffixes]
-    
-    return domains
-    
 def validate_required_fields(keys):
     errors = []
     for field in required_fields: 

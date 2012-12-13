@@ -12,13 +12,10 @@ from flask import Flask, request, redirect, render_template, jsonify, make_respo
 from mysql.connector import connect, cursor
 
 from util import connect_queue, get_config_vars, get_all_records
-from data import connect_domains, place_roughly, choose_map, create_atlas  
+from data import place_roughly, choose_map, create_atlas  
 from relative_time import timesince
 
 aws_key, aws_secret, aws_prefix = get_config_vars(dirname(__file__))
-
-atlas_dom, map_dom, roughplace_dom \
-    = connect_domains(aws_key, aws_secret, aws_prefix)
 
 queue = connect_queue(aws_key, aws_secret, aws_prefix+'jobs')
 
