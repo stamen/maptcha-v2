@@ -165,7 +165,7 @@ def cut_map_tiles(src_name, queue, ul, ur, lr, ll, max_zoom):
         cmd = 'gdalwarp -r cubicspline -dstalpha -ts 256 256'.split()
         cmd += ('-te %(xmin).6f %(ymin).6f %(xmax).6f %(ymax).6f' % locals()).split()
         cmd += [src_name, tilename] #'-overwrite',
-        print "%s"%cmd
+        #print "%s"%cmd
         cmd = Popen(cmd, stdout=PIPE, stderr=PIPE)
         cmd.wait()
         

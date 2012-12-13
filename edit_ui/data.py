@@ -347,7 +347,12 @@ def update_map_rough_consensus(map_dom, place_dom, map):
     
     #
     # Get geometries for each rough placement.
-    #
+    # 
+    
+    #check for aspect property
+    if 'aspect' not in map:
+        raise Exception("No property named aspect in map object")
+            
     roughs = [build_rough_placement_polygon(map['aspect'], p['ul_lat'], p['ul_lon'], p['lr_lat'], p['lr_lon'])
               for p in placements]
     
