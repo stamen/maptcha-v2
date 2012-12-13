@@ -203,7 +203,17 @@ def post_atlas_hints(id=None):
 
 
 def get_map(id):
-    map = map_dom.get_item(id)
+    '''
+    ''' 
+    conn = mysql_connection()
+    mysql = conn.cursor(cursor_class=MySQLCursorDict)
+    
+    mysql.execute('SELECT * FROM maps WHERE id = %s', (id, ))
+    
+    map = mysql.fetchdict()
+    
+    conn.close()
+    
     if map:
         return render_template('map.html', map=map)
     else:
@@ -262,11 +272,19 @@ def get_atlases_list():
 
     return render_template('atlases-list.html', atlases=atlases)
     
-def get_maps_list(): 
-    q = "select * from `%s`"%(map_dom.name)
-    maps = get_all_records(map_dom,q)
-    return render_template('maps-list.html', maps=maps)
+def get_maps_list():
+    '''
+    ''' 
+    conn = mysql_connection()
+    mysql = conn.cursor(cursor_class=MySQLCursorDict)
     
+    mysql.execute('SELECT * FROM maps')
+    
+    maps = mysql.fetchdicts()
+    
+    conn.close()
+
+    return render_template('maps-list.html', maps=maps)
             
 def check_map_status(id=None):
     rsp = {'error':'unkown'}
