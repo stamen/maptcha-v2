@@ -1,4 +1,5 @@
 from util import connect_domain, get_config_vars
+from json import dumps
 
 key, secret, prefix = get_config_vars('.')
 map_dom = connect_domain(key, secret, prefix+'maps')
@@ -33,7 +34,12 @@ if __name__ == '__main__':
         
         # update to reflect "atlas_id" in MySQL.
         cols[1] = 'atlas_id'
+        
+        extras = dict([(key, map[key]) for key in map if key not in cols])
 
+        cols.append('extras_json')
+        vals.append(quote_string(dumps(extras)))
+        
         print 'INSERT INTO maps (%s) VALUES (%s);' % (', '.join(cols), ', '.join(vals))
 
     print 'TRUNCATE atlases;'

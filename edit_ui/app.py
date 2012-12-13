@@ -9,7 +9,7 @@ from StringIO import StringIO
 from urllib import urlopen
 
 from flask import Flask, request, redirect, render_template, jsonify, make_response, abort
-from mysql.connector import connect
+from mysql.connector import connect, cursor
 
 from util import connect_queue, get_config_vars, get_all_records
 from data import connect_domains, place_roughly, choose_map, create_atlas  
@@ -24,6 +24,19 @@ queue = connect_queue(aws_key, aws_secret, aws_prefix+'jobs')
 
 def mysql_connection():
     return connect(user='yotb', password='y0tb', database='yotb_migurski', autocommit=True)
+
+class MySQLCursorDict(cursor.MySQLCursor):
+    def fetchdict(self):
+        row = self.fetchone()
+        if row:
+            return dict(zip(self.column_names, row))
+        return None
+    
+    def fetchdicts(self):
+        rows = self.fetchall()
+        cols = self.column_names
+        
+        return [dict(zip(cols, row)) for row in rows]
 
 def thing(path):
     '''
@@ -188,12 +201,21 @@ def get_map(id):
 def get_atlas(id):
     '''
     ''' 
-    atlas = atlas_dom.get_item(id,consistent_read=True)
-    if atlas:
-        q = "select * from `%s` where atlas = '%s'" % (map_dom.name, atlas.name)
-        maps = map_dom.select(q,consistent_read=True)
+    conn = mysql_connection()
+    mysql = conn.cursor(cursor_class=MySQLCursorDict)
     
+    mysql.execute('SELECT * FROM atlases WHERE id = %s', (id, ))
+    atlas = mysql.fetchdict()
+    
+    if atlas:
+        mysql.execute('SELECT * FROM maps WHERE atlas_id = %s', (atlas['id'], ))
+        maps = mysql.fetchdicts()
+    
+    conn.close()
+
+    if atlas:
         return render_template('atlas.html', atlas=atlas, maps=maps)
+
     else:
         abort(404)
 
