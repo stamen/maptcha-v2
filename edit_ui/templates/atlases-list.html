@@ -23,7 +23,7 @@
         </tr> 
         {% for atlas in atlases|sort(reverse=True,attribute='uploaded') %}  
             <tr>
-            	<td><a href="/atlas/{{atlas.name}}" title='link to atlas'>{{atlas.title}}</a> / <a href="{{ atlas.rough_href }}">Edit</a></td> 
+            	<td><a href="/atlas/{{atlas.name}}" title='link to atlas'>{{atlas.title}}</a></td> 
             	<td>{{ atlas.status }}</td>
             	<td>{{ atlas.uploaded|datetimeformat(false) }}</td>
             	<td>{{ atlas.maps }}</td>  
