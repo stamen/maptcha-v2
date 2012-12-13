@@ -27,16 +27,18 @@
     <div class="container">
         
         <div id="main" class="row">
-            <div class="cf span12 box-wrap"> 
-                
+            <div id="positioners-container" class="cf span12 box-wrap"> 
+                <div id="faq-box"> 
+                    <iframe src="/faq-public" frameborder="0" height="100%" width="100%"border="0" marginheight="0" marginwidth="0"></iframe>
+                </div>
                 <!-- original map -->
                 <div id="scan-box" class="box left-box">
                     <canvas id="scan" width='480' height='550'></canvas>
                     <img id="scan_img" src="/thing/{{ map.large }}" style="display: none;">
 
                     <div id="zoom-controls-canvas" class="zoom-controls">  
-                        <a href="#" class="zoom-in">+</a> 
-                        <a href="#" class="zoom-out">&ndash;</a>
+                        <a href="#" class="std-btn zoom-in">+</a> 
+                        <a href="#" class="std-btn zoom-out">&ndash;</a>
                     </div> 
                     
                 </div>
