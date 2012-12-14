@@ -1,5 +1,5 @@
 from sys import argv
-
+ 
 #from boto.sdb import regions
 from boto import connect_sdb, connect_s3, connect_sqs
 

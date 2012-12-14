@@ -11,6 +11,51 @@ function timeConverter(UNIX_timestamp){
     var new_date = new Date(yr,month,day,hour,min,sec,milli);
 
     return new_date;
+} 
+
+
+function setHash() {
+    if (location) { 
+        
+        var z = map.getZoom(),
+            ll = map.getCenter();
+        
+        var msg = '';
+        
+        // console.log("PM", permaMessage);
+
+        if(message && message.src_id && permaMessage && permaMessage.pinState == "open"){ 
+            msg = 'message=' + message.src_id + '&';
+        } else if (messageBox && messageBox.marker && messageBox.marker.data && messageBox.marker.data.source == "posted messages") {
+            msg = 'message=' + messageBox.marker.data.src_id + '&';
+        }
+        
+        if (z && ll.lat() && ll.lng()){
+            msg += 'loc=' + [z, ll.lat().toFixed(4), ll.lng().toFixed(4)].join("/");
+        } 
+        
+        location.hash = msg;
+    }
+}
+function getHash(str){ 
+    var url = str || window.location.hash || location.hash || '';
+    
+    if (url.length === 0 || url.indexOf("=") === -1) {
+       return {};
+    }  
+    url = url.replace(/^[^#]*#/, '')	/* strip anything before the first anchor */
+             .replace(/^#+|#+$/, '');  
+             
+    var parts = url.split("&"),
+       len = parts.length;
+       params = {};
+    for (var i = 0; i < len; i++) {
+       var kv = parts[i].split("=");
+       params[decodeURIComponent(kv[0])] = (kv.length === 2)
+           ? decodeURIComponent(kv[1])
+           : true;
+    }
+    return params; 
 }
 
 function getElementsByClass(searchClass,node,tag) {
