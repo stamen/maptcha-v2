@@ -28,9 +28,11 @@
         
         <div id="main" class="row">
             <div id="positioners-container" class="cf span12 box-wrap"> 
-                <div id="faq-box">
-                    <a id="close-faq" href="#" class="std-btn">x</a>  
-                    <iframe src="/faq-public" frameborder="0" height="100%" width="100%"border="0" marginheight="0" marginwidth="0"></iframe>
+                <div id="faq-box"> 
+                    <div id="faq-box-inner">
+                        <a id="close-faq" href="#" class="std-btn">x</a>  
+                        <iframe src="/faq-public" frameborder="0" height="100%" width="100%"border="0" marginheight="0" marginwidth="0" scrolling="auto"></iframe> 
+                    </div>
                 </div>
                 <!-- original map -->
                 <div id="scan-box" class="box left-box">
@@ -49,8 +51,8 @@
                     <div id="map-pane"></div> 
                 
                     <div id="zoom-controls-mm" class="zoom-controls">   
-                        <a href="#" class="zoom-in">+</a> 
-                        <a href="#" class="zoom-out">&ndash;</a>
+                        <a href="#" class="std-btn zoom-in">+</a> 
+                        <a href="#" class="std-btn zoom-out">&ndash;</a>
                     </div>
                 
                     <div id="address-search" class="">  
@@ -154,7 +156,8 @@
         {% if atlas.hint_cities %}atlas_hints['has_cities'] = {{ atlas.hint_cities|lower|default(false,true) }};{% endif %}
         {% if atlas.hint_streets %}atlas_hints['has_streets'] = {{ atlas.hint_streets|lower|default(false,true) }};{% endif %}   
     
-         window.onload = function(){ 
+         window.onload = function(){  
+             
              var faqBox = $("#faq-box");
              $("#faq-toggler").on("click",function(e){
                  if(faqBox.is(':visible')){
@@ -167,7 +170,8 @@
              $("#close-faq").on("click",function(e){
                  e.preventDefault();
                  faqBox.hide();
-             })
+             });
+             
              YTOB.PlaceMap.init();
              
              $(window).on("resize",function(){

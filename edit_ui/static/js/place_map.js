@@ -315,6 +315,9 @@
         
         var inner = $(".box-wrap").width();
         
+        //windowSize.w = Math.min(windowSize.w,980)  
+        //inner = Math.min(inner,980)
+        
         //mapSize.w = Math.floor(windowSize.w * .40);   
         mapSize.w = inner/2;
         mapSize.h = Math.floor(windowSize.h - 90);
