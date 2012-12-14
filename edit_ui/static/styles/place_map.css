@@ -22,6 +22,7 @@ body{
     height: 100%;
     z-index: 100;
     display:none;
+    
 }   
 .container{
     margin-top:20px;
@@ -78,7 +79,7 @@ body{
     right:10px;
     left:auto;
 }
-.zoom-controls a
+a.std-btn
 {
     display: block;
     width: 33px;
@@ -93,12 +94,17 @@ body{
     margin-bottom: 5px;
     
 }
-.zoom-controls a.zoom-out{line-height:30px}
-.zoom-controls img { border: none; }  
+a.std-btn.zoom-out{line-height:30px}
+a.std-btn img { border: none; }  
 
-.zoom-controls a:hover{
+a.std-btn:hover{
     color:#ccc;
-}               
+}
+
+#close-faq{
+    position: absolute;
+    right: 0;
+}
 
 #address-search
 {
@@ -185,13 +191,23 @@ body{
     margin-right: 8px;
 }  
 
-#footer .logo{ 
+#footer .footer-section.logo{
+   background:transparent; 
+}
+#footer .footer-section.logo .logo{ 
     display:block;
     height:60px;
     background:transparent url('imgs/logo-maptcha-transparent-long.png') 0 0 no-repeat;
 } 
 #footer #placement-actions{
     
+}
+button#faq-toggler{
+    position: absolute;
+    top: 18px;
+    left: 152px;
+    font-weight: bold;
+    color: black;
 }
 
 

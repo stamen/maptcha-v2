@@ -28,7 +28,8 @@
         
         <div id="main" class="row">
             <div id="positioners-container" class="cf span12 box-wrap"> 
-                <div id="faq-box"> 
+                <div id="faq-box">
+                    <a id="close-faq" href="#" class="std-btn">x</a>  
                     <iframe src="/faq-public" frameborder="0" height="100%" width="100%"border="0" marginheight="0" marginwidth="0"></iframe>
                 </div>
                 <!-- original map -->
@@ -76,8 +77,11 @@
         
         <div class="row">
             <div id="footer" class="cf span12"> 
-                
-                <a href="/" class="logo footer-section"></a>  
+                <div class="footer-section logo">
+                    <a href="/" class="logo"></a>
+                    <button id="faq-toggler" class="btn btn-link">FAQ</button> 
+                </div>
+                  
                 
                 <div class="footer-section">
                     <!-- polyfill: http://www.frequency-decoder.com/2010/11/18/unobtrusive-slider-control-html5-input-range-polyfill -->
@@ -151,7 +155,19 @@
         {% if atlas.hint_streets %}atlas_hints['has_streets'] = {{ atlas.hint_streets|lower|default(false,true) }};{% endif %}   
     
          window.onload = function(){ 
-             
+             var faqBox = $("#faq-box");
+             $("#faq-toggler").on("click",function(e){
+                 if(faqBox.is(':visible')){
+                     faqBox.hide();
+                 }else{
+                     faqBox.show();
+                 } 
+                 
+             });
+             $("#close-faq").on("click",function(e){
+                 e.preventDefault();
+                 faqBox.hide();
+             })
              YTOB.PlaceMap.init();
              
              $(window).on("resize",function(){
