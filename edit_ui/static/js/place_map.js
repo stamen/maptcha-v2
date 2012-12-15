@@ -622,19 +622,9 @@
         
         return pos;
     }
-
     
-    YTOB.PlaceMap.init = function(){  
-        boxContainer = $("#positioners-container");
-        
-        getContainerSizes(); 
-        
-        YTOB.PlaceMap.initBackgroundMap();
-        YTOB.PlaceMap.initCanvas();
-        YTOB.PlaceMap.initMap();
-        
-        geocoder = new YTOB.Geocoder();
-        
+    
+    function setKeyboardShortCuts(){
         $(window).on('keydown',function(e){
 
            if(!e.keyCode)return;
@@ -688,7 +678,22 @@
                 break; 
            }
         });
-     
+    }
+    
+    YTOB.PlaceMap.init = function(){  
+        boxContainer = $("#positioners-container");
+        
+        // get some initial sizes...
+        getContainerSizes(); 
+        
+        YTOB.PlaceMap.initBackgroundMap();
+        YTOB.PlaceMap.initCanvas();
+        YTOB.PlaceMap.initMap();
+        
+        geocoder = new YTOB.Geocoder();
+        setKeyboardShortCuts();
+        
+        
     } 
     
     function changeOverlay(value)
