@@ -37,9 +37,9 @@ body{
     overflow: auto;
 } 
  
-.container{
+.container-fluid{
     margin-top:20px; 
-    /*min-width:980px;*/
+    min-width:980px;
 }
 
 
@@ -218,10 +218,9 @@ a.std-btn:hover{
 }
 button#faq-toggler{
     position: absolute;
-    top: 18px;
-    left: 152px;
-    font-weight: bold;
-    color: black;
+    top: 17px;
+    left: 132px;
+
 }
 
 

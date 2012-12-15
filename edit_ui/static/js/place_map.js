@@ -173,7 +173,7 @@
         }
     }  
     
-    function subtractPoints(pt1,pt2){
+    function subtractPoints(pt1,pt2){ 
           return new paper.Point(pt1.x - pt2.x, pt1.y - pt2.y);
     } 
     function addPoints(pt1,pt2){
@@ -232,6 +232,8 @@
         updateImagePosition();
     } 
 
+    
+    
     
 
     function zoomOutAbout(point)
@@ -308,19 +310,25 @@
     } 
     
     
+    var minimumWidth = 980;
+    var boxContainer = null;
     
     function getContainerSizes(){
         windowSize.w = window.innerWidth,
         windowSize.h = window.innerHeight; 
         
-        var inner = $(".box-wrap").width();
+        var box = boxContainer.width();
         
-        //windowSize.w = Math.min(windowSize.w,980)  
-        //inner = Math.min(inner,980)
+        //windowSize.w = Math.min(windowSize.w,maximumWidth)  
+        var inner = windowSize.w;
+        if(inner < minimumWidth)inner = minimumWidth;
+        inner *= .9;
+
         
-        //mapSize.w = Math.floor(windowSize.w * .40);   
-        mapSize.w = inner/2;
+        mapSize.w = Math.floor(box/2) - 1;
         mapSize.h = Math.floor(windowSize.h - 90);
+        
+        //console.log(windowSize.w + " :: " + mapSize.w + " :: "+box/2)
     }   
     
     
@@ -333,16 +341,47 @@
         paper.view.draw();
     } 
     
-    YTOB.PlaceMap.resize = function(){
+    YTOB.PlaceMap.resize = function(){ 
+        
         getContainerSizes(); 
         
+        if(backgroundMap){
+            backgroundMap.setSize(new MM.Point(windowSize.w,windowSize.h))
+        }
+        var cx = (mapSize.w/2) - paper.view.center._x;
+        var cy = (mapSize.h/2) - paper.view.center._y;
+        var pt = new paper.Point(cx,cy);
         
+        if(map){
+            map.setSize(new MM.Point(mapSize.w,mapSize.h));
+            updateBackgroundMap(); 
+            updateOldMap();  
+        }
+           
+        if(image){
+            YTOB.PlaceMap.updatePaperViewSize(mapSize.w,mapSize.h);
+
+            canvasBg.setBounds(paper.view.bounds);
+            xform.translate(pt);
+            image.setMatrix(xform);   
         
+            pin.position = paper.view.center;
+        
+            handle.position.x += pt.x;
+        
+            updateArmAndCircle();
+            updateImagePosition();
+              
+            paper.view.draw();
+        }
+        
+        return; 
+
         var cx = (mapSize.w/2) - paper.view.center._x;
         var cy = (mapSize.h/2) - paper.view.center._y;
         var pt = new paper.Point(cx,cy); 
         
-        var lft = (windowSize.w - (mapSize.w * 2)) /2;  
+        var lft = (windowSize.w - (mapSize.w * 2)) / 2;  
         
         //pt.x *= xform.scaleX;
         //pt.y *= xform.scaleY;
@@ -427,7 +466,6 @@
         mark2.add( new paper.Point(paper.view.center.x ,paper.view.center.y + lineSize) );
         
         handle = new paper.Group([handleBk,mark1,mark2]);
-        
         
         var rotatorGroup = [pin, handle];
         
@@ -514,8 +552,6 @@
         map.addCallback("zoomed", mainMapZoomed);
         map.addCallback("extentset", updateBackgroundMap);
         map.addCallback("centered", updateBackgroundMap);
-       
-        
 
 
         mapCanvas = document.createElement('canvas');
@@ -549,9 +585,48 @@
         return map;
     }
     
+    function updateArmAndCircleFromKeyBoard(matrixClone,prevHandlePos){
+        var currentVector = subtractPoints(handle.position,pin.position),
+        lastVector = subtractPoints(prevHandlePos, pin.position),
+        angle = currentVector.angle - lastVector.angle,
+        scale = currentVector.length / lastVector.length;   
+        
+
+        //handle.rotate( angle)
+        if(scale > 0)
+        {
+            xform = matrixClone;
+            xform.preConcatenate(paper.Matrix.getTranslateInstance(-paper.view.center.x, -paper.view.center.y));
+            xform.preConcatenate(paper.Matrix.getRotateInstance(angle));
+            xform.preConcatenate(paper.Matrix.getScaleInstance(scale, scale));
+            xform.preConcatenate(paper.Matrix.getTranslateInstance(paper.view.center.x, paper.view.center.y));
+            
+            image.setMatrix(xform);
+        }
+    } 
+    function scaleArmAndCircleIn(){
+        var lenAB = Math.sqrt(Math.pow((pin.position.x - handle.position.x),2) + Math.pow((pin.position.y - handle.position.y),2)); 
+        var newLength = .9;
+        var pos = new paper.Point(0,0);
+        pos.x = handle.position.x + (handle.position.x - pin.position.x) / lenAB * newLength;
+        pos.y = handle.position.y + (handle.position.y - pin.position.y) / lenAB * newLength; 
+        
+        return pos;
+    }
+    function scaleArmAndCircleOut(){
+        var lenAB = Math.sqrt(Math.pow((pin.position.x - handle.position.x),2) + Math.pow((pin.position.y - handle.position.y),2)); 
+        var newLength = .9;
+        var pos = new paper.Point(0,0);
+        pos.x = handle.position.x - (handle.position.x - pin.position.x) / lenAB * newLength;
+        pos.y = handle.position.y - (handle.position.y - pin.position.y) / lenAB * newLength; 
+        
+        return pos;
+    }
+
     
-    
-    YTOB.PlaceMap.init = function(){ 
+    YTOB.PlaceMap.init = function(){  
+        boxContainer = $("#positioners-container");
+        
         getContainerSizes(); 
         
         YTOB.PlaceMap.initBackgroundMap();
@@ -559,6 +634,60 @@
         YTOB.PlaceMap.initMap();
         
         geocoder = new YTOB.Geocoder();
+        
+        $(window).on('keydown',function(e){
+
+           if(!e.keyCode)return;
+           
+           switch(e.keyCode){
+                case 38: // up
+                    var preMatrix = xform.clone();
+                    var oldHandlePos =  handle.position.clone();
+                    
+                    handle.position = addPoints(handle.position , {x:-1,y:-1})
+                    updateArmAndCircle(); 
+                    updateArmAndCircleFromKeyBoard(preMatrix,oldHandlePos); 
+ 
+                    paper.view.draw();
+                    updateImagePosition();  
+                break; 
+                case 40: // down
+                    var preMatrix = xform.clone();
+                    var oldHandlePos =  handle.position.clone();
+                    
+                    handle.position = addPoints(handle.position , {x:1,y:1})
+                    updateArmAndCircle(); 
+                    updateArmAndCircleFromKeyBoard(preMatrix,oldHandlePos); 
+ 
+                    paper.view.draw();
+                    updateImagePosition(); 
+                break;
+                case 37: // left
+                    var preMatrix = xform.clone();
+                    var oldHandlePos =  handle.position.clone();
+                    
+                    handle.position = scaleArmAndCircleIn();
+                    updateArmAndCircle(); 
+                    updateArmAndCircleFromKeyBoard(preMatrix,oldHandlePos); 
+ 
+                    paper.view.draw();
+                    updateImagePosition();
+                
+
+                break;
+                case 39: // right
+                    var preMatrix = xform.clone();
+                    var oldHandlePos =  handle.position.clone();
+
+                    handle.position = scaleArmAndCircleOut();
+                    updateArmAndCircle(); 
+                    updateArmAndCircleFromKeyBoard(preMatrix,oldHandlePos); 
+ 
+                    paper.view.draw();
+                    updateImagePosition();
+                break; 
+           }
+        });
      
     } 
     
@@ -768,9 +897,32 @@
             return false;
         }
     } 
-  
-    
-    
-    
+
     exports.YTOB = YTOB;
+    
+    //http://unscriptable.com/2009/03/20/debouncing-javascript-methods/
+    var debounce = function (func, threshold, execAsap) {
+
+        var timeout;
+
+        return function debounced () {
+            var obj = this, args = arguments;
+            function delayed () {
+                if (!execAsap)
+                    func.apply(obj, args);
+                timeout = null; 
+            };
+
+            if (timeout)
+                clearTimeout(timeout);
+            else if (execAsap)
+                func.apply(obj, args);
+
+            timeout = setTimeout(delayed, threshold || 100); 
+        };
+
+    }
+    
+    exports.YTOB.debounce = debounce;
+    
 })(this)
