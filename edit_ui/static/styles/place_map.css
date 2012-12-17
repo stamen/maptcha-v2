@@ -15,6 +15,7 @@ body{
 #positioners-container,#footer {
     float: none;
     margin: 0 auto;
+    width:95%;
 }
 #positioners-container{
     position: relative;
