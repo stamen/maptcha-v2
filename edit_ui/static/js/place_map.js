@@ -1,6 +1,5 @@
 (function(exports){
-
-
+    
     if(typeof YTOB === "undefined")YTOB = {};
     YTOB.PlaceMap = {}; 
     
@@ -332,6 +331,7 @@
     }   
     
     
+    
     /* PUBLIC */
     YTOB.PlaceMap.updatePaperViewSize = function(w,h){ 
         if(!paper)return; 
@@ -348,9 +348,13 @@
         if(backgroundMap){
             backgroundMap.setSize(new MM.Point(windowSize.w,windowSize.h))
         }
+        
         var cx = (mapSize.w/2) - paper.view.center._x;
         var cy = (mapSize.h/2) - paper.view.center._y;
         var pt = new paper.Point(cx,cy);
+        
+        $("#scan-box").css("height",mapSize.h+"px");
+        innerMapOffset = $("#map-box").offset(); 
         
         if(map){
             map.setSize(new MM.Point(mapSize.w,mapSize.h));
@@ -375,6 +379,7 @@
             paper.view.draw();
         }
         
+       
         return; 
 
         var cx = (mapSize.w/2) - paper.view.center._x;
@@ -565,13 +570,16 @@
             
             var sliderOutput = $("#"+options['slider']['output']);
             var sliderOverlay = $("#"+options['slider']['overlay']);
-            
-            slider.on("change",function(e){ 
-                this.value = this.value; // wierd  
+          
+             
+            slider.on('change',function(e){
+                this.value = this.value; // wierd
+                
                 sliderOutput.text(this.value + "%"); 
                 sliderOverlay.css("width",(this.value + "%"));
-                changeOverlay(this.value/100);
+                changeOverlay( this.value / 100);
             });
+              
             slider.on("mousedown",function(){
                 oldmap.untouched = false;
             }); 
@@ -691,8 +699,7 @@
         YTOB.PlaceMap.initMap();
         
         geocoder = new YTOB.Geocoder();
-        setKeyboardShortCuts();
-        
+        setKeyboardShortCuts(); 
         
     } 
     
@@ -928,6 +935,7 @@
 
     }
     
-    exports.YTOB.debounce = debounce;
-    
+    exports.YTOB.debounce = debounce; 
+  
+
 })(this)
