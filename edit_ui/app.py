@@ -196,9 +196,14 @@ def get_atlas(id):
     atlas = atlas_dom.get_item(id,consistent_read=True)
     if atlas:
         q = "select * from `%s` where atlas = '%s'" % (map_dom.name, atlas.name)
-        maps = map_dom.select(q,consistent_read=True)
+        maps = map_dom.select(q,consistent_read=True) 
+        
+        has_tiles = False
+        for map in maps:
+            if 'tiles' in map:
+                has_tiles = True
     
-        return render_template('atlas.html', atlas=atlas, maps=maps)
+        return render_template('atlas.html', atlas=atlas, maps=maps, has_tiles=has_tiles)
     else:
         abort(404)
 

@@ -234,10 +234,18 @@ td.map-title{
 }
 img { max-width:100% }
 
-
-body.map h1 a{
-    font-size:14px;
+body h1 span{
     padding-left:20px;
+}
+body h1 a{
+    font-size:14px;
+}
+body h1 span small{
+    padding: 0 5px;
+    font-size: 14px;
+    font-weight: bold;
+    position: relative;
+    top: -1px;
 }
 
 #map-table table{
