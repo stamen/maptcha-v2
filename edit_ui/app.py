@@ -207,9 +207,42 @@ def get_atlases():
     '''
     q = 'select status from `%s` where status="uploaded"' % atlas_dom.name
     
-    atlases = [dict(status=a['status'], name=a.name, rough_href='/place-rough/atlas/%s' % a.name)
+    atlases = [dict(status=a['status'], name=a.name, rough_href='/place-rough/atlas/%s' % a.name, geo={'tile_template_href':'tile/atlas/%s/{Z}/{X}/{Y}.png' %(a.name)})
                for a in atlas_dom.select(q)]
     response = make_response(jsonify(dict(atlases=atlases)))
+    response.headers['Access-Control-Allow-Origin'] = "*"
+    return response 
+    
+    
+def get_maps():
+    '''
+    '''
+    q = 'select status,tiles,version,atlas from `%s` where status!="processing"' % map_dom.name
+    maps = []
+    bucket = aws_prefix+'stuff' 
+    url = 'http://%(bucket)s.s3.amazonaws.com/maps' % locals()
+
+    for m in map_dom.select(q):
+        obj = {}
+        
+        obj['status'] = m['status']
+        obj['name'] = m.name
+        obj['atlas'] = m['atlas'] 
+        obj['rough_href'] = '/place-rough/map/%s' % m.name  
+        
+        obj['geo'] = {}
+        
+        if 'tiles' in m:
+            obj['geo']['vrt_href_full'] =  '%s/%s/image.vrt' %(url,m.name)
+            obj['geo']['vrt_href'] =  'thing/maps/%s/image.vrt' %(m.name)
+            obj['geo']['tile_template_href_full'] = '%s/%s/%s/{Z}/{X}/{Y}.png' %(url,m.name,m['tiles'])
+            obj['geo']['tile_template_href'] = 'tile/map/%s/{Z}/{X}/{Y}.png' %(m.name)
+        else:
+            pass
+            
+        maps.append(obj)
+
+    response = make_response(jsonify(dict(maps=maps)))
     response.headers['Access-Control-Allow-Origin'] = "*"
     return response
 
@@ -247,12 +280,13 @@ def check_map_status(id=None):
 def tile(path):
     '''
     ''' 
-    
+
     tms_path = '.'.join(path.split('.')[:-1])
     bucket = aws_prefix+'stuff'
     opaque = False
-
+    
     image = Image.new('RGBA', (256, 256), (0, 0, 0, 0))
+
     items = map_dom.select('select tiles from `%s` where image is not null order by image desc' % map_dom.name)
 
     for item in items:
@@ -289,8 +323,73 @@ def tile(path):
 
     return resp
 
-def map_sandwich():
-    return render_template('home.html')
+
+def tile_by_id(id,path):
+    '''
+    ''' 
+    
+    tms_path = '.'.join(path.split('.')[:-1])
+    bucket = aws_prefix+'stuff'
+    opaque = False
+    endpoint = request.endpoint
+    
+    image = Image.new('RGBA', (256, 256), (0, 0, 0, 0))
+    
+    if request.endpoint == "tilemap": 
+        items = map_dom.select("select tiles from `%s` where name = '%s'" % (map_dom.name,id))
+    elif request.endpoint == "tileatlas":
+        items = map_dom.select("select tiles from `%s` where atlas='%s' and image is not null order by image desc" % (map_dom.name,id))
+    
+    if items:
+        for item in items:
+            if 'tiles' in item:
+                s3_path = 'maps/%s/%s/%s.png' % (item.name, item['tiles'], tms_path)
+                url = 'http://%(bucket)s.s3.amazonaws.com/%(s3_path)s' % locals()
+        
+                try:
+                    tile_img = Image.open(StringIO(urlopen(url).read()))
+                except IOError: 
+                    continue
+        
+                fresh_img = Image.new('RGBA', (256, 256), (0, 0, 0, 0))
+                fresh_img.paste(tile_img, (0, 0), tile_img)
+                fresh_img.paste(image, (0, 0), image)
+                image = fresh_img
+        
+            if Stat(image).extrema[3][0] > 0:
+                opaque = True         
+                break  
+    
+    if not opaque:
+        url = 'http://tile.stamen.com/toner-lite/%s.png' % tms_path
+        tile_img = Image.open(StringIO(urlopen(url).read()))
+        tile_img.paste(image, (0, 0), image)
+        image = tile_img
+        
+
+    bytes = StringIO()
+    image.save(bytes, 'JPEG')
+    
+    resp = make_response(bytes.getvalue(), 200)
+    resp.headers['Content-Type'] = 'image/jpeg'
+
+    return resp
+    
+    
+def map_sandwich(id=None):
+    """
+        Probably need to do some verification on if the atlas and/or map exist
+    """                                                                       
+    
+    tpl = '/tile/{Z}/{X}/{Y}.png'
+    
+    if id is not None:
+        if request.endpoint ==  'map-sandwich-map':
+            tpl = '/tile/map/%s/{Z}/{X}/{Y}.png' % id
+        elif request.endpoint ==  'map-sandwich-atlas':
+            tpl = '/tile/atlas/%s/{Z}/{X}/{Y}.png' % id
+    
+    return render_template('home.html',tpl=tpl)
 
 def faq():
     return render_template('faq.html')   
@@ -326,12 +425,20 @@ app.add_url_rule('/atlases', 'get atlases', get_atlases)
 app.add_url_rule('/atlas', 'post atlas', post_atlas, methods=['POST'])
 app.add_url_rule('/atlas-hints/<id>', 'post atlas hints', post_atlas_hints, methods=['GET', 'POST'])
 app.add_url_rule('/atlas/<id>', 'get atlas', get_atlas)
-app.add_url_rule('/map/<id>', 'get map', get_map)
+app.add_url_rule('/map/<id>', 'get map', get_map) 
+app.add_url_rule('/maps', 'get maps', get_maps)
 app.add_url_rule('/atlases-list', 'get atlases list', get_atlases_list)
 app.add_url_rule('/maps-list', 'get maps list', get_maps_list)
 app.add_url_rule('/check-map-status/<id>', 'get map status', check_map_status, methods=['GET']) 
-app.add_url_rule('/tile/<path:path>', 'tile', tile) 
-app.add_url_rule('/map-sandwich', 'map-sandwich', map_sandwich) 
+app.add_url_rule('/tile/<path:path>', 'tile', tile)
+
+app.add_url_rule('/tile/map/<id>/<path:path>', 'tilemap', tile_by_id)
+app.add_url_rule('/tile/atlas/<id>/<path:path>', 'tileatlas', tile_by_id)
+ 
+app.add_url_rule('/map-sandwich', 'map-sandwich', map_sandwich)
+app.add_url_rule('/map-sandwich/map/<id>', 'map-sandwich-map', map_sandwich)
+app.add_url_rule('/map-sandwich/atlas/<id>', 'map-sandwich-atlas', map_sandwich) 
+
 app.add_url_rule('/faq', 'faq', faq) 
 app.add_url_rule('/faq-public', 'faq-public', faq_public)
 app.add_url_rule('/docs', 'docs', docs)
