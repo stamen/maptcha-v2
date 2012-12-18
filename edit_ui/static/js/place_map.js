@@ -387,6 +387,7 @@
         updateImagePosition();
     } 
 
+
     function updateImagePosition()
     {
         var _xform = xform.clone();
@@ -406,7 +407,6 @@
 
         mapSize.w = Math.floor(box/2) - 1;
         mapSize.h = Math.floor(windowSize.h - 90);
-        
     }
     
     
@@ -461,6 +461,7 @@
         rotator.visible = true;
         paper.view.draw();
     }
+    
     YTOB.PlaceMap.initCanvas = function(){ 
         canvas = document.getElementById(options['old-map']['canvas-id']);
         paper.setup(canvas);   
@@ -506,9 +507,8 @@
         updateArmAndCircle();
         
         paper.view.draw();
-
     } 
-    
+
 
     YTOB.PlaceMap.initBackgroundMap = function(){
         backgroundMapLayer = new MM.StamenTileLayer(options['background-map']['provider']);   
@@ -655,7 +655,6 @@
            } 
            
         }); 
-        
     }
     
     YTOB.PlaceMap.init = function(){

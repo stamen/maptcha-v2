@@ -89,10 +89,10 @@ def place_rough_map(id):
     
     # get atlas, supplies edit ui w/ hints
     atlas_id = map['atlas']
-    atlas = atlas_dom.get_item(atlas_id)
-    
-    if request.method == 'POST':
+    atlas = atlas_dom.get_item(atlas_id) 
 
+    if request.method == 'POST':
+                
         if request.form.get('action', None) == 'place':
             #
             # Expect four floating point values from a submitted form: ul_lat,
@@ -109,7 +109,14 @@ def place_rough_map(id):
             place_roughly(map_dom, roughplace_dom, queue, map, ul_lat, ul_lon, lr_lat, lr_lon)
         
         elif request.form.get('action', None) == 'skip':
-            pass
+            # counting number of times the map has been skipped, possibly to track bad maps
+            if 'skip_map' in map:
+                skip_map_ct = int(map['skip_map']) + 1
+            else:
+                skip_map_ct = 1
+            
+            map['skip_map'] = skip_map_ct
+            map.save()
         
         else:
             raise Exception('Mission or invalid "action"')

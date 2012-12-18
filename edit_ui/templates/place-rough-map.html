@@ -102,13 +102,14 @@
                     </li>
                     
                     <li class="third">
-                        <form id="complete" action="/place-rough/map/{{ map.name }}" method="post">
-                             <input name="ul_lat" id="ul_lat" type="hidden">
+                        <form id="complete" action="/place-rough/map/{{ map.name }}" method="post"> 
+                             <input name="action" id="action-type" type="hidden">
+                             <input name="ul_lat" id="ul_lat" type="hidden">  
                              <input name="ul_lon" id="ul_lon" type="hidden">
                              <input name="lr_lat" id="lr_lat" type="hidden"> 
                              <input name="lr_lon" id="lr_lon" type="hidden">
-                             <button name="action" id="action-skip" value="place" class="btn btn-large btn-success" type="submit">Finished</button>        
-                             <button name="action" id="action-place" value="skip" class="btn btn-large" type="button">Skip This Map</button> 
+                             <button name="place" id="action-place" value="place" class="btn btn-large btn-success" type="button" title="Alignment look good?">Finished</button>        
+                             <button name="skip" id="action-skip" value="skip" class="btn btn-large" type="button" title="Unplaceable or difficult map?">Skip This Map</button> 
                          </form>
                     </li>
                 </ul>
@@ -185,6 +186,20 @@
                  resize_();
              })
              $(window).trigger("resize");   
+            
+            // form handling
+            var form = $("#complete");
+            var btns = form.find(".btn");
+            var actionField = $("#action-type");
+            btns.on('click',function(e){  
+                e.preventDefault();
+                if(!this.value)return false;
+                actionField.val(this.value); 
+                form.submit();
+                return false;
+            });
+            //var submitFinish = $("#action-place");
+            //var submitSkip = $("#action-skip");
             
          } 
     </script>

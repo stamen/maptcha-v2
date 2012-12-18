@@ -18,7 +18,7 @@ from ModestMaps.Core import Point
 import json
 
 required_fields = ['map_title', 'date', 'image_url']
-reserved_keys = ['image','large','thumb','atlas','version','aspect'] #map 
+reserved_keys = ['image','large','thumb','atlas','version','aspect','skip_map'] #map 
 
 # forgive 'map_title' requirement to upload a csv
 add_missing_map_titles = True
