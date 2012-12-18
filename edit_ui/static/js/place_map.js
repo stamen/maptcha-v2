@@ -7,7 +7,7 @@
     
     var armLength = 250,
         baseScale = 1,
-        padding = 10;
+        padding = 15;
     
     var downHandle = null,
         downMatrix = null,
@@ -116,9 +116,11 @@
         if(circle) {
             circle.remove();
         }
+         
+        
 
+        var lenAB = Math.sqrt(Math.pow((pin.position.x - handle.position.x),2) + Math.pow((pin.position.y - handle.position.y),2));
 
-        var lenAB = Math.sqrt(Math.pow((pin.position.x - handle.position.x),2) + Math.pow((pin.position.y - handle.position.y),2)); 
         var newLength = 40;
         var newEndPt = new paper.Point(0,0);
         newEndPt.x = handle.position.x + (handle.position.x - pin.position.x) / lenAB * newLength;
@@ -156,6 +158,17 @@
         if(displayHints)handleHint.position = addPoints(handle.position , new paper.Point(-170, 5)); 
     }
     
+    function clampArm(x,y){ 
+        var w = Math.sqrt(Math.pow((pin.position.x - x),2) + Math.pow((pin.position.y - y),2));
+        if(w > mapSize.w/2){
+            var angle =  Math.atan2((y - pin.position.y), (x - pin.position.x)) ;
+            x = paper.view.center.x + r * Math.cos(angle);
+            y = paper.view.center.y + r * Math.sin(angle);
+        }
+        
+        return [x,y]
+    }
+    
     function onMouseDown(event)
     {
         if(event.point.isInside(handle.bounds)) {
@@ -179,7 +192,7 @@
           return new paper.Point(pt1.x + pt2.x, pt1.y + pt2.y);
     }
     
-    var lastAngle;
+    var lastAngle,prevPos;
     function onMouseMove(event)
     {
         var cursor = 'auto';
@@ -193,8 +206,8 @@
         }
 
         var x = Math.max(padding, Math.min(paper.view.bounds.right - padding, event.point.x)),
-            y = Math.max(padding, Math.min(paper.view.bounds.bottom - padding, event.point.y));
-
+            y = Math.max(padding, Math.min(paper.view.bounds.bottom - padding, event.point.y)); 
+        
         if(activeDrag == image) {
             canvas.style.cursor = 'move';
 
@@ -202,7 +215,12 @@
             
             image.setMatrix(xform)
 
-        } else if(activeDrag == handle) {
+        } else if(activeDrag == handle) { 
+            var pt = clampArm(x,y);
+            x = pt[0];
+            y = pt[1];
+            
+           
             canvas.style.cursor = 'pointer';
 
             handle.position = new paper.Point(x, y);
@@ -212,8 +230,7 @@
             var currentVector = subtractPoints(handle.position,pin.position),
             lastVector = subtractPoints(downHandle, pin.position),
             angle = currentVector.angle - lastVector.angle,
-            scale = currentVector.length / lastVector.length;   
-            
+            scale = currentVector.length / lastVector.length;
 
             //handle.rotate( angle)
             if(scale > 0)
@@ -236,7 +253,9 @@
     
 
     function zoomOutAbout(point)
-    {   var vec = subtractPoints(handle.position, pin.position);
+    {   var vec = subtractPoints(handle.position, pin.position); 
+        
+        
         if(vec.length < 2)
         {
             return;
@@ -244,9 +263,17 @@
 
         var zoomFactor = (1 - .7071);  
         vec.x *= zoomFactor; 
-        vec.y *= zoomFactor;   
+        vec.y *= zoomFactor; 
         
-        handle.position = subtractPoints(handle.position,vec); 
+        
+        var oldVec = handle.position.clone();
+        var scale = vec.length / oldVec.length;  
+        
+        
+        
+        //handle.position = subtractPoints(handle.position,vec);
+        
+        //handle.position = addPoints(paper.view.center , new paper.Point(armLength * Math.cos(-Math.PI/3), armLength * Math.sin(-Math.PI/3))); 
         updateArmAndCircle();
 
         xform.preConcatenate(paper.Matrix.getTranslateInstance(-point.x, -point.y));
@@ -265,7 +292,11 @@
         vec.x *= zoomFactor; 
         vec.y *= zoomFactor;
         
-        handle.position = addPoints(handle.position , vec);
+        
+        
+        //handle.position = addPoints(handle.position , vec);
+        
+        //handle.position = addPoints(paper.view.center , new paper.Point(armLength * Math.cos(-Math.PI/3), armLength * Math.sin(-Math.PI/3)));
 
         updateArmAndCircle();
 
@@ -592,14 +623,14 @@
 
         return map;
     }
-    
+
     function updateArmAndCircleFromKeyBoard(matrixClone,prevHandlePos){
         var currentVector = subtractPoints(handle.position,pin.position),
         lastVector = subtractPoints(prevHandlePos, pin.position),
         angle = currentVector.angle - lastVector.angle,
         scale = currentVector.length / lastVector.length;   
+        YTOB.ole = matrixClone;
         
-
         //handle.rotate( angle)
         if(scale > 0)
         {
@@ -616,8 +647,13 @@
         var lenAB = Math.sqrt(Math.pow((pin.position.x - handle.position.x),2) + Math.pow((pin.position.y - handle.position.y),2)); 
         var newLength = .9;
         var pos = new paper.Point(0,0);
-        pos.x = handle.position.x + (handle.position.x - pin.position.x) / lenAB * newLength;
-        pos.y = handle.position.y + (handle.position.y - pin.position.y) / lenAB * newLength; 
+        var x = handle.position.x + (handle.position.x - pin.position.x) / lenAB * newLength;
+        var y = handle.position.y + (handle.position.y - pin.position.y) / lenAB * newLength; 
+        var pt = clampArm(x,y);
+        
+        pos.x = pt[0];
+        pos.y = pt[1];
+        
         
         return pos;
     }
@@ -625,10 +661,31 @@
         var lenAB = Math.sqrt(Math.pow((pin.position.x - handle.position.x),2) + Math.pow((pin.position.y - handle.position.y),2)); 
         var newLength = .9;
         var pos = new paper.Point(0,0);
-        pos.x = handle.position.x - (handle.position.x - pin.position.x) / lenAB * newLength;
-        pos.y = handle.position.y - (handle.position.y - pin.position.y) / lenAB * newLength; 
+        var x = handle.position.x - (handle.position.x - pin.position.x) / lenAB * newLength;
+        var y = handle.position.y - (handle.position.y - pin.position.y) / lenAB * newLength;
+        var pt = clampArm(x,y);
+        
+        pos.x = pt[0];
+        pos.y = pt[1]; 
         
         return pos;
+    }
+    
+    function newPointForArmFromKeyboard(dir){
+        dir = dir || 1;
+        var w = Math.sqrt(Math.pow((pin.position.x - handle.position.x),2) + Math.pow((pin.position.y - handle.position.y),2));
+        var angle =  Math.atan2((handle.position.y - pin.position.y), (handle.position.x - pin.position.x));
+       
+        if(dir < 1){
+            angle += .005;
+        }else{
+            angle -= .005;
+        }
+
+        var x = paper.view.center.x + w * Math.cos(angle);
+        var y = paper.view.center.y + w * Math.sin(angle);
+        
+        return new paper.Point(x,y);
     }
     
     
@@ -638,29 +695,30 @@
            if(!e.keyCode)return;
            
            switch(e.keyCode){
-                case 38: // up
+                case 37: // left (rotate left)
                     var preMatrix = xform.clone();
                     var oldHandlePos =  handle.position.clone();
+
+                    handle.position = newPointForArmFromKeyboard(1);
                     
-                    handle.position = addPoints(handle.position , {x:-1,y:-1})
                     updateArmAndCircle(); 
                     updateArmAndCircleFromKeyBoard(preMatrix,oldHandlePos); 
  
                     paper.view.draw();
                     updateImagePosition();  
                 break; 
-                case 40: // down
+                case 39: // right (rotate right)
                     var preMatrix = xform.clone();
                     var oldHandlePos =  handle.position.clone();
                     
-                    handle.position = addPoints(handle.position , {x:1,y:1})
+                    handle.position = newPointForArmFromKeyboard(-1);
                     updateArmAndCircle(); 
                     updateArmAndCircleFromKeyBoard(preMatrix,oldHandlePos); 
  
                     paper.view.draw();
                     updateImagePosition(); 
                 break;
-                case 37: // left
+                case 38: // up (scale up)
                     var preMatrix = xform.clone();
                     var oldHandlePos =  handle.position.clone();
                     
@@ -673,7 +731,7 @@
                 
 
                 break;
-                case 39: // right
+                case 40: // down (scale dwn)
                     var preMatrix = xform.clone();
                     var oldHandlePos =  handle.position.clone();
 
@@ -683,7 +741,9 @@
  
                     paper.view.draw();
                     updateImagePosition();
-                break; 
+                break;
+                
+                
            }
         });
     }
