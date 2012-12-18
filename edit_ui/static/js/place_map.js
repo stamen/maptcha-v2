@@ -29,6 +29,10 @@
         w:480,
         h:550
     } 
+    var windowSize = {
+        w:null,
+        h:null
+    }
     var geocoder = null;
     var ul_lat,ul_lon,lr_lat,lr_lon;
    
@@ -57,20 +61,23 @@
         }
     }
     
-    var windowSize = {
-        w:null,
-        h:null
-    }
     
+    
+    // background map switching
     var backgroundMap = null,
         backgroundMapLayer = null, 
         backgroundMapProviderBasic = null,
         backgroundMapProviderComplete = null;
 
-
-
     var displayHints = false;
-    var lastRot = 0;     
+    var lastRot = 0;
+    var boxContainer = null;
+    var mapBox = null;
+    var scanBox = null;
+    var innerMapOffset = null;
+    
+    
+    /* -------------------------------------------- */
     
     function setCanvasObjects(){ 
         var hintStyles = { fillColor: 'black', fontSize: '16', font: 'Helvetica, Arial, sans-serif' };
@@ -105,6 +112,31 @@
         pin.position = paper.view.center;   
         
         handle.position = addPoints(paper.view.center , new paper.Point(armLength * Math.cos(-Math.PI/3), armLength * Math.sin(-Math.PI/3)));
+    }
+    
+    function createRotatorHandle(){
+        var handleBk = new paper.Path.Rectangle(paper.view.center.x - 13, paper.view.center.y - 13, 26, 26) 
+        
+        // little markers in the handle
+        var lineSize = 7;
+        var mark1 = new paper.Path();
+        var mark2 = new paper.Path();
+        
+        mark1.strokeColor = "black";
+        mark1.strokeWidth = 2;
+        mark1.fillColor = "black";
+        mark2.strokeColor = "black";
+        mark2.strokeWidth = 2;
+        mark2.fillColor = "black";
+        
+        mark1.add( new paper.Point(paper.view.center.x ,paper.view.center.y - lineSize) );
+        mark1.add( new paper.Point(paper.view.center.x + lineSize,paper.view.center.y - lineSize) );
+        mark1.add( new paper.Point(paper.view.center.x + lineSize,paper.view.center.y ) );
+        mark2.add( new paper.Point(paper.view.center.x - lineSize ,paper.view.center.y) );
+        mark2.add( new paper.Point(paper.view.center.x - lineSize ,paper.view.center.y + lineSize) );
+        mark2.add( new paper.Point(paper.view.center.x ,paper.view.center.y + lineSize) );
+        
+        return new paper.Group([handleBk,mark1,mark2]);
     } 
     
     function updateArmAndCircle()
@@ -116,8 +148,6 @@
         if(circle) {
             circle.remove();
         }
-         
-        
 
         var lenAB = Math.sqrt(Math.pow((pin.position.x - handle.position.x),2) + Math.pow((pin.position.y - handle.position.y),2));
 
@@ -158,15 +188,77 @@
         if(displayHints)handleHint.position = addPoints(handle.position , new paper.Point(-170, 5)); 
     }
     
-    function clampArm(x,y){ 
-        var w = Math.sqrt(Math.pow((pin.position.x - x),2) + Math.pow((pin.position.y - y),2));
-        if(w > mapSize.w/2){
+    function clampArm(x,y){
+         
+        var w = Math.sqrt(Math.pow((pin.position.x - x),2) + Math.pow((pin.position.y - y),2)); 
+        var r = mapSize.w/2;
+        if(w > r){
             var angle =  Math.atan2((y - pin.position.y), (x - pin.position.x)) ;
             x = paper.view.center.x + r * Math.cos(angle);
             y = paper.view.center.y + r * Math.sin(angle);
         }
         
         return [x,y]
+    }
+    
+    function subtractPoints(pt1,pt2){ 
+          return new paper.Point(pt1.x - pt2.x, pt1.y - pt2.y);
+    } 
+    function addPoints(pt1,pt2){
+          return new paper.Point(pt1.x + pt2.x, pt1.y + pt2.y);
+    }
+    function updateImageMatrix(matrixClone,prevHandlePos){
+        var currentVector = subtractPoints(handle.position,pin.position),
+        lastVector = subtractPoints(prevHandlePos, pin.position),
+        angle = currentVector.angle - lastVector.angle,
+        scale = currentVector.length / lastVector.length;   
+        
+        //handle.rotate( angle)
+        if(scale > 0)
+        {
+            xform = matrixClone;
+            xform.preConcatenate(paper.Matrix.getTranslateInstance(-paper.view.center.x, -paper.view.center.y));
+            xform.preConcatenate(paper.Matrix.getRotateInstance(angle));
+            xform.preConcatenate(paper.Matrix.getScaleInstance(scale, scale));
+            xform.preConcatenate(paper.Matrix.getTranslateInstance(paper.view.center.x, paper.view.center.y));
+            
+            image.setMatrix(xform);
+        }
+    } 
+    function scaleArmAndCircleIn(){
+        var w = Math.sqrt(Math.pow((pin.position.x - handle.position.x),2) + Math.pow((pin.position.y - handle.position.y),2)); 
+        w *= .9;
+        var x = handle.position.x + (handle.position.x - pin.position.x) / w;
+        var y = handle.position.y + (handle.position.y - pin.position.y) / w; 
+        var pt = clampArm(x,y);
+        
+        return new paper.Point(pt[0], pt[1]);
+    }
+    function scaleArmAndCircleOut(){
+        var w = Math.sqrt(Math.pow((pin.position.x - handle.position.x),2) + Math.pow((pin.position.y - handle.position.y),2)); 
+        w *= .9;
+        var x = handle.position.x - (handle.position.x - pin.position.x) / w;
+        var y = handle.position.y - (handle.position.y - pin.position.y) / w;
+        var pt = clampArm(x,y);
+        
+        return new paper.Point(pt[0], pt[1]);
+    }
+    
+    function rotateArmAndCircleBy(dir){
+        dir = dir || 1;
+        var w = Math.sqrt(Math.pow((pin.position.x - handle.position.x),2) + Math.pow((pin.position.y - handle.position.y),2));
+        var angle =  Math.atan2((handle.position.y - pin.position.y), (handle.position.x - pin.position.x));
+       
+        if(dir < 1){
+            angle += .005;
+        }else{
+            angle -= .005;
+        }
+
+        var x = paper.view.center.x + w * Math.cos(angle);
+        var y = paper.view.center.y + w * Math.sin(angle);
+        
+        return new paper.Point(x,y);
     }
     
     function onMouseDown(event)
@@ -184,15 +276,8 @@
             canvas.style.cursor = 'move';
         }
     }  
-    
-    function subtractPoints(pt1,pt2){ 
-          return new paper.Point(pt1.x - pt2.x, pt1.y - pt2.y);
-    } 
-    function addPoints(pt1,pt2){
-          return new paper.Point(pt1.x + pt2.x, pt1.y + pt2.y);
-    }
-    
-    var lastAngle,prevPos;
+
+
     function onMouseMove(event)
     {
         var cursor = 'auto';
@@ -200,14 +285,14 @@
         
         cursor = event.point.isInside(handle.bounds) ? 'pointer' : cursor;
         canvas.style.cursor = cursor;
-
+        
+        var x = Math.max(padding, Math.min(paper.view.bounds.right - padding, event.point.x));
+        var y = Math.max(padding, Math.min(paper.view.bounds.bottom - padding, event.point.y));
+        
         if(!activeDrag) {
             return;
         }
 
-        var x = Math.max(padding, Math.min(paper.view.bounds.right - padding, event.point.x)),
-            y = Math.max(padding, Math.min(paper.view.bounds.bottom - padding, event.point.y)); 
-        
         if(activeDrag == image) {
             canvas.style.cursor = 'move';
 
@@ -217,40 +302,20 @@
 
         } else if(activeDrag == handle) { 
             var pt = clampArm(x,y);
-            x = pt[0];
-            y = pt[1];
+            var x = pt[0];
+            var y = pt[1];
             
-           
             canvas.style.cursor = 'pointer';
 
             handle.position = new paper.Point(x, y);
 
             updateArmAndCircle();
             
-            var currentVector = subtractPoints(handle.position,pin.position),
-            lastVector = subtractPoints(downHandle, pin.position),
-            angle = currentVector.angle - lastVector.angle,
-            scale = currentVector.length / lastVector.length;
-
-            //handle.rotate( angle)
-            if(scale > 0)
-            {
-                xform = downMatrix.clone();
-                xform.preConcatenate(paper.Matrix.getTranslateInstance(-paper.view.center.x, -paper.view.center.y));
-                xform.preConcatenate(paper.Matrix.getRotateInstance(angle));
-                xform.preConcatenate(paper.Matrix.getScaleInstance(scale, scale));
-                xform.preConcatenate(paper.Matrix.getTranslateInstance(paper.view.center.x, paper.view.center.y));
-                
-                image.setMatrix(xform);
-            }
+            updateImageMatrix(downMatrix.clone(),downHandle);  
         }
 
         updateImagePosition();
     } 
-
-    
-    
-    
 
     function zoomOutAbout(point)
     {   var vec = subtractPoints(handle.position, pin.position); 
@@ -268,12 +333,9 @@
         
         var oldVec = handle.position.clone();
         var scale = vec.length / oldVec.length;  
-        
-        
-        
+
         //handle.position = subtractPoints(handle.position,vec);
         
-        //handle.position = addPoints(paper.view.center , new paper.Point(armLength * Math.cos(-Math.PI/3), armLength * Math.sin(-Math.PI/3))); 
         updateArmAndCircle();
 
         xform.preConcatenate(paper.Matrix.getTranslateInstance(-point.x, -point.y));
@@ -291,12 +353,8 @@
         var zoomFactor = (1.4142 - 1);  
         vec.x *= zoomFactor; 
         vec.y *= zoomFactor;
-        
-        
-        
+
         //handle.position = addPoints(handle.position , vec);
-        
-        //handle.position = addPoints(paper.view.center , new paper.Point(armLength * Math.cos(-Math.PI/3), armLength * Math.sin(-Math.PI/3)));
 
         updateArmAndCircle();
 
@@ -337,55 +395,38 @@
         var vec = subtractPoints(handle.position , pin.position);
         var scale = vec.length / armLength;
         updateImageGeography(image.image, _xform, scale);
-    } 
-    
-    
-    var minimumWidth = 980;
-    var boxContainer = null;
-    
+    }
+
+
     function getContainerSizes(){
         windowSize.w = window.innerWidth,
         windowSize.h = window.innerHeight; 
         
         var box = boxContainer.width();
-        
-        //windowSize.w = Math.min(windowSize.w,maximumWidth)  
-        var inner = windowSize.w;
-        if(inner < minimumWidth)inner = minimumWidth;
-        inner *= .9;
 
-        
         mapSize.w = Math.floor(box/2) - 1;
         mapSize.h = Math.floor(windowSize.h - 90);
         
-        //console.log(windowSize.w + " :: " + mapSize.w + " :: "+box/2)
-    }   
+    }
     
     
-    
-    /* PUBLIC */
     YTOB.PlaceMap.updatePaperViewSize = function(w,h){ 
         if(!paper)return; 
-        
         paper.view.viewSize = new paper.Size(w,h); 
-        
         paper.view.draw();
     } 
     
+    
     YTOB.PlaceMap.resize = function(){ 
-        
+        if(!paper)return;
         getContainerSizes(); 
+        
+        scanBox.css("height",mapSize.h+"px");
+        innerMapOffset = mapBox.offset();
         
         if(backgroundMap){
             backgroundMap.setSize(new MM.Point(windowSize.w,windowSize.h))
         }
-        
-        var cx = (mapSize.w/2) - paper.view.center._x;
-        var cy = (mapSize.h/2) - paper.view.center._y;
-        var pt = new paper.Point(cx,cy);
-        
-        $("#scan-box").css("height",mapSize.h+"px");
-        innerMapOffset = $("#map-box").offset(); 
         
         if(map){
             map.setSize(new MM.Point(mapSize.w,mapSize.h));
@@ -394,6 +435,10 @@
         }
            
         if(image){
+            var cx = (mapSize.w/2) - paper.view.center._x;
+            var cy = (mapSize.h/2) - paper.view.center._y;
+            var pt = new paper.Point(cx,cy);
+            
             YTOB.PlaceMap.updatePaperViewSize(mapSize.w,mapSize.h);
 
             canvasBg.setBounds(paper.view.bounds);
@@ -409,61 +454,13 @@
               
             paper.view.draw();
         }
-        
-       
-        return; 
-
-        var cx = (mapSize.w/2) - paper.view.center._x;
-        var cy = (mapSize.h/2) - paper.view.center._y;
-        var pt = new paper.Point(cx,cy); 
-        
-        var lft = (windowSize.w - (mapSize.w * 2)) / 2;  
-        
-        //pt.x *= xform.scaleX;
-        //pt.y *= xform.scaleY;
-        
-       //$(".box").css("width",mapSize.w+"px");  
-       $("#scan-box").css("height",mapSize.h+"px");   
-       
-        if(image){
-            YTOB.PlaceMap.updatePaperViewSize(mapSize.w,mapSize.h);
-
-            canvasBg.setBounds(paper.view.bounds);
-            xform.translate(pt);
-            image.setMatrix(xform);   
-        
-            pin.position = paper.view.center;
-        
-            handle.position.x += pt.x;
-        
-            updateArmAndCircle();
-            updateImagePosition();
-              
-            paper.view.draw();
-        }
-        
-        innerMapOffset = $("#map-box").offset();
-        
-        if(backgroundMap){
-            backgroundMap.setSize(new MM.Point(windowSize.w,windowSize.h))
-        }
- 
-        if(map){
-            map.setSize(new MM.Point(mapSize.w,mapSize.h));
-            updateBackgroundMap(); 
-            updateOldMap();  
-        }
-        
     }
-    
-    
+
     YTOB.PlaceMap.showRotator = function()
     {
         rotator.visible = true;
         paper.view.draw();
-    } 
-
-
+    }
     YTOB.PlaceMap.initCanvas = function(){ 
         canvas = document.getElementById(options['old-map']['canvas-id']);
         paper.setup(canvas);   
@@ -479,29 +476,8 @@
         image.setMatrix(xform); 
 
         pin = new paper.Path.Oval(new paper.Rectangle(paper.view.center.x - 13, paper.view.center.y - 13, 26, 26));  
-        
-        var handleBk = new paper.Path.Rectangle(paper.view.center.x - 13, paper.view.center.y - 13, 26, 26) 
-        
-        // little markers in the handle
-        var lineSize = 7;
-        var mark1 = new paper.Path();
-        var mark2 = new paper.Path();
-        
-        mark1.strokeColor = "black";
-        mark1.strokeWidth = 2;
-        mark1.fillColor = "black";
-        mark2.strokeColor = "black";
-        mark2.strokeWidth = 2;
-        mark2.fillColor = "black";
-        
-        mark1.add( new paper.Point(paper.view.center.x ,paper.view.center.y - lineSize) );
-        mark1.add( new paper.Point(paper.view.center.x + lineSize,paper.view.center.y - lineSize) );
-        mark1.add( new paper.Point(paper.view.center.x + lineSize,paper.view.center.y ) );
-        mark2.add( new paper.Point(paper.view.center.x - lineSize ,paper.view.center.y) );
-        mark2.add( new paper.Point(paper.view.center.x - lineSize ,paper.view.center.y + lineSize) );
-        mark2.add( new paper.Point(paper.view.center.x ,paper.view.center.y + lineSize) );
-        
-        handle = new paper.Group([handleBk,mark1,mark2]);
+
+        handle = createRotatorHandle();
         
         var rotatorGroup = [pin, handle];
         
@@ -532,7 +508,7 @@
         paper.view.draw();
 
     } 
-
+    
 
     YTOB.PlaceMap.initBackgroundMap = function(){
         backgroundMapLayer = new MM.StamenTileLayer(options['background-map']['provider']);   
@@ -589,12 +565,22 @@
         map.addCallback("extentset", updateBackgroundMap);
         map.addCallback("centered", updateBackgroundMap);
 
-
+        
         mapCanvas = document.createElement('canvas');
         mapCanvas.width = backgroundMap.dimensions.x;
         mapCanvas.height = backgroundMap.dimensions.y;
         backgroundMap.parent.appendChild(mapCanvas);  
         
+        createOpacitySlider();
+        
+        mainMapZoomed();
+        updateOldMap();
+        YTOB.PlaceMap.showRotator();  
+
+        return map;
+    }
+    
+    function createOpacitySlider(){
         if(!slider){
             slider = $("#"+options['slider']['id']);
             slider.attr("value",oldmap.opacity * 100);  
@@ -616,76 +602,35 @@
             }); 
             slider.trigger("change");
         }
-         
-        mainMapZoomed();
-        updateOldMap();
-        YTOB.PlaceMap.showRotator();  
-
-        return map;
     }
 
-    function updateArmAndCircleFromKeyBoard(matrixClone,prevHandlePos){
-        var currentVector = subtractPoints(handle.position,pin.position),
-        lastVector = subtractPoints(prevHandlePos, pin.position),
-        angle = currentVector.angle - lastVector.angle,
-        scale = currentVector.length / lastVector.length;   
-        YTOB.ole = matrixClone;
-        
-        //handle.rotate( angle)
-        if(scale > 0)
-        {
-            xform = matrixClone;
-            xform.preConcatenate(paper.Matrix.getTranslateInstance(-paper.view.center.x, -paper.view.center.y));
-            xform.preConcatenate(paper.Matrix.getRotateInstance(angle));
-            xform.preConcatenate(paper.Matrix.getScaleInstance(scale, scale));
-            xform.preConcatenate(paper.Matrix.getTranslateInstance(paper.view.center.x, paper.view.center.y));
-            
-            image.setMatrix(xform);
-        }
-    } 
-    function scaleArmAndCircleIn(){
-        var lenAB = Math.sqrt(Math.pow((pin.position.x - handle.position.x),2) + Math.pow((pin.position.y - handle.position.y),2)); 
-        var newLength = .9;
-        var pos = new paper.Point(0,0);
-        var x = handle.position.x + (handle.position.x - pin.position.x) / lenAB * newLength;
-        var y = handle.position.y + (handle.position.y - pin.position.y) / lenAB * newLength; 
-        var pt = clampArm(x,y);
-        
-        pos.x = pt[0];
-        pos.y = pt[1];
-        
-        
-        return pos;
-    }
-    function scaleArmAndCircleOut(){
-        var lenAB = Math.sqrt(Math.pow((pin.position.x - handle.position.x),2) + Math.pow((pin.position.y - handle.position.y),2)); 
-        var newLength = .9;
-        var pos = new paper.Point(0,0);
-        var x = handle.position.x - (handle.position.x - pin.position.x) / lenAB * newLength;
-        var y = handle.position.y - (handle.position.y - pin.position.y) / lenAB * newLength;
-        var pt = clampArm(x,y);
-        
-        pos.x = pt[0];
-        pos.y = pt[1]; 
-        
-        return pos;
-    }
+ 
     
-    function newPointForArmFromKeyboard(dir){
-        dir = dir || 1;
-        var w = Math.sqrt(Math.pow((pin.position.x - handle.position.x),2) + Math.pow((pin.position.y - handle.position.y),2));
-        var angle =  Math.atan2((handle.position.y - pin.position.y), (handle.position.x - pin.position.x));
-       
-        if(dir < 1){
-            angle += .005;
-        }else{
-            angle -= .005;
-        }
-
-        var x = paper.view.center.x + w * Math.cos(angle);
-        var y = paper.view.center.y + w * Math.sin(angle);
+    function performKeyBoardAction(action){
+        var preMatrix = xform.clone();
+        var oldHandlePos =  handle.position.clone();
         
-        return new paper.Point(x,y);
+        // get new handle positions based off action
+        switch(action){
+            case 'rotate-left':
+                handle.position = rotateArmAndCircleBy(1);
+            break;
+            case 'rotate-right':
+                handle.position = rotateArmAndCircleBy(-1);
+            break;
+            case 'zoom-in':
+                handle.position = scaleArmAndCircleIn();
+            break;
+            case 'zoom-out':
+                handle.position = scaleArmAndCircleOut();
+            break;
+        }   
+        
+        updateArmAndCircle(); 
+        updateImageMatrix(preMatrix,oldHandlePos);
+        
+        paper.view.draw();
+        updateImagePosition();
     }
     
     
@@ -696,59 +641,26 @@
            
            switch(e.keyCode){
                 case 37: // left (rotate left)
-                    var preMatrix = xform.clone();
-                    var oldHandlePos =  handle.position.clone();
-
-                    handle.position = newPointForArmFromKeyboard(1);
-                    
-                    updateArmAndCircle(); 
-                    updateArmAndCircleFromKeyBoard(preMatrix,oldHandlePos); 
- 
-                    paper.view.draw();
-                    updateImagePosition();  
+                    performKeyBoardAction('rotate-left');
                 break; 
                 case 39: // right (rotate right)
-                    var preMatrix = xform.clone();
-                    var oldHandlePos =  handle.position.clone();
-                    
-                    handle.position = newPointForArmFromKeyboard(-1);
-                    updateArmAndCircle(); 
-                    updateArmAndCircleFromKeyBoard(preMatrix,oldHandlePos); 
- 
-                    paper.view.draw();
-                    updateImagePosition(); 
+                    performKeyBoardAction('rotate-right');
                 break;
                 case 38: // up (scale up)
-                    var preMatrix = xform.clone();
-                    var oldHandlePos =  handle.position.clone();
-                    
-                    handle.position = scaleArmAndCircleIn();
-                    updateArmAndCircle(); 
-                    updateArmAndCircleFromKeyBoard(preMatrix,oldHandlePos); 
- 
-                    paper.view.draw();
-                    updateImagePosition();
-                
-
+                    performKeyBoardAction('zoom-in');
                 break;
                 case 40: // down (scale dwn)
-                    var preMatrix = xform.clone();
-                    var oldHandlePos =  handle.position.clone();
-
-                    handle.position = scaleArmAndCircleOut();
-                    updateArmAndCircle(); 
-                    updateArmAndCircleFromKeyBoard(preMatrix,oldHandlePos); 
- 
-                    paper.view.draw();
-                    updateImagePosition();
+                    performKeyBoardAction('zoom-out');
                 break;
-                
-                
-           }
-        });
+           } 
+           
+        }); 
+        
     }
     
-    YTOB.PlaceMap.init = function(){  
+    YTOB.PlaceMap.init = function(){
+        scanBox =  $("#scan-box");
+        mapBox = $("#map-box"); 
         boxContainer = $("#positioners-container");
         
         // get some initial sizes...
@@ -785,10 +697,9 @@
         updateBackgroundMap();
     }
     
-    var innerMapOffset = null;
     function updateBackgroundMap(){
         if(!backgroundMap)return; 
-        if(!innerMapOffset)innerMapOffset = $("#map-box").offset(); 
+        if(!innerMapOffset)innerMapOffset = mapBox.offset(); 
         
         var oft = innerMapOffset,
             centerPt = map.locationPoint(map.getCenter());        
@@ -805,10 +716,7 @@
         
         backgroundMap.setCenterZoom(backgroundMap.pointLocation(backgroundMapCenterPt),map.getZoom());   
         var dest = mapCanvas.getContext('2d');
-        
-        
     }
-    
     
     function updateOldMap()
     {
@@ -817,7 +725,7 @@
             return;
         } 
         
-        if(!innerMapOffset)innerMapOffset = $("#map-box").offset();
+        if(!innerMapOffset)innerMapOffset = mapBox.offset();
         
         var dest = mapCanvas.getContext('2d'),
             matrix = oldmap.matrix,
@@ -837,7 +745,6 @@
 
         dest.restore();
 
-        
         var ul = matrix.transform({x: 0, y: 0}),
             ur = matrix.transform({x: image.width, y: 0}),
             lr = matrix.transform({x: image.width, y: image.height}),
@@ -846,12 +753,6 @@
 
         var latlon = function(p) { return map.pointLocation(p) },
             point = function(l) { return l.lon.toFixed(8) + ' ' + l.lat.toFixed(8) };
-        
-        /*
-        var origin = latlon(ul),
-            center = latlon(matrix.transform({x: image.width/2, y: image.height/2})),
-            footprint = [latlon(ul), latlon(ur), latlon(lr), latlon(ll), latlon(ul)];
-        */
         
         var corners = {
             'ul':latlon(ul),
@@ -877,13 +778,11 @@
 
         updateOldMap();
     }
-    
 
-    /// GEOCODER 
+    /* ------- GEOCODER --------- */
     YTOB.Geocoder = function(){  
         if(geocoder)return geocoder;
-        
-        
+
         this.init(); 
         geocoder = this;
     }
@@ -969,7 +868,7 @@
             return false;
         }
     } 
-
+    
     exports.YTOB = YTOB;
     
     //http://unscriptable.com/2009/03/20/debouncing-javascript-methods/
