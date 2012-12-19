@@ -77,6 +77,7 @@ def create_atlas_map(mysql, bucket, map_id):
                      WHERE atlas_id = %s AND status = 'empty' ''',
                   (map['atlas_id'], ))
 
+
     remaining = mysql.fetchdict()
     
     if remaining['count'] == 0:
