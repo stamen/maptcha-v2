@@ -208,16 +208,11 @@ def upload_map_tiles(queue, bucket, dirname):
         else:
             logging.info(repr(key))
 
-def generate_map_tiles(atlas_dom, map_dom, bucket, map_id):
+def generate_map_tiles(mysql, bucket, map_id):
     '''
     '''
-    map = map_dom.get_item(map_id, consistent_read=True)
-    
-    for key in ('version', 'aspect', 'ul_lat', 'ul_lon', 'lr_lat', 'lr_lon'):
-        if key not in map:
-            # we need these six keys to do anything meaningful
-            logging.error('Map %s missing key "%s"' % (map.name, key))
-            return
+    mysql.execute('''SELECT * FROM maps WHERE id = %s''', (map_id, ))
+    map = mysql.fetchdict()
     
     #
     # Retrieve the original uploaded image from storage.
@@ -230,7 +225,7 @@ def generate_map_tiles(atlas_dom, map_dom, bucket, map_id):
     
     # ok give up
     if not img:
-        logging.error("No image found for map: %s"%(map.name))
+        logging.error("No image found for map: %s"%(map['id']))
         return 
     
     
@@ -271,7 +266,7 @@ def generate_map_tiles(atlas_dom, map_dom, bucket, map_id):
     # Generate image tiles and upload them.
     #
     queue = JoinableQueue()
-    tiles = join(dirname(map['image']), 'tiles-v%(version)s' % map)
+    tiles = join(dirname(map['image']), 'tiles')
 
     uploader1 = Process(target=upload_map_tiles, args=(queue, bucket, tiles))
     uploader2 = Process(target=upload_map_tiles, args=(queue, bucket, tiles))
@@ -293,6 +288,6 @@ def generate_map_tiles(atlas_dom, map_dom, bucket, map_id):
     #
     rmtree(tmpdir)
     
-    logging.info('Set %s on %s' % (repr(dict(tiles=basename(tiles))), map.name))
+    logging.info('Set %s on %s' % (repr(dict(tiles=basename(tiles))), map['id']))
     
-    map_dom.put_attributes(map.name, dict(tiles=basename(tiles)), expected_value=['version', map['version']])
+    mysql.execute('UPDATE maps SET tiles = %s WHERE id = %s', (tiles, map['id']))
