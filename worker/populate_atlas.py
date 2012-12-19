@@ -12,7 +12,7 @@ def create_atlas_map(mysql, bucket, map_id):
     mysql.execute('''SELECT * FROM maps WHERE id = %s''', (map_id, ))
     map = mysql.fetchdict()
     
-    map_url = map['image'] 
+    map_url = map['original']
     
     err_msg = ""
     image = None

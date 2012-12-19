@@ -168,9 +168,9 @@ def create_atlas(mysql, queue, url, name, affiliation):
         map_ext = dumps(row)
         
         mysql.execute('''INSERT INTO maps
-                         (id, atlas_id, image, large, thumb, status, extras_json)
-                         VALUES (%s, %s, %s, %s, %s, %s, %s)''',
-                      (map_id, map_atl, map_img, map_lrg, map_thb, map_sts, map_ext))
+                         (id, atlas_id, original, image, large, thumb, status, extras_json)
+                         VALUES (%s, %s, %s, %s, %s, %s, %s, %s)''',
+                      (map_id, map_atl, row['image_url'], map_img, map_lrg, map_thb, map_sts, map_ext))
         
         message = queue.new_message('create map %s' % map_id)
         queue.write(message)

@@ -36,6 +36,9 @@ CREATE TABLE maps
     `id`            VARCHAR(64) PRIMARY KEY,
     `atlas_id`      VARCHAR(64),
     
+    -- URL to original image
+    `original`      TEXT,
+    
     -- S3 object ID of raw uploaded image.
     `image`         TEXT,
     
@@ -57,7 +60,7 @@ CREATE TABLE maps
     -- Numeric aspect ratio, width/height.
     `aspect`        FLOAT,
 
-    `status`        ENUM('empty', 'uploaded'),
+    `status`        ENUM('empty', 'uploaded', 'error'),
 
     -- In addition, all values supplied during upload in the
     -- CSV file will be placed in this blob in JSON format.
