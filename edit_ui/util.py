@@ -57,13 +57,19 @@ def get_config_vars(dir):
     try:
         aws_key = config.get('amazon', 'key')
         aws_secret = config.get('amazon', 'secret')
-        aws_prefix = config.get('amazon', 'prefix')
+        aws_prefix = config.get('amazon', 'prefix') 
+        
+        mysql_hostname = config.get('mysql', 'hostname')
+        mysql_username = config.get('mysql', 'username')
+        mysql_database = config.get('mysql', 'database')
+        mysql_password = config.get('mysql', 'password')
+        mysql_port = config.get('mysql', 'port')
     
     except Exception, e:
         logging.critical('Bad/incomplete configuration file "config.ini"')
         raise
     
-    return aws_key, aws_secret, aws_prefix
+    return aws_key, aws_secret, aws_prefix, mysql_hostname, mysql_username, mysql_database, mysql_password, int(mysql_port)
 
 
 

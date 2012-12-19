@@ -1,7 +1,7 @@
 from os import environ
 from os.path import dirname, join
 from mimetypes import guess_type 
-from json import dumps
+from json import dumps, loads
 import time,datetime
 
 from PIL import Image
@@ -16,12 +16,12 @@ from util import connect_queue, get_config_vars, get_all_records
 from data import place_roughly, choose_map, create_atlas  
 from relative_time import timesince
 
-aws_key, aws_secret, aws_prefix = get_config_vars(dirname(__file__))
+aws_key, aws_secret, aws_prefix, mysql_hostname, mysql_username, mysql_database, mysql_password, mysql_port =  get_config_vars(dirname(__file__)) 
 
 queue = connect_queue(aws_key, aws_secret, aws_prefix+'jobs')
 
 def mysql_connection():
-    return connect(user='yotb', password='y0tb', database='yotb_migurski', autocommit=True)
+    return connect(user=mysql_username, password=mysql_password, database=mysql_database, host=mysql_hostname, port=mysql_port, autocommit=True)
 
 class MySQLCursorDict(cursor.MySQLCursor):
     def fetchdict(self):
@@ -251,6 +251,9 @@ def get_map(id):
     conn.close()
     
     if map:
+        if 'extras_json' in map:
+            map['extras_json'] = loads(map['extras_json'])
+   
         return render_template('map.html', map=map)
     else:
         abort(404)

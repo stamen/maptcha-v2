@@ -16,11 +16,10 @@ from util import connect_queue, connect_bucket, get_config_vars
 from populate_atlas import create_atlas_map
 from tile_map import generate_map_tiles
 
-key, secret, prefix = get_config_vars(dirname(__file__)) 
-#key, secret, prefix = environ['key'], environ['secret'], environ['prefix']
+key, secret, prefix, mysql_hostname, mysql_username, mysql_database, mysql_password, mysql_port = get_config_vars(dirname(__file__))
 
 def mysql_connection():
-    return connect(user='yotb', password='y0tb', database='yotb_migurski', autocommit=True)
+    return connect(user=mysql_username, password=mysql_password, database=mysql_database, port=mysql_port, autocommit=True)
 
 class MySQLCursorDict(cursor.MySQLCursor):
     def fetchdict(self):
