@@ -6,11 +6,13 @@ from mimetypes import guess_type
 from PIL import Image 
 from urllib import unquote_plus, quote_plus
 
-def create_atlas_map(atlas_dom, map_dom, bucket, map_id):
+def create_atlas_map(mysql, bucket, map_id):
     '''
     '''
-    map = map_dom.get_item(map_id,consistent_read=True)
-    map_url = map['image_url'] 
+    mysql.execute('''SELECT * FROM maps WHERE id = %s''', (map_id, ))
+    map = mysql.fetchdict()
+    
+    map_url = map['original']
     
     err_msg = ""
     image = None
@@ -25,7 +27,10 @@ def create_atlas_map(atlas_dom, map_dom, bucket, map_id):
     if not image:
         map['status'] = 'error'
         map['aspect'] = '%.9f' % 1.0 
-        map.save()
+        
+        mysql.execute('UPDATE maps SET status=%s, aspect=%s WHERE id = %s',
+                      (map['status'], map['aspect'], map['id']))
+        
     else:
         # NOTE: decoding map image names, because S3 will double encode
         
@@ -63,17 +68,15 @@ def create_atlas_map(atlas_dom, map_dom, bucket, map_id):
     
         map['status'] = 'uploaded'
         map['aspect'] = '%.9f' % aspect
-        map.save()
+        
+        mysql.execute('UPDATE maps SET status=%s, aspect=%s WHERE id = %s',
+                      (map['status'], map['aspect'], map['id']))
     
-    # update atlas status
-    atlas = atlas_dom.get_item(map['atlas'],consistent_read=True) 
-    q = "select count(*) from `%s` where atlas = '%s' and status = 'empty'"%(map_dom.name,map['atlas'])
-    remaining = map_dom.select(q,consistent_read=True).next()
-    if int(remaining['Count']) == 0:
-        atlas['status'] = "uploaded"
-        atlas.save()
-    
-    
-    
+    mysql.execute('''SELECT COUNT(id) AS count FROM maps
+                     WHERE atlas_id = %s AND status = 'empty' ''',
+                  (map['atlas_id'], ))
 
-
+    remaining = mysql.fetchdict()
+    
+    if remaining['count'] == 0:
+        mysql.execute("UPDATE atlases SET status = 'uploaded' WHERE id = %s", (map['atlas_id'], ))

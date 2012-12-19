@@ -1,6 +1,7 @@
 from os import environ
 from os.path import dirname, join
 from mimetypes import guess_type 
+from json import dumps
 import time,datetime
 
 from PIL import Image
@@ -9,17 +10,31 @@ from StringIO import StringIO
 from urllib import urlopen, quote_plus
 
 from flask import Flask, request, redirect, render_template, jsonify, make_response, abort
+from mysql.connector import connect, cursor
 
 from util import connect_queue, get_config_vars, get_all_records
-from data import connect_domains, place_roughly, choose_map, create_atlas  
+from data import place_roughly, choose_map, create_atlas  
 from relative_time import timesince
 
 aws_key, aws_secret, aws_prefix = get_config_vars(dirname(__file__))
 
-atlas_dom, map_dom, roughplace_dom \
-    = connect_domains(aws_key, aws_secret, aws_prefix)
-
 queue = connect_queue(aws_key, aws_secret, aws_prefix+'jobs')
+
+def mysql_connection():
+    return connect(user='yotb', password='y0tb', database='yotb_migurski', autocommit=True)
+
+class MySQLCursorDict(cursor.MySQLCursor):
+    def fetchdict(self):
+        row = self.fetchone()
+        if row:
+            return dict(zip(self.column_names, row))
+        return None
+    
+    def fetchdicts(self):
+        rows = self.fetchall()
+        cols = self.column_names
+        
+        return [dict(zip(cols, row)) for row in rows]
 
 def thing(path):
     '''
@@ -45,34 +60,19 @@ def index():
     '''
     will want to do this filtered for client
     '''
-    
-    # get number of atlases
-    atlas_count = atlas_dom.select("select count(*) from `%s`" % atlas_dom.name).next()  
-    
-    #get last updated time 
-    now = time.time()
-    latest_query="select timestamp from`%s` where timestamp < '%s' order by timestamp desc limit 1"%(atlas_dom.name,now) 
-    try:
-        latest_rsp = atlas_dom.select(latest_query,consistent_read=True).next()
-        latest = latest_rsp['timestamp']
-    except:
-        latest = 0
-    
-    
-    #get recent list of map's for client 
-    q = "select * from `%s`"%(map_dom.name)
-    maps = get_all_records(map_dom,q)
-    
-    map_totals = {}
-    map_totals['total'] = 0
-    map_totals['placed'] = 0
-    for map in maps:
-        map_totals['total'] += 1
-        if 'version' in map:
-            map_totals['placed'] += 1
-    
-    
-    return render_template('index.html',latest=latest,atlas_count=atlas_count['Count'],maps=map_totals) 
+    conn = mysql_connection()
+    mysql = conn.cursor(cursor_class=MySQLCursorDict)
+
+    # get number of atlases and last-updated time
+    mysql.execute('SELECT COUNT(id), MAX(timestamp) FROM atlases')
+    (atlas_count, latest) = mysql.fetchone()
+
+    # get map numbers
+    mysql.execute('''SELECT COUNT(id), SUM(IF(status = 'placed-roughly', 1, 0)) FROM maps''')
+    total, placed = mysql.fetchone()
+    map_totals = dict(total=total, placed=placed)
+
+    return render_template('index.html', latest=latest, atlas_count=atlas_count, maps=map_totals) 
 
 def upload():
     '''
@@ -83,20 +83,26 @@ def upload():
 def place_rough_map(id):
     '''
     '''
-    map = map_dom.get_item(id)
+    conn = mysql_connection()
+    mysql = conn.cursor(cursor_class=MySQLCursorDict)
+
+    # get atlas, supplies edit ui w/ hints
+    mysql.execute('SELECT * FROM maps WHERE id = %s', (id, ))
+    map = mysql.fetchdict()
     
     if not map:
         abort(404) 
     
     # get atlas, supplies edit ui w/ hints
-    atlas_id = map['atlas']
-    atlas = atlas_dom.get_item(atlas_id)    
-    
+
+    atlas_id = map['atlas_id']
+    mysql.execute('SELECT * FROM atlases WHERE id = %s', (map['atlas_id'], ))
+    atlas = mysql.fetchdict() 
     # cookies to check if you've placed all maps in atlas
     # maps_remaining will return 0 when on last map
     cookie_id = '__%s_atlas_%s' % (aws_prefix,atlas_id)
-    
-    
+
+
     if request.method == 'POST':
                
         if request.form.get('action', None) == 'place':
@@ -111,7 +117,7 @@ def place_rough_map(id):
             lr_lat = float(request.form.get('lr_lat', None))
             lr_lon = float(request.form.get('lr_lon', None))
             
-            place_roughly(map_dom, roughplace_dom, queue, map, ul_lat, ul_lon, lr_lat, lr_lon)
+            place_roughly(mysql, queue, map, ul_lat, ul_lon, lr_lat, lr_lon)
         
         elif request.form.get('action', None) == 'skip':
             # counting number of times the map has been skipped, possibly to track bad maps
@@ -121,12 +127,14 @@ def place_rough_map(id):
                 skip_map_ct = 1
             
             map['skip_map'] = skip_map_ct
-            map.save()
+            
+            # TODO: do something with skip map?
         
         else:
             raise Exception('Mission or invalid "action"')
         
-        next_map = choose_map(map_dom, atlas_id=map['atlas'], skip_map_id=map.name)
+
+        next_map_id = choose_map(mysql, atlas_id=map['atlas_id'], skip_map_id=map['id'])
         
         maps_cookie = request.cookies.get(cookie_id) 
         cookie_str = ''
@@ -135,21 +143,22 @@ def place_rough_map(id):
             maps_remaining = int(atlas['map_count']) - len(maps_cookie)
             if maps_remaining == 0: 
                 cookie_str = "done"
-            elif map.name not in maps_cookie:
-                maps_cookie.append(map.name)
+            elif map['id'] not in maps_cookie:
+                maps_cookie.append(map['id'])
                 cookie_str = "|".join(maps_cookie)
             else:
                 cookie_str = "|".join(maps_cookie)
         else:
-            maps_cookie = [map.name]
+            maps_cookie = [map['id']]
             cookie_str = "|".join(maps_cookie)
             
         
         
-        resp = make_response( redirect('/place-rough/map/%s' % next_map.name, code=303) )
+        resp = make_response( redirect('/place-rough/map/%s' % next_map_id, code=303) )
         resp.set_cookie(cookie_id, cookie_str)
         return resp
     
+
     
     maps_cookie = request.cookies.get(cookie_id)
     
@@ -168,20 +177,30 @@ def place_rough_map(id):
 def place_rough_atlas(id):
     '''
     '''
-    map = choose_map(map_dom, atlas_id=id)
+    conn = mysql_connection()
+    mysql = conn.cursor(cursor_class=MySQLCursorDict)
+
+    map_id = choose_map(mysql, atlas_id=id)
     
-    return redirect('/place-rough/map/%s' % map.name)    
+    conn.close()
+
+    return redirect('/place-rough/map/%s' % map_id)
 
 def post_atlas(id=None):
     '''
     '''
+    conn = mysql_connection()
+    mysql = conn.cursor(cursor_class=MySQLCursorDict)
+
     # wrap in try/catch ???
-    rsp = create_atlas(atlas_dom, map_dom, queue, request.form['url'], request.form['atlas-name'], request.form['atlas-affiliation'])
+    rsp = create_atlas(mysql, queue, request.form['url'], request.form['atlas-name'], request.form['atlas-affiliation'])
     
+    conn.close()
+
     if 'error' in rsp:
         return render_template('error.html',msg=rsp)
     elif 'success' in rsp:
-        return redirect('/atlas-hints/%s' % rsp['success'].name, code=303)
+        return redirect('/atlas-hints/%s' % rsp['success']['id'], code=303)
     
     return render_template('error.html', msg={'error':'unknown'}) 
 
@@ -192,30 +211,27 @@ def page_not_found(error):
 def post_atlas_hints(id=None): 
     '''
     '''
-    atlas = atlas_dom.get_item(id,consistent_read=True)
+    conn = mysql_connection()
+    mysql = conn.cursor(cursor_class=MySQLCursorDict)
+
+    mysql.execute('SELECT * FROM atlases WHERE id = %s', (id, ))
+    atlas = mysql.fetchdict()
+    
     if atlas:
         if request.method == 'POST': 
         
-            ul_lat = float(request.form.get('ul_lat', None))
-            ul_lon = float(request.form.get('ul_lon', None))
-            lr_lat = float(request.form.get('lr_lat', None))
-            lr_lon = float(request.form.get('lr_lon', None))
-            has_features = bool(request.form.get('hints_features', False))
-            has_cities = bool(request.form.get('hints_cities', False))
-            has_streets = bool(request.form.get('hints_streets', False))
+            hints = dict(ul_lat=float(request.form.get('ul_lat', None)),
+                         ul_lon=float(request.form.get('ul_lon', None)),
+                         lr_lat=float(request.form.get('lr_lat', None)),
+                         lr_lon=float(request.form.get('lr_lon', None)),
+                         features=bool(request.form.get('hints_features', False)),
+                         cities=bool(request.form.get('hints_cities', False)),
+                         streets=bool(request.form.get('hints_streets', False)))
+            
+            mysql.execute('UPDATE atlases SET hints=%s WHERE id = %s',
+                          (dumps(hints), atlas['id']))
         
-        
-            atlas['ul_lat'] = '%.8f' % ul_lat
-            atlas['ul_lon'] = '%.8f' % ul_lon
-            atlas['lr_lat'] = '%.8f' % lr_lat
-            atlas['lr_lon'] = '%.8f' % lr_lon 
-            atlas['hint_features'] = has_features
-            atlas['hint_cities'] = has_cities
-            atlas['hint_streets'] = has_streets
-        
-            atlas.save()
-        
-            return redirect('/atlas/%s' % atlas.name, code=303)
+            return redirect('/atlas/%s' % atlas['id'], code=303)
 
         return render_template('atlas-hints.html', atlas=atlas)
     else:
@@ -223,7 +239,17 @@ def post_atlas_hints(id=None):
 
 
 def get_map(id):
-    map = map_dom.get_item(id)
+    '''
+    ''' 
+    conn = mysql_connection()
+    mysql = conn.cursor(cursor_class=MySQLCursorDict)
+    
+    mysql.execute('SELECT * FROM maps WHERE id = %s', (id, ))
+    
+    map = mysql.fetchdict()
+    
+    conn.close()
+    
     if map:
         return render_template('map.html', map=map)
     else:
@@ -232,60 +258,79 @@ def get_map(id):
 def get_atlas(id):
     '''
     ''' 
-    atlas = atlas_dom.get_item(id,consistent_read=True)
+    conn = mysql_connection()
+    mysql = conn.cursor(cursor_class=MySQLCursorDict)
+    
+    mysql.execute('SELECT * FROM atlases WHERE id = %s', (id, ))
+    atlas = mysql.fetchdict()
+    
     if atlas:
-        q = "select * from `%s` where atlas = '%s'" % (map_dom.name, atlas.name)
-        maps = map_dom.select(q,consistent_read=True) 
+        mysql.execute('SELECT * FROM maps WHERE atlas_id = %s', (atlas['id'], ))
+        maps = mysql.fetchdicts()
         
-        has_tiles = False
-        for map in maps:
-            if 'tiles' in map:
-                has_tiles = True
+        conn.close()
+        
+        has_tiles = bool([True for map in maps if map['tiles']])
     
         return render_template('atlas.html', atlas=atlas, maps=maps, has_tiles=has_tiles)
     else:
+        conn.close()
         abort(404)
 
 def get_atlases():
     '''
     '''
-    q = 'select status from `%s` where status="uploaded"' % atlas_dom.name
+    conn = mysql_connection()
+    mysql = conn.cursor(cursor_class=MySQLCursorDict)
     
-    atlases = [dict(status=a['status'], name=a.name, rough_href='/place-rough/atlas/%s' % a.name, geo={'tile_template':'/tile/atlas/%s/{Z}/{X}/{Y}.png' %(a.name),'map_sandwich':'/map-sandwich/atlas/%s' %(a.name)})
-               for a in atlas_dom.select(q)]
+    mysql.execute('''SELECT id, status, CONCAT("/place-rough/atlas/", id) AS rough_href
+                     FROM atlases WHERE status="uploaded"''')
+
+    atlases = [dict(status=a['status'], id=a['id'], rough_href='/place-rough/atlas/%(id)s' % a, geo={'tile_template':'/tile/atlas/%(id)s/{Z}/{X}/{Y}.png' % a, 'map_sandwich': '/map-sandwich/atlas/%(id)s' % a})
+               for a in mysql.fetchdicts()]
+
+    conn.close()
+
     response = make_response(jsonify(dict(atlases=atlases)))
     response.headers['Access-Control-Allow-Origin'] = "*"
     return response 
     
-    
 def get_maps():
     '''
     '''
-    q = 'select status,tiles,version,atlas from `%s` where status!="processing"' % map_dom.name
-    maps = []
+    conn = mysql_connection()
+    mysql = conn.cursor(cursor_class=MySQLCursorDict)
+    
+    mysql.execute('''SELECT * FROM maps WHERE status != "processing"''')
+    rows = mysql.fetchdicts()
+    
     bucket = aws_prefix+'stuff' 
     url = 'http://%(bucket)s.s3.amazonaws.com/maps' % locals()
+    
+    maps = []
 
-    for m in map_dom.select(q):
+    for m in rows:
         obj = {}
         
         obj['status'] = m['status']
-        obj['name'] = m.name
-        obj['atlas'] = m['atlas'] 
-        obj['rough_href'] = '/place-rough/map/%s' % m.name  
+        obj['name'] = m['id']
+        obj['atlas'] = m['atlas_id'] 
+        obj['rough_href'] = '/place-rough/map/%s' % m['id']
         
         obj['geo'] = {}
         
-        if 'tiles' in m:
-            obj['geo']['vrt'] =  '/thing/maps/%s/image.vrt' %(m.name)
-            obj['geo']['tile_template'] = '/tile/map/%s/{Z}/{X}/{Y}.png' %(m.name)
-            obj['geo']['tile_template_full'] = '/thing/maps/%s/%s/{Z}/{X}/{Y}.png' %(m.name,m['tiles'])
-            obj['geo']['map_sandwich'] = '/map-sandwich/map/%s' %(m.name)
+        if m['tiles']:
+            obj['geo']['vrt'] =  '/thing/maps/%s/image.vrt' %(m['id'])
+            obj['geo']['tile_template'] = '/tile/map/%s/{Z}/{X}/{Y}.png' %(m['id'])
+            obj['geo']['tile_template_full'] = '/thing/maps/%s/%s/{Z}/{X}/{Y}.png' %(m['id'],m['tiles'])
+            obj['geo']['map_sandwich'] = '/map-sandwich/map/%s' %(m['id'])
         else:
             pass
             
         maps.append(obj)
 
+    conn.close()
+    
     response = make_response(jsonify(dict(maps=maps)))
     response.headers['Access-Control-Allow-Origin'] = "*"
     return response
@@ -293,49 +338,75 @@ def get_maps():
 def get_atlases_list():
     '''
     '''
-    q = 'select * from `%s`' % atlas_dom.name 
-    atlases = [dict(status=a['status'], name=a.name, affiliation=a.get('affiliation','-'), title=a.get('title',a.name), uploaded=a.get('timestamp',0), maps=a.get('map_count','-'), rough_href='/place-rough/atlas/%s' % a.name)
-               for a in atlas_dom.select(q)]
+    conn = mysql_connection()
+    mysql = conn.cursor(cursor_class=MySQLCursorDict)
+    
+    mysql.execute('''SELECT *, CONCAT("/place-rough/atlas/", id) AS rough_href
+                     FROM atlases WHERE status="uploaded"''')
+
+    atlases = mysql.fetchdicts()
+    
+    conn.close()
 
     return render_template('atlases-list.html', atlases=atlases)
     
-def get_maps_list(): 
-    q = "select * from `%s`"%(map_dom.name)
-    maps = get_all_records(map_dom,q)
-    return render_template('maps-list.html', maps=maps)
+def get_maps_list():
+    '''
+    ''' 
+    conn = mysql_connection()
+    mysql = conn.cursor(cursor_class=MySQLCursorDict)
     
+    mysql.execute('SELECT * FROM maps')
+    
+    maps = mysql.fetchdicts()
+    
+    conn.close()
+
+    return render_template('maps-list.html', maps=maps)
             
 def check_map_status(id=None):
-    rsp = {'error':'unkown'}
-    if id:
-        #map = map_dom.get_item(id,consistent_read=True)
-        q = "select name,status from `%s` where atlas = '%s' and status != 'empty'"%(map_dom.name,id)
-        done = map_dom.select(q,consistent_read=True)
-        if done:
-            rsp = {'uploaded':[]}
-            for item in done:
-                o = {}
-                o['name'] = item.name
-                o['status'] = item['status']
-                rsp['uploaded'].append(o)
+    '''
+    '''
+    if not id:
+        return jsonify({'error':'unkown'})
     
-    return jsonify(rsp) 
+    conn = mysql_connection()
+    mysql = conn.cursor(cursor_class=MySQLCursorDict)
+    
+    mysql.execute('SELECT id, status FROM maps WHERE atlas_id = %s AND status != "empty"', (id, ))
+    
+    maps = mysql.fetchdicts()
+    
+    conn.close()
+    
+    uploaded = []
+    
+    for map in maps:
+        uploaded.append({'name': map['id'], 'status': map['status']})
+
+    return jsonify({'uploaded': uploaded})
     
 def tile(path):
     '''
     ''' 
-
+    conn = mysql_connection()
+    mysql = conn.cursor(cursor_class=MySQLCursorDict)
+    
     tms_path = '.'.join(path.split('.')[:-1])
     bucket = aws_prefix+'stuff'
     opaque = False
     
     image = Image.new('RGBA', (256, 256), (0, 0, 0, 0))
-
-    items = map_dom.select('select tiles from `%s` where image is not null order by image desc' % map_dom.name)
+    
+    mysql.execute('SELECT id, tiles FROM maps WHERE image IS NOT NULL ORDER BY id DESC')
+    
+    items = mysql.fetchdicts()
+    
+    conn.close()
 
     for item in items:
         if 'tiles' in item:
-            s3_path = 'maps/%s/%s/%s.png' % (item.name, item['tiles'], tms_path)
+            s3_path = 'maps/%s/%s/%s.png' % (item['id'], item['tiles'], tms_path)
             url = 'http://%(bucket)s.s3.amazonaws.com/%(s3_path)s' % locals()
         
             try:

@@ -7,6 +7,7 @@ from math import pi, sin, cos, atan2, hypot
 from os.path import basename, splitext 
 from urlparse import urljoin, urlparse
 from csv import DictReader
+from json import dumps
 import re 
 
 from util import connect_domain, check_url
@@ -29,14 +30,6 @@ def generate_id():
     '''
     return str(uuid1())
 
-def connect_domains(key, secret, prefix):
-    '''
-    '''
-    suffixes = 'atlases', 'maps', 'rough_placements'
-    domains = [connect_domain(key, secret, prefix+suffix) for suffix in suffixes]
-    
-    return domains
-    
 def validate_required_fields(keys):
     errors = []
     for field in required_fields: 
@@ -82,7 +75,7 @@ def normalize_keys(keys):
         out[item] = normalized[index]
     return out  
       
-def create_atlas(domain, map_dom, queue, url, name, affiliation):
+def create_atlas(mysql, queue, url, name, affiliation):
     '''
     ''' 
     temp = None 
@@ -148,14 +141,16 @@ def create_atlas(domain, map_dom, queue, url, name, affiliation):
     #
     # Add an entry for the atlas to the atlases table.
     #
-    atlas = domain.new_item(str(uuid1()))
-    atlas['href'] = url
-    atlas['timestamp'] = time()
-    atlas['title'] = name
-    atlas['affiliation'] = affiliation
-    atlas['map_count'] = len(rows)
-    atlas['status'] = 'processing maps'
-    atlas.save()
+    atlas_id = generate_id()
+    
+    mysql.execute('''INSERT INTO atlases
+                     (id, href, status, timestamp, title, affiliation, map_count)
+                     VALUES (%s, %s, %s, %s, %s, %s, %s)''',
+                  (atlas_id, url, 'processing maps', time(), name, affiliation, len(rows)))
+    
+    mysql.execute('SELECT * FROM atlases WHERE Id = %s', (atlas_id, ))
+    
+    atlas = mysql.fetchdict()
     
     #
     # add maps
@@ -164,56 +159,52 @@ def create_atlas(domain, map_dom, queue, url, name, affiliation):
         scheme, host, path, q, p, f = urlparse(row['image_url'])
 
         image_name = basename(path)
-        map = map_dom.new_item(str(uuid1()))
-        map['image'] = 'maps/%s/%s' % (map.name, image_name)
-        map['large'] = 'maps/%s/%s-large.jpg' % (map.name, splitext(image_name)[0])
-        map['thumb'] = 'maps/%s/%s-thumb.jpg' % (map.name, splitext(image_name)[0])
-        map['atlas'] = atlas.name
-        map['status'] = 'empty'
+        map_id = generate_id()
+        map_img = 'maps/%s/%s' % (map_id, image_name)
+        map_lrg = 'maps/%s/%s-large.jpg' % (map_id, splitext(image_name)[0])
+        map_thb = 'maps/%s/%s-thumb.jpg' % (map_id, splitext(image_name)[0])
+        map_atl = atlas_id
+        map_sts = 'empty'
+        map_ext = dumps(row)
         
-        for item in row:
-            map[item] = row[item]
-            
-        map.save() 
+        mysql.execute('''INSERT INTO maps
+                         (id, atlas_id, original, image, large, thumb, status, extras_json)
+                         VALUES (%s, %s, %s, %s, %s, %s, %s, %s)''',
+                      (map_id, map_atl, row['image_url'], map_img, map_lrg, map_thb, map_sts, map_ext))
         
-        message = queue.new_message('create map %s' % map.name)
+        message = queue.new_message('create map %s' % map_id)
         queue.write(message)
-
 
     return {'success':atlas}
 
              
-def choose_map(map_dom, atlas_id=None, skip_map_id=None):
+def choose_map(mysql, atlas_id=None, skip_map_id=None):
+    ''' Select a sort-of random Map ID.
     '''
-    '''
-    q = ['select * from `%s`' % (map_dom.name), 'limit 100']
+    if atlas_id is None:
+        mysql.execute('SELECT id FROM maps')
     
-    if atlas_id:
-        q.insert(1, 'where atlas = "%s"' % atlas_id)
+    else:
+        mysql.execute('SELECT id FROM maps WHERE atlas_id = %s', [atlas_id])
     
-    maps = list(map_dom.select(' '.join(q)))
-    map = choice(maps)
+    map_ids = [map_id for (map_id, ) in mysql.fetchall()]
+    map_id = choice(map_ids)
     
-    while map.name == skip_map_id and len(maps) > 1:
-        map = choice(maps)
-        
-    return map
+    while map_id == skip_map_id and len(map_ids) > 1:
+        map_id = choice(map_ids)
+    
+    return map_id
 
-def place_roughly(map_dom, place_dom, queue, map, ul_lat, ul_lon, lr_lat, lr_lon):
+def place_roughly(mysql, queue, map, ul_lat, ul_lon, lr_lat, lr_lon):
     '''
     '''
     #
     # Generate a new placement and save it.
     #
-    placement = place_dom.new_item(generate_id())
-    
-    placement['map'] = map.name
-    placement['timestamp'] = int(time())
-    placement['ul_lat'] = '%.8f' % ul_lat
-    placement['ul_lon'] = '%.8f' % ul_lon
-    placement['lr_lat'] = '%.8f' % lr_lat
-    placement['lr_lon'] = '%.8f' % lr_lon
-    placement.save()
+    mysql.execute('''INSERT INTO placements
+                     (map_id, timestamp, ul_lat, ul_lon, lr_lat, lr_lon)
+                     VALUES (%s, %s, %s, %s, %s, %s)''',
+                  (map['id'], int(time()), ul_lat, ul_lon, lr_lat, lr_lon))
     
     #
     # Update the map item with current placement agreement.
@@ -221,10 +212,9 @@ def place_roughly(map_dom, place_dom, queue, map, ul_lat, ul_lon, lr_lat, lr_lon
     #
     for attempt in (1, 2, 3):
         try:
-            update_map_rough_consensus(map_dom, place_dom, map)
-            
-            message = queue.new_message('tile map %s' % map.name)
-            
+            update_map_rough_consensus(mysql, map)
+
+            message = queue.new_message('tile map %s' % map['id'])
             queue.write(message)
 
             break
@@ -332,29 +322,29 @@ def calculate_corners(aspect, x, y, size, theta):
     
     return ul_lat, ul_lon, lr_lat, lr_lon
 
-def update_map_rough_consensus(map_dom, place_dom, map):
+def update_map_rough_consensus(mysql, map):
     '''
     '''
     #
     # Get all other existing placements and fresh version of the map.
     #
-    q = 'select * from `%s` where map = "%s"' % (place_dom.name, map.name)
-    placements = list(place_dom.select(q, consistent_read=True))
-    map = map_dom.get_item(map.name, consistent_read=True)
+    mysql.execute('''SELECT ul_lat, ul_lon, lr_lat, lr_lon
+                     FROM placements
+                     WHERE map_id = %s''', (map['id'], ))
     
+    placements = mysql.fetchall()
+
     if len(placements) == 0:
         raise Exception("Got no placements - why?")
     
+    mysql.execute('SELECT aspect FROM maps WHERE id = %s', [map['id']])
+    (map_aspect, ) = mysql.fetchone()
+    
     #
     # Get geometries for each rough placement.
-    # 
-    
-    #check for aspect property
-    if 'aspect' not in map:
-        raise Exception("No property named aspect in map object")
-            
-    roughs = [build_rough_placement_polygon(map['aspect'], p['ul_lat'], p['ul_lon'], p['lr_lat'], p['lr_lon'])
-              for p in placements]
+    #
+    roughs = [build_rough_placement_polygon(map_aspect, ul_lat, ul_lon, lr_lat, lr_lon)
+              for (ul_lat, ul_lon, lr_lat, lr_lon) in placements]
     
     sizes, thetas, polygons = zip(*roughs)
     
@@ -363,9 +353,8 @@ def update_map_rough_consensus(map_dom, place_dom, map):
     # those places with two or more agreed votes), narrow the list of polygons
     # down to only those that cover 90%+ of this area.
     #
-    pair_overlaps = [p1.intersection(p2) for (p1, p2) in combinations(polygons, 2)]  
-    
-    if len(pair_overlaps) > 0:
+    if len(polygons) >= 2:
+        pair_overlaps = [p1.intersection(p2) for (p1, p2) in combinations(polygons, 2)]  
         
         union_pairs = reduce(lambda a, b: a.union(b), pair_overlaps)
 
@@ -390,11 +379,12 @@ def update_map_rough_consensus(map_dom, place_dom, map):
         # Combine the placements to come up with consensus.
         #
         ul_lat, ul_lon, lr_lat, lr_lon = calculate_corners(map['aspect'], avg_x, avg_y, avg_size, avg_theta)
+
     else:
-        ul_lat = float(placements[0]['ul_lat'])
-        ul_lon = float(placements[0]['ul_lon'])
-        lr_lat = float(placements[0]['lr_lat']) 
-        lr_lon = float(placements[0]['lr_lon'])
+        ul_lat = float(placements[0][0])
+        ul_lon = float(placements[0][1])
+        lr_lat = float(placements[0][2]) 
+        lr_lon = float(placements[0][3])
         
     consensus = dict(ul_lat='%.8f' % ul_lat, ul_lon='%.8f' % ul_lon,
                      lr_lat='%.8f' % lr_lat, lr_lon='%.8f' % lr_lon,
@@ -403,11 +393,7 @@ def update_map_rough_consensus(map_dom, place_dom, map):
     #
     # Update the map with new information
     #
-    
-    if 'version' not in map:
-        consensus['version'] = 1
-        map_dom.put_attributes(map.name, consensus, expected_value=['version', False])
-    
-    else:
-        consensus['version'] = 1 + int(map['version'])
-        map_dom.put_attributes(map.name, consensus, expected_value=['version', map['version']])
+    mysql.execute('''UPDATE maps
+                     SET ul_lat=%s, ul_lon=%s, lr_lat=%s, lr_lon=%s, status='rough-placed'
+                     WHERE id = %s''',
+                  [ul_lat, ul_lon, lr_lat, lr_lon, map['id']])

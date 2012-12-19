@@ -21,14 +21,14 @@
         	<th>Affiliation</th>
         	<th>ID</th>
         </tr> 
-        {% for atlas in atlases|sort(reverse=True,attribute='uploaded') %}  
+        {% for atlas in atlases|sort(reverse=True,attribute='timestamp') %}  
             <tr>
-            	<td><a href="/atlas/{{atlas.name}}" title='link to atlas'>{{atlas.title}}</a></td> 
+            	<td><a href="/atlas/{{atlas.id}}" title='link to atlas'>{{atlas.title}}</a></td> 
             	<td>{{ atlas.status }}</td>
-            	<td>{{ atlas.uploaded|datetimeformat(false) }}</td>
+            	<td>{{ atlas.timestamp|datetimeformat(false) }}</td>
             	<td>{{ atlas.maps }}</td>  
             	<td>{{ atlas.affiliation }}</td>
-            	<td>{{ atlas.name }}</td>
+            	<td>{{ atlas.id }}</td>
             </tr> 
         {% endfor %}       
  

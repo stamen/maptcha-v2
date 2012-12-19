@@ -16,11 +16,11 @@
 <a name="top"></a>
 <div class="container">
     <div class="page-header"><a href="http://maptcha.org">maptcha.org</a> / <a href="/">Historypin</a> / <strong>Hints</strong></div>
-    <h1><a href="/atlas/{{ atlas.name }}">{{ atlas.title }}</a></h1>
+    <h1><a href="/atlas/{{ atlas.id }}">{{ atlas.title }}</a></h1>
     
     <div id='atlas-hints'> 
         
-        <form action="/atlas-hints/{{ atlas.name }}" method="post"> 
+        <form action="/atlas-hints/{{ atlas.id }}" method="post"> 
             
         <input name="ul_lat" id="ul_lat" type="hidden" value="{{ atlas.ul_lat|float if atlas.ul_lat }}">
         <input name="ul_lon" id="ul_lon" type="hidden" value="{{ atlas.ul_lon|float if atlas.ul_lon }}">
