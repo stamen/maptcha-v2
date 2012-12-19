@@ -12,7 +12,11 @@ body{
 #background-map{
     position:relative;
 }
-
+#positioners-container,#footer {
+    float: none;
+    margin: 0 auto;
+    width:95%;
+}
 #positioners-container{
     position: relative;
 }
@@ -22,9 +26,23 @@ body{
     height: 100%;
     z-index: 100;
     display:none;
-}   
-.container{
-    margin-top:20px;
+    
+}
+#faq-box-inner{
+    position:relative;
+    width: 100%;
+    height: 100%;
+    margin:0;
+    padding:0;
+} 
+#faq-box iframe{
+    width: 100% !important;
+    height: 100% !important;
+    overflow: auto;
+} 
+ 
+.container-fluid{
+    margin-top:20px; 
 }
 
 
@@ -77,8 +95,9 @@ body{
 {
     right:10px;
     left:auto;
+    z-index:3;
 }
-.zoom-controls a
+a.std-btn
 {
     display: block;
     width: 33px;
@@ -93,12 +112,17 @@ body{
     margin-bottom: 5px;
     
 }
-.zoom-controls a.zoom-out{line-height:30px}
-.zoom-controls img { border: none; }  
+a.std-btn.zoom-out{line-height:30px}
+a.std-btn img { border: none; }  
 
-.zoom-controls a:hover{
+a.std-btn:hover{
     color:#ccc;
-}               
+}
+
+#close-faq{
+    position: absolute;
+    right: 0;
+}
 
 #address-search
 {
@@ -108,7 +132,8 @@ body{
     background: transparent;
     z-index: 2;
     display: block;
-    text-align: center;
+    text-align: left;
+    width:100%;
 } 
 #address-search-form{
     top:0;
@@ -169,29 +194,64 @@ body{
     margin-top:0; 
     position:relative; 
 }
-/* #footer [class*="span"] */
-#footer .footer-section { 
-    height:100%;
-    background:white;
+
+#footer ul{
     position:relative;
-    margin: 0; 
-    width: 33.3%; 
+    width: 70%;
+    height: 60px;
+    float: left;
+    list-style: none;
+    margin: 0;
+    padding:0; 
+    background: white;
+}
+#footer ul li{ 
     float:left;
+    line-height:1;
+    height:100%;
+    padding:0;
+    margin:0;
+}
+
+#footer div.first{  
+    position:relative;
+    width: 30%;
+    height: 60px;
+    float: left;
+    background:transparent;
+}
+#footer ul li.second {width: 50%;} 
+#footer ul li.third {width: 50%;}
+
+#footer #placement-actions{}
+
+#footer #logo{  
+    width:135px;
+    display:block;
+    height:60px;
+    float:left;
+    background:transparent url('imgs/logo-maptcha-transparent-long.png') 0 0 no-repeat;
+}
+.crazy{
+    position: absolute;
+    top: 0;
+    left: 135px;
+    background: white;
+    height: 60px;
+    float: left;
+    width: 100%;
 }
 #footer button{
     float: right;
     position: relative;
     top: 11px;
     margin-right: 8px;
-}  
-
-#footer .logo{ 
-    display:block;
-    height:60px;
-    background:transparent url('imgs/logo-maptcha-transparent-long.png') 0 0 no-repeat;
-} 
-#footer #placement-actions{
-    
+}
+        
+button#faq-toggler{
+    position: relative;
+    top: 17px;
+    float:left;
 }
 
 
@@ -200,7 +260,7 @@ body{
     left: 0px;
     top: 0px;
     margin: 12px 0 0; 
-    width:90%;
+    width:100%;
 }  
 #slider label{
     position: relative;
@@ -214,6 +274,7 @@ body{
 }
 #slider #slide-wrap{
     position:relative;
+    top:3px;
 }
 #slider #slide{
     width:100%;
@@ -224,7 +285,7 @@ body{
     background:blue;
     height:10px; 
     width:80%;
-    top:6px;
+    top:3px;
     left:0; 
     background-color: #6D6153;
 }
@@ -234,7 +295,8 @@ input[type="range"] {
     background-color: #EEEEE9;
     border:1px solid #C8CCCC; 
     height: 10px;
-    border-radius:2px;
+    border-radius:2px; 
+    
 }
  
 input[type="range"]::-webkit-slider-thumb {
@@ -244,11 +306,13 @@ input[type="range"]::-webkit-slider-thumb {
     z-index: 3;
     width: 20px;
     height: 20px;
+   
     background:#F8F7F7; 
     border-radius:5px; 
     border:1px solid #C8CCCC;            
     cursor:ew-resize;
 }
+
 
 
 form#complete
@@ -288,8 +352,8 @@ form#complete input.action-no:hover
     color: white;
 }
 
-form#complete input#action-ok { background-color: #090; }     
 
+form#complete input#action-ok { background-color: #090; }     
 
 
 /* clear fix */
@@ -314,10 +378,20 @@ form#complete input#action-ok { background-color: #090; }
 
 
 /* Large desktop */
-@media (min-width: 980px) {  }
+@media (min-width: 980px) {
+    
+}
  
 /* Portrait tablet to landscape and desktop */
 @media (min-width: 768px) and (max-width: 979px) { }
+
+
+/* rough placement design really doesn't function great smaller than 840px */
+@media (max-width: 840px) {  
+    .container-fluid{
+        min-width:840px;
+    }
+}
  
 /* Landscape phone to portrait tablet */
 @media (max-width: 767px) {  }

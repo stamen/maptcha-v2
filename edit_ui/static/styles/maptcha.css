@@ -223,7 +223,8 @@ td.map-title{
     float: left;
     background-repeat: no-repeat;
     background-position: 50% 50%;
-    margin: 0 10px 10px 0;
+    margin: 0 10px 10px 0; 
+    border: 1px solid #EEE;
 } 
 .map-list-item:hover{
     opacity:.6;
@@ -233,10 +234,18 @@ td.map-title{
 }
 img { max-width:100% }
 
-
-body.map h1 a{
-    font-size:14px;
+h1 span.small-menu{
     padding-left:20px;
+}
+h1 span.small-menu a{
+    font-size:14px;
+}
+h1 span.small-menu small{
+    padding: 0 5px;
+    font-size: 14px;
+    font-weight: bold;
+    position: relative;
+    top: -1px;
 }
 
 #map-table table{
@@ -251,4 +260,37 @@ body.map h1 a{
     font-weight:bold;
     width:30%; 
     color:#000;
+} 
+/* map list filtering */
+#thumbs .filter{
+    color: #08C;
+    text-decoration: none;
+    cursor:pointer;
+}
+#thumbs .filter:hover{  
+    color: #005580;
+    text-decoration: underline;
+} 
+
+#thumbs.all a.map-list-item{display:block;}
+#thumbs.all #filter-all{
+    color: #005580;
+    text-decoration: underline;
+    cursor:default;
+}
+
+#thumbs.placed a.map-list-item{display:none;}
+#thumbs.placed a.map-list-item.placed{display:block;}
+#thumbs.placed #filter-placed{
+    color: #005580;
+    text-decoration: underline;
+    cursor:default;
+}
+
+#thumbs.not_placed a.map-list-item{display:block;}
+#thumbs.not_placed a.map-list-item.placed{display:none;}
+#thumbs.not_placed #filter-not_placed{
+    color: #005580;
+    text-decoration: underline;
+    cursor:default;
 }

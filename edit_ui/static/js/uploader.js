@@ -67,8 +67,8 @@ window.onload = function(){
         }
         
     }
-    
-    
+
+
     var jumpers =  document.getElementsByClassName('top-jumper');
     var aniId = null; 
     var jumpStart = null;
@@ -108,9 +108,10 @@ window.onload = function(){
         
         aniId = window.requestAnimationFrame(scrollPage);
     }
-
-
-} 
+    
+    
+    
+}
 
 String.prototype.trim = String.prototype.trim || function trim() { return this.replace(/^\s\s*/, '').replace(/\s\s*$/, ''); };
 

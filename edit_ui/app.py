@@ -92,11 +92,12 @@ def place_rough_map(id):
         abort(404) 
     
     # get atlas, supplies edit ui w/ hints
+    atlas_id = map['atlas']
     mysql.execute('SELECT * FROM atlases WHERE id = %s', (map['atlas_id'], ))
     atlas = mysql.fetchdict()
-    
-    if request.method == 'POST':
 
+    if request.method == 'POST':
+                
         if request.form.get('action', None) == 'place':
             #
             # Expect four floating point values from a submitted form: ul_lat,
@@ -112,20 +113,39 @@ def place_rough_map(id):
             place_roughly(mysql, queue, map, ul_lat, ul_lon, lr_lat, lr_lon)
         
         elif request.form.get('action', None) == 'skip':
-            pass
+            # counting number of times the map has been skipped, possibly to track bad maps
+            if 'skip_map' in map:
+                skip_map_ct = int(map['skip_map']) + 1
+            else:
+                skip_map_ct = 1
+            
+            map['skip_map'] = skip_map_ct
+            map.save()
         
         else:
             raise Exception('Mission or invalid "action"')
         
-        next_map_id = choose_map(mysql, atlas_id=map['atlas_id'], skip_map_id=map['id'])
-        
-        conn.close()
-        
-        return redirect('/place-rough/map/%s' % next_map_id, code=303)
+        next_map = choose_map(mysql, atlas_id=map['atlas_id'], skip_map_id=map['id'])
+        return redirect('/place-rough/map/%s' % next_map['id'], code=303) 
     
-    conn.close()
+    # cookies to check if you've placed all maps in atlas
+    # maps_remaining will return 0 when on last map
+    cookie_id = '__%s_atlas_%s' % (aws_prefix,atlas_id)
+    maps_cookie = request.cookies.get(cookie_id) 
+    if maps_cookie:
+        maps_cookie = maps_cookie.split("|")
+        if map.name not in maps_cookie:
+            maps_cookie.append(map.name)
+    else:
+        maps_cookie = [map.name] 
     
-    return render_template('place-rough-map.html', map=map, atlas=atlas)
+    maps_remaining = int(atlas['map_count']) - len(maps_cookie)
+    
+    resp = make_response( render_template('place-rough-map.html', map=map, atlas=atlas, maps_remaining=maps_remaining) )
+    resp.set_cookie(cookie_id, "|".join(maps_cookie))
+    return resp
+    
+    #return render_template('place-rough-map.html', map=map, atlas=atlas,maps_cookie=maps_cookie)
 
 def place_rough_atlas(id):
     '''
@@ -228,13 +248,14 @@ def get_atlas(id):
     if atlas:
         mysql.execute('SELECT * FROM maps WHERE atlas_id = %s', (atlas['id'], ))
         maps = mysql.fetchdicts()
+        
+        conn.close()
+        
+        has_tiles = bool([True for map in maps if map['tiles']])
     
-    conn.close()
-
-    if atlas:
-        return render_template('atlas.html', atlas=atlas, maps=maps)
-
+        return render_template('atlas.html', atlas=atlas, maps=maps, has_tiles=has_tiles)
     else:
+        conn.close()
         abort(404)
 
 def get_atlases():
@@ -246,11 +267,44 @@ def get_atlases():
     mysql.execute('''SELECT id, status, CONCAT("/place-rough/atlas/", id) AS rough_href
                      FROM atlases WHERE status="uploaded"''')
 
-    atlases = mysql.fetchdicts()
-    
+    atlases = [dict(status=a['status'], id=a['id'], rough_href='/place-rough/atlas/%(id)s' % a, geo={'tile_template':'/tile/atlas/%(id)s/{Z}/{X}/{Y}.png' % a, 'map_sandwich': '/map-sandwich/atlas/%(id)s' % a})
+               for a in mysql.fetchdicts()]
+
     conn.close()
 
     response = make_response(jsonify(dict(atlases=atlases)))
+    response.headers['Access-Control-Allow-Origin'] = "*"
+    return response 
+    
+def get_maps():
+    '''
+    '''
+    q = 'select status,tiles,version,atlas from `%s` where status!="processing"' % map_dom.name
+    maps = []
+    bucket = aws_prefix+'stuff' 
+    url = 'http://%(bucket)s.s3.amazonaws.com/maps' % locals()
+
+    for m in map_dom.select(q):
+        obj = {}
+        
+        obj['status'] = m['status']
+        obj['name'] = m.name
+        obj['atlas'] = m['atlas'] 
+        obj['rough_href'] = '/place-rough/map/%s' % m.name  
+        
+        obj['geo'] = {}
+        
+        if 'tiles' in m:
+            obj['geo']['vrt'] =  '/thing/maps/%s/image.vrt' %(m.name)
+            obj['geo']['tile_template'] = '/tile/map/%s/{Z}/{X}/{Y}.png' %(m.name)
+            obj['geo']['tile_template_full'] = '/thing/maps/%s/%s/{Z}/{X}/{Y}.png' %(m.name,m['tiles'])
+            obj['geo']['map_sandwich'] = '/map-sandwich/map/%s' %(m.name)
+        else:
+            pass
+            
+        maps.append(obj)
+
+    response = make_response(jsonify(dict(maps=maps)))
     response.headers['Access-Control-Allow-Origin'] = "*"
     return response
 
@@ -314,7 +368,7 @@ def tile(path):
     tms_path = '.'.join(path.split('.')[:-1])
     bucket = aws_prefix+'stuff'
     opaque = False
-
+    
     image = Image.new('RGBA', (256, 256), (0, 0, 0, 0))
     
     mysql.execute('SELECT id, tiles FROM maps WHERE image IS NOT NULL ORDER BY id DESC')
@@ -357,8 +411,73 @@ def tile(path):
 
     return resp
 
-def map_sandwich():
-    return render_template('home.html')
+
+def tile_by_id(id,path):
+    '''
+    ''' 
+    
+    tms_path = '.'.join(path.split('.')[:-1])
+    bucket = aws_prefix+'stuff'
+    opaque = False
+    endpoint = request.endpoint
+    
+    image = Image.new('RGBA', (256, 256), (0, 0, 0, 0))
+    
+    if request.endpoint == "tilemap": 
+        items = map_dom.select("select tiles from `%s` where name = '%s'" % (map_dom.name,id))
+    elif request.endpoint == "tileatlas":
+        items = map_dom.select("select tiles from `%s` where atlas='%s' and image is not null order by image desc" % (map_dom.name,id))
+    
+    if items:
+        for item in items:
+            if 'tiles' in item:
+                s3_path = 'maps/%s/%s/%s.png' % (item.name, item['tiles'], tms_path)
+                url = 'http://%(bucket)s.s3.amazonaws.com/%(s3_path)s' % locals()
+        
+                try:
+                    tile_img = Image.open(StringIO(urlopen(url).read()))
+                except IOError: 
+                    continue
+        
+                fresh_img = Image.new('RGBA', (256, 256), (0, 0, 0, 0))
+                fresh_img.paste(tile_img, (0, 0), tile_img)
+                fresh_img.paste(image, (0, 0), image)
+                image = fresh_img
+        
+            if Stat(image).extrema[3][0] > 0:
+                opaque = True         
+                break  
+    
+    if not opaque:
+        url = 'http://tile.stamen.com/toner-lite/%s.png' % tms_path
+        tile_img = Image.open(StringIO(urlopen(url).read()))
+        tile_img.paste(image, (0, 0), image)
+        image = tile_img
+        
+
+    bytes = StringIO()
+    image.save(bytes, 'JPEG')
+    
+    resp = make_response(bytes.getvalue(), 200)
+    resp.headers['Content-Type'] = 'image/jpeg'
+
+    return resp
+    
+    
+def map_sandwich(id=None):
+    """
+        Probably need to do some verification on if the atlas and/or map exist
+    """                                                                       
+    
+    tpl = '/tile/{Z}/{X}/{Y}.png'
+    
+    if id is not None:
+        if request.endpoint ==  'map-sandwich-map':
+            tpl = '/tile/map/%s/{Z}/{X}/{Y}.png' % id
+        elif request.endpoint ==  'map-sandwich-atlas':
+            tpl = '/tile/atlas/%s/{Z}/{X}/{Y}.png' % id
+    
+    return render_template('home.html',tpl=tpl)
 
 def faq():
     return render_template('faq.html')   
@@ -394,12 +513,20 @@ app.add_url_rule('/atlases', 'get atlases', get_atlases)
 app.add_url_rule('/atlas', 'post atlas', post_atlas, methods=['POST'])
 app.add_url_rule('/atlas-hints/<id>', 'post atlas hints', post_atlas_hints, methods=['GET', 'POST'])
 app.add_url_rule('/atlas/<id>', 'get atlas', get_atlas)
-app.add_url_rule('/map/<id>', 'get map', get_map)
+app.add_url_rule('/map/<id>', 'get map', get_map) 
+app.add_url_rule('/maps', 'get maps', get_maps)
 app.add_url_rule('/atlases-list', 'get atlases list', get_atlases_list)
 app.add_url_rule('/maps-list', 'get maps list', get_maps_list)
 app.add_url_rule('/check-map-status/<id>', 'get map status', check_map_status, methods=['GET']) 
-app.add_url_rule('/tile/<path:path>', 'tile', tile) 
-app.add_url_rule('/map-sandwich', 'map-sandwich', map_sandwich) 
+app.add_url_rule('/tile/<path:path>', 'tile', tile)
+
+app.add_url_rule('/tile/map/<id>/<path:path>', 'tilemap', tile_by_id)
+app.add_url_rule('/tile/atlas/<id>/<path:path>', 'tileatlas', tile_by_id)
+ 
+app.add_url_rule('/map-sandwich', 'map-sandwich', map_sandwich)
+app.add_url_rule('/map-sandwich/map/<id>', 'map-sandwich-map', map_sandwich)
+app.add_url_rule('/map-sandwich/atlas/<id>', 'map-sandwich-atlas', map_sandwich) 
+
 app.add_url_rule('/faq', 'faq', faq) 
 app.add_url_rule('/faq-public', 'faq-public', faq_public)
 app.add_url_rule('/docs', 'docs', docs)

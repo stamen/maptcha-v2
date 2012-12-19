@@ -9,17 +9,55 @@
 
 <body>
 <a name="top"></a>
-<div class="container">
+<div id="thumbs" class="container all">
     <div class="page-header"><a href="http://maptcha.org">maptcha.org</a> / <a href="/">Historypin</a> / <strong>Maps</strong></div>
-    <h1>Maps &nbsp;&nbsp;&nbsp;&nbsp;<small><a href="#">all</a> | <a href="#">placed</a> | <a href="#">not placed</a></small></h1>
+    <h1>Maps &nbsp;&nbsp;&nbsp;&nbsp;<small><a id="filter-all" class='filter' href="#show=all">all</a> | <a id="filter-placed" class='filter' href="#show=placed">placed</a> | <a id="filter-not_placed" class='filter' href="#show=not_placed">not placed</a></small></h1>
+    
+    
     {% for map in maps %}  
-    <a class="map-list-item" title="{{ map.img_title }}" href="/map/{{ map.name }}" style="background-image:url('/thing/{{ map.thumb }}');"></a>
+    
+    <a class="map-list-item{% if map.status == 'rough-placed' %} placed{% endif %}" title="{{ map.map_title or map.title or map.name }}" href="/map/{{ map.name }}" style="background-image:url('/thing/{{ map.thumb }}');"></a>
     {% endfor %}
         
     <div class="footer" style="clear:both;">
     	<a href="#top" class="top-jumper">Top &uarr;</a>
     </div>
-</div>  
+</div> 
+<script type="text/javascript" src="/static/js/common.js"></script>  
 <script type="text/javascript" src="/static/js/uploader.js"></script>
+
+
+<script> 
+    var filters = document.getElementsByClassName('filter');
+    if(filters){ 
+        var currentFilter = "all";
+        var filter_prefix = "filter-";
+        var filter_hash = {};
+        var cont = document.getElementById('thumbs');
+        
+        for(var i=0;i<filters.length;i++){
+            filter_hash[filters[i].id] = filters[i];
+        }
+        
+        if ("onhashchange" in window) {
+            function locationHashChanged() {
+                var hash = getHash();
+                console.log("hash: ",hash)
+                if(hash.show && filter_hash[filter_prefix+hash.show] && hash.show != currentFilter){ 
+                    cont.classList.remove(currentFilter);
+                    currentFilter = hash.show; 
+                    cont.classList.add(currentFilter);
+                    
+                }
+            }
+
+            window.onhashchange = locationHashChanged;
+            locationHashChanged();
+            
+        }
+
+        
+    }
+</script>
 </body>
 </html>
