@@ -68,14 +68,18 @@ def create_atlas_map(mysql, bucket, map_id):
     
         map['status'] = 'uploaded'
         map['aspect'] = '%.9f' % aspect
+        
+        mysql.execute('UPDATE maps SET status=%s, aspect=%s WHERE id = %s',
+                          (map['status'], map['aspect'], map['id']))
 
-        map.save()
+        mysql.execute('''SELECT COUNT(id) AS count FROM maps
+                         WHERE atlas_id = %s AND status = 'empty' ''',
+                      (map['atlas_id'], ))
+
     
     # update atlas status
-    atlas = atlas_dom.get_item(map['atlas'],consistent_read=True) 
-    q = "select count(*) from `%s` where atlas = '%s' and status = 'empty'"%(map_dom.name,map['atlas'])
-    remaining = map_dom.select(q,consistent_read=True).next()
-    if int(remaining['Count']) == 0:
-        atlas['status'] = "uploaded"
-        atlas.save()
-
+    remaining = mysql.fetchdict()
+    
+    if remaining['count'] == 0:
+        mysql.execute("UPDATE atlases SET status = 'uploaded' WHERE id = %s", (map['atlas_id'], )) 
+    
