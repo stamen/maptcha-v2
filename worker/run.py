@@ -22,6 +22,19 @@ key, secret, prefix = get_config_vars(dirname(__file__))
 def mysql_connection():
     return connect(user='yotb', password='y0tb', database='yotb_migurski', autocommit=True)
 
+class MySQLCursorDict(cursor.MySQLCursor):
+    def fetchdict(self):
+        row = self.fetchone()
+        if row:
+            return dict(zip(self.column_names, row))
+        return None
+    
+    def fetchdicts(self):
+        rows = self.fetchall()
+        cols = self.column_names
+        
+        return [dict(zip(cols, row)) for row in rows]
+
 if __name__ == '__main__':
 
     due = time() + 55

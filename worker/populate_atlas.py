@@ -74,9 +74,9 @@ def create_atlas_map(mysql, bucket, map_id):
     
     mysql.execute('''SELECT COUNT(id) AS count FROM maps
                      WHERE atlas_id = %s AND status = 'empty' ''',
-                  (map['atlas'], ))
+                  (map['atlas_id'], ))
 
     remaining = mysql.fetchdict()
     
     if remaining['count'] == 0:
-        mysql.execute("UPDATE atlases SET status = 'uploaded' WHERE id = %s", (map['atlas'], ))
+        mysql.execute("UPDATE atlases SET status = 'uploaded' WHERE id = %s", (map['atlas_id'], ))

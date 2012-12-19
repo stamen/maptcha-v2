@@ -1,6 +1,7 @@
 from os import environ
 from os.path import dirname, join
 from mimetypes import guess_type 
+from json import dumps
 import time,datetime
 
 from PIL import Image
@@ -173,7 +174,7 @@ def post_atlas(id=None):
     if 'error' in rsp:
         return render_template('error.html',msg=rsp)
     elif 'success' in rsp:
-        return redirect('/atlas-hints/%s' % rsp['success'].name, code=303)
+        return redirect('/atlas-hints/%s' % rsp['success']['id'], code=303)
     
     return render_template('error.html', msg={'error':'unknown'}) 
 
@@ -193,26 +194,18 @@ def post_atlas_hints(id=None):
     if atlas:
         if request.method == 'POST': 
         
-            ul_lat = float(request.form.get('ul_lat', None))
-            ul_lon = float(request.form.get('ul_lon', None))
-            lr_lat = float(request.form.get('lr_lat', None))
-            lr_lon = float(request.form.get('lr_lon', None))
-            has_features = bool(request.form.get('hints_features', False))
-            has_cities = bool(request.form.get('hints_cities', False))
-            has_streets = bool(request.form.get('hints_streets', False))
+            hints = dict(ul_lat=float(request.form.get('ul_lat', None)),
+                         ul_lon=float(request.form.get('ul_lon', None)),
+                         lr_lat=float(request.form.get('lr_lat', None)),
+                         lr_lon=float(request.form.get('lr_lon', None)),
+                         features=bool(request.form.get('hints_features', False)),
+                         cities=bool(request.form.get('hints_cities', False)),
+                         streets=bool(request.form.get('hints_streets', False)))
+            
+            mysql.execute('UPDATE atlases SET hints=%s WHERE id = %s',
+                          (dumps(hints), atlas['id']))
         
-        
-            atlas['ul_lat'] = '%.8f' % ul_lat
-            atlas['ul_lon'] = '%.8f' % ul_lon
-            atlas['lr_lat'] = '%.8f' % lr_lat
-            atlas['lr_lon'] = '%.8f' % lr_lon 
-            atlas['hint_features'] = has_features
-            atlas['hint_cities'] = has_cities
-            atlas['hint_streets'] = has_streets
-        
-            atlas.save()
-        
-            return redirect('/atlas/%s' % atlas.name, code=303)
+            return redirect('/atlas/%s' % atlas['id'], code=303)
 
         return render_template('atlas-hints.html', atlas=atlas)
     else:

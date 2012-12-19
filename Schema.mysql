@@ -19,7 +19,10 @@ CREATE TABLE atlases
     `affiliation`   TEXT,
     
     -- Number of maps included in this atlas.
-    `map_count`     INT UNSIGNED
+    `map_count`     INT UNSIGNED,
+    
+    -- JSON blob of atlas hints
+    `hints`         BLOB
     
 ) ENGINE=InnoDB;
 

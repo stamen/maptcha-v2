@@ -160,9 +160,9 @@ def create_atlas(mysql, queue, url, name, affiliation):
 
         image_name = basename(path)
         map_id = generate_id()
-        map_img = 'maps/%s/%s' % (map.name, image_name)
-        map_lrg = 'maps/%s/%s-large.jpg' % (map.name, splitext(image_name)[0])
-        map_thb = 'maps/%s/%s-thumb.jpg' % (map.name, splitext(image_name)[0])
+        map_img = 'maps/%s/%s' % (map_id, image_name)
+        map_lrg = 'maps/%s/%s-large.jpg' % (map_id, splitext(image_name)[0])
+        map_thb = 'maps/%s/%s-thumb.jpg' % (map_id, splitext(image_name)[0])
         map_atl = atlas_id
         map_sts = 'empty'
         map_ext = dumps(row)
