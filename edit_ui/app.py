@@ -121,13 +121,14 @@ def place_rough_map(id):
                 skip_map_ct = 1
             
             map['skip_map'] = skip_map_ct
-            map.save()
+            
+            # TODO: do something with skip map?
         
         else:
             raise Exception('Mission or invalid "action"')
         
-        next_map = choose_map(mysql, atlas_id=map['atlas_id'], skip_map_id=map['id'])
-        return redirect('/place-rough/map/%s' % next_map['id'], code=303) 
+        next_map_id = choose_map(mysql, atlas_id=map['atlas_id'], skip_map_id=map['id'])
+        return redirect('/place-rough/map/%s' % next_map_id, code=303) 
     
     # cookies to check if you've placed all maps in atlas
     # maps_remaining will return 0 when on last map
@@ -135,8 +136,8 @@ def place_rough_map(id):
     maps_cookie = request.cookies.get(cookie_id) 
     if maps_cookie:
         maps_cookie = maps_cookie.split("|")
-        if map.name not in maps_cookie:
-            maps_cookie.append(map.name)
+        if map['id'] not in maps_cookie:
+            maps_cookie.append(map['id'])
     else:
         maps_cookie = [map['id']] 
     

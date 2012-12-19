@@ -353,9 +353,8 @@ def update_map_rough_consensus(mysql, map):
     # those places with two or more agreed votes), narrow the list of polygons
     # down to only those that cover 90%+ of this area.
     #
-    pair_overlaps = [p1.intersection(p2) for (p1, p2) in combinations(polygons, 2)]  
-    
-    if len(pair_overlaps) > 0:
+    if len(polygons) >= 2:
+        pair_overlaps = [p1.intersection(p2) for (p1, p2) in combinations(polygons, 2)]  
         
         union_pairs = reduce(lambda a, b: a.union(b), pair_overlaps)
 
@@ -380,11 +379,12 @@ def update_map_rough_consensus(mysql, map):
         # Combine the placements to come up with consensus.
         #
         ul_lat, ul_lon, lr_lat, lr_lon = calculate_corners(map['aspect'], avg_x, avg_y, avg_size, avg_theta)
+
     else:
-        ul_lat = float(placements[0]['ul_lat'])
-        ul_lon = float(placements[0]['ul_lon'])
-        lr_lat = float(placements[0]['lr_lat']) 
-        lr_lon = float(placements[0]['lr_lon'])
+        ul_lat = float(placements[0][0])
+        ul_lon = float(placements[0][1])
+        lr_lat = float(placements[0][2]) 
+        lr_lon = float(placements[0][3])
         
     consensus = dict(ul_lat='%.8f' % ul_lat, ul_lon='%.8f' % ul_lon,
                      lr_lat='%.8f' % lr_lat, lr_lon='%.8f' % lr_lon,
