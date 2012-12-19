@@ -672,6 +672,29 @@
         geocoder = new YTOB.Geocoder();
         setKeyboardShortCuts(); 
         
+        setTimeout(function(){ 
+            console.log("INIT DONE:!!!")
+            checkMapsRemaining();
+        },300);
+        
+    }
+    
+    function checkMapsRemaining(){
+        if(!maps_remaining) return; 
+        var v = document.getElementsByTagName("audio")[0];
+        var congratsBox = $("#congratulations");
+        $("#close-congratulations").on("click",function(e){
+            e.preventDefault();
+            congratsBox.remove();
+        }); 
+        v.play();
+        congratsBox.fadeIn(1000);
+        
+        
+        
+        if(maps_remaining == "done"){
+            
+        }
     } 
     
     function changeOverlay(value)

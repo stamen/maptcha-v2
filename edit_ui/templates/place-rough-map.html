@@ -116,6 +116,13 @@
                 
             </div>
         </div>
+        
+        <audio src="/static/audio/drumroll.mp3" preload="auto"></audio> 
+        <div id="congratulations"> 
+            <h1>Congratulations!</h1>
+            <p>You've placed all the maps for this atlas</p> 
+            <a id="close-congratulations" href="#" class="std-btn">x</a>
+        </div>
     </div>
     
     <script type="text/javascript" src="/static/js/place_map.js"></script> 
@@ -160,8 +167,10 @@
         {% if atlas.lr_lon %}atlas_hints['lr_lon'] = {{ atlas.lr_lon|float }};{% endif %}
         {% if atlas.hint_features %}atlas_hints['has_features'] = {{ atlas.hint_features|lower|default(false,true) }};{% endif %}
         {% if atlas.hint_cities %}atlas_hints['has_cities'] = {{ atlas.hint_cities|lower|default(false,true) }};{% endif %}
-        {% if atlas.hint_streets %}atlas_hints['has_streets'] = {{ atlas.hint_streets|lower|default(false,true) }};{% endif %}   
-    
+        {% if atlas.hint_streets %}atlas_hints['has_streets'] = {{ atlas.hint_streets|lower|default(false,true) }};{% endif %}  
+         
+         var maps_remaining = "{{ maps_remaining }}"; 
+         
          window.onload = function(){  
              
              var faqBox = $("#faq-box");
@@ -202,7 +211,7 @@
             //var submitSkip = $("#action-skip");
             
          }
-         var maps_remaining = "{{ maps_remaining }}"; 
+         
     </script>
     
 </body>

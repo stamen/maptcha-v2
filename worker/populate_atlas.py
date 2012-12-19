@@ -68,6 +68,7 @@ def create_atlas_map(mysql, bucket, map_id):
     
         map['status'] = 'uploaded'
         map['aspect'] = '%.9f' % aspect
+
         
         mysql.execute('UPDATE maps SET status=%s, aspect=%s WHERE id = %s',
                       (map['status'], map['aspect'], map['id']))

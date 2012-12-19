@@ -354,6 +354,32 @@ form#complete input.action-no:hover
 
 
 form#complete input#action-ok { background-color: #090; }     
+#congratulations{
+    position:absolute;
+    width:300px;
+    height:125px;
+    border-radius:0px;
+    background:white;
+    border:1px solid #ddd;
+    margin: -72px 0 0 -150px;
+    padding: 20px;
+    top:50%;
+    left:50%;
+    z-index:9999;
+    -webkit-box-shadow: 1px 1px 5px rgba(0, 0, 32, 0.24);
+    -moz-box-shadow:    1px 1px 5px rgba(0, 0, 32, 0.24);
+    box-shadow:         1px 1px 5px rgba(0, 0, 32, 0.24);
+    display:none;
+} 
+#congratulations h1 {
+    margin-top: 25px;
+}
+#close-congratulations{
+    top:5px;
+    right:5px;
+    position:absolute;
+    float:none;
+}
 
 
 /* clear fix */
