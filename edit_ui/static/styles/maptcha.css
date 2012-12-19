@@ -234,13 +234,13 @@ td.map-title{
 }
 img { max-width:100% }
 
-body h1 span{
+h1 span.small-menu{
     padding-left:20px;
 }
-body h1 a{
+h1 span.small-menu a{
     font-size:14px;
 }
-body h1 span small{
+h1 span.small-menu small{
     padding: 0 5px;
     font-size: 14px;
     font-weight: bold;

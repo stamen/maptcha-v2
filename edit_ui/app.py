@@ -89,7 +89,7 @@ def place_rough_map(id):
     
     # get atlas, supplies edit ui w/ hints
     atlas_id = map['atlas']
-    atlas = atlas_dom.get_item(atlas_id) 
+    atlas = atlas_dom.get_item(atlas_id)    
 
     if request.method == 'POST':
                 
@@ -104,7 +104,6 @@ def place_rough_map(id):
             ul_lon = float(request.form.get('ul_lon', None))
             lr_lat = float(request.form.get('lr_lat', None))
             lr_lon = float(request.form.get('lr_lon', None))
-            
             
             place_roughly(map_dom, roughplace_dom, queue, map, ul_lat, ul_lon, lr_lat, lr_lon)
         
@@ -122,9 +121,26 @@ def place_rough_map(id):
             raise Exception('Mission or invalid "action"')
         
         next_map = choose_map(map_dom, atlas_id=map['atlas'], skip_map_id=map.name)
-        return redirect('/place-rough/map/%s' % next_map.name, code=303)
-
-    return render_template('place-rough-map.html', map=map, atlas=atlas)
+        return redirect('/place-rough/map/%s' % next_map.name, code=303) 
+    
+    # cookies to check if you've placed all maps in atlas
+    # maps_remaining will return 0 when on last map
+    cookie_id = '__%s_atlas_%s' % (aws_prefix,atlas_id)
+    maps_cookie = request.cookies.get(cookie_id) 
+    if maps_cookie:
+        maps_cookie = maps_cookie.split("|")
+        if map.name not in maps_cookie:
+            maps_cookie.append(map.name)
+    else:
+        maps_cookie = [map.name] 
+    
+    maps_remaining = int(atlas['map_count']) - len(maps_cookie)
+    
+    resp = make_response( render_template('place-rough-map.html', map=map, atlas=atlas, maps_remaining=maps_remaining) )
+    resp.set_cookie(cookie_id, "|".join(maps_cookie))
+    return resp
+    
+    #return render_template('place-rough-map.html', map=map, atlas=atlas,maps_cookie=maps_cookie)
 
 def place_rough_atlas(id):
     '''
@@ -212,7 +228,7 @@ def get_atlases():
     '''
     q = 'select status from `%s` where status="uploaded"' % atlas_dom.name
     
-    atlases = [dict(status=a['status'], name=a.name, rough_href='/place-rough/atlas/%s' % a.name, geo={'tile_template_href':'tile/atlas/%s/{Z}/{X}/{Y}.png' %(a.name)})
+    atlases = [dict(status=a['status'], name=a.name, rough_href='/place-rough/atlas/%s' % a.name, geo={'tile_template':'/tile/atlas/%s/{Z}/{X}/{Y}.png' %(a.name),'map_sandwich':'/map-sandwich/atlas/%s' %(a.name)})
                for a in atlas_dom.select(q)]
     response = make_response(jsonify(dict(atlases=atlases)))
     response.headers['Access-Control-Allow-Origin'] = "*"
@@ -238,10 +254,10 @@ def get_maps():
         obj['geo'] = {}
         
         if 'tiles' in m:
-            obj['geo']['vrt_href_full'] =  '%s/%s/image.vrt' %(url,m.name)
-            obj['geo']['vrt_href'] =  'thing/maps/%s/image.vrt' %(m.name)
-            obj['geo']['tile_template_href_full'] = '%s/%s/%s/{Z}/{X}/{Y}.png' %(url,m.name,m['tiles'])
-            obj['geo']['tile_template_href'] = 'tile/map/%s/{Z}/{X}/{Y}.png' %(m.name)
+            obj['geo']['vrt'] =  '/thing/maps/%s/image.vrt' %(m.name)
+            obj['geo']['tile_template'] = '/tile/map/%s/{Z}/{X}/{Y}.png' %(m.name)
+            obj['geo']['tile_template_full'] = '/thing/maps/%s/%s/{Z}/{X}/{Y}.png' %(m.name,m['tiles'])
+            obj['geo']['map_sandwich'] = '/map-sandwich/map/%s' %(m.name)
         else:
             pass
             

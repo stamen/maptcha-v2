@@ -15,7 +15,7 @@
                 <a href="http://maptcha.org">maptcha.org</a> / <a href="/">Historypin</a> / <a href="/maps-list">Maps</a> / <strong>{{ map.map_title or map.name }}</strong>
             </div>
             <div class="row-fluid">
-                <h1>{{ map.map_title or map.name }}<span><a href="/place-rough/map/{{ map.name }}">Try Rough Placement</a>{% if map.tiles %}<small> | </small><a href="/map-sandwich/map/{{ map.name }}">View Tiles</a>{% endif %}</span></h1>
+                <h1>{{ map.map_title or map.name }}<span class="small-menu"><a href="/place-rough/map/{{ map.name }}">Try Rough Placement</a>{% if map.tiles %}<small> | </small><a href="/map-sandwich/map/{{ map.name }}">View Tiles</a>{% endif %}</span></h1>
             </div>
             <div class="row-fluid">
                 <div class="twenty span12">
