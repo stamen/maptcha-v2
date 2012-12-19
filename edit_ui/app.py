@@ -93,7 +93,7 @@ def place_rough_map(id):
         abort(404) 
     
     # get atlas, supplies edit ui w/ hints
-    atlas_id = map['atlas']
+    atlas_id = map['atlas_id']
     mysql.execute('SELECT * FROM atlases WHERE id = %s', (map['atlas_id'], ))
     atlas = mysql.fetchdict()
 
@@ -138,7 +138,7 @@ def place_rough_map(id):
         if map.name not in maps_cookie:
             maps_cookie.append(map.name)
     else:
-        maps_cookie = [map.name] 
+        maps_cookie = [map['id']] 
     
     maps_remaining = int(atlas['map_count']) - len(maps_cookie)
     
@@ -272,31 +272,39 @@ def get_atlases():
 def get_maps():
     '''
     '''
-    q = 'select status,tiles,version,atlas from `%s` where status!="processing"' % map_dom.name
-    maps = []
+    conn = mysql_connection()
+    mysql = conn.cursor(cursor_class=MySQLCursorDict)
+    
+    mysql.execute('''SELECT * FROM maps WHERE status != "processing"''')
+    rows = mysql.fetchdicts()
+    
     bucket = aws_prefix+'stuff' 
     url = 'http://%(bucket)s.s3.amazonaws.com/maps' % locals()
+    
+    maps = []
 
-    for m in map_dom.select(q):
+    for m in rows:
         obj = {}
         
         obj['status'] = m['status']
-        obj['name'] = m.name
-        obj['atlas'] = m['atlas'] 
-        obj['rough_href'] = '/place-rough/map/%s' % m.name  
+        obj['name'] = m['id']
+        obj['atlas'] = m['atlas_id'] 
+        obj['rough_href'] = '/place-rough/map/%s' % m['id']
         
         obj['geo'] = {}
         
-        if 'tiles' in m:
-            obj['geo']['vrt'] =  '/thing/maps/%s/image.vrt' %(m.name)
-            obj['geo']['tile_template'] = '/tile/map/%s/{Z}/{X}/{Y}.png' %(m.name)
-            obj['geo']['tile_template_full'] = '/thing/maps/%s/%s/{Z}/{X}/{Y}.png' %(m.name,m['tiles'])
-            obj['geo']['map_sandwich'] = '/map-sandwich/map/%s' %(m.name)
+        if m['tiles']:
+            obj['geo']['vrt'] =  '/thing/maps/%s/image.vrt' %(m['id'])
+            obj['geo']['tile_template'] = '/tile/map/%s/{Z}/{X}/{Y}.png' %(m['id'])
+            obj['geo']['tile_template_full'] = '/thing/maps/%s/%s/{Z}/{X}/{Y}.png' %(m['id'],m['tiles'])
+            obj['geo']['map_sandwich'] = '/map-sandwich/map/%s' %(m['id'])
         else:
             pass
             
         maps.append(obj)
 
+    conn.close()
+    
     response = make_response(jsonify(dict(maps=maps)))
     response.headers['Access-Control-Allow-Origin'] = "*"
     return response
