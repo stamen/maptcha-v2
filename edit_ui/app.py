@@ -79,6 +79,7 @@ def upload():
     '''
     return render_template('upload.html') 
 
+
 def place_rough_map(id):
     '''
     '''
@@ -90,9 +91,14 @@ def place_rough_map(id):
     # get atlas, supplies edit ui w/ hints
     atlas_id = map['atlas']
     atlas = atlas_dom.get_item(atlas_id)    
-
+    
+    # cookies to check if you've placed all maps in atlas
+    # maps_remaining will return 0 when on last map
+    cookie_id = '__%s_atlas_%s' % (aws_prefix,atlas_id)
+    
+    
     if request.method == 'POST':
-                
+               
         if request.form.get('action', None) == 'place':
             #
             # Expect four floating point values from a submitted form: ul_lat,
@@ -121,26 +127,43 @@ def place_rough_map(id):
             raise Exception('Mission or invalid "action"')
         
         next_map = choose_map(map_dom, atlas_id=map['atlas'], skip_map_id=map.name)
-        return redirect('/place-rough/map/%s' % next_map.name, code=303) 
+        
+        maps_cookie = request.cookies.get(cookie_id) 
+        cookie_str = ''
+        if maps_cookie:
+            maps_cookie = maps_cookie.split("|")
+            maps_remaining = int(atlas['map_count']) - len(maps_cookie)
+            if maps_remaining == 0: 
+                cookie_str = "done"
+            elif map.name not in maps_cookie:
+                maps_cookie.append(map.name)
+                cookie_str = "|".join(maps_cookie)
+            else:
+                cookie_str = "|".join(maps_cookie)
+        else:
+            maps_cookie = [map.name]
+            cookie_str = "|".join(maps_cookie)
+            
+        
+        
+        resp = make_response( redirect('/place-rough/map/%s' % next_map.name, code=303) )
+        resp.set_cookie(cookie_id, cookie_str)
+        return resp
     
-    # cookies to check if you've placed all maps in atlas
-    # maps_remaining will return 0 when on last map
-    cookie_id = '__%s_atlas_%s' % (aws_prefix,atlas_id)
-    maps_cookie = request.cookies.get(cookie_id) 
+    
+    maps_cookie = request.cookies.get(cookie_id)
+    
     if maps_cookie:
-        maps_cookie = maps_cookie.split("|")
-        if map.name not in maps_cookie:
-            maps_cookie.append(map.name)
+        if maps_cookie == "done":
+            maps_remaining = 'done'
+        else:
+            maps_cookie = maps_cookie.split("|")
+            maps_remaining = int(atlas['map_count']) - len(maps_cookie)
     else:
-        maps_cookie = [map.name] 
+        maps_remaining = int(atlas['map_count'])
+
     
-    maps_remaining = int(atlas['map_count']) - len(maps_cookie)
-    
-    resp = make_response( render_template('place-rough-map.html', map=map, atlas=atlas, maps_remaining=maps_remaining) )
-    resp.set_cookie(cookie_id, "|".join(maps_cookie))
-    return resp
-    
-    #return render_template('place-rough-map.html', map=map, atlas=atlas,maps_cookie=maps_cookie)
+    return render_template('place-rough-map.html', map=map, atlas=atlas,maps_remaining=maps_remaining)
 
 def place_rough_atlas(id):
     '''
