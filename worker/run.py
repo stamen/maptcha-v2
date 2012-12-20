@@ -36,9 +36,9 @@ class MySQLCursorDict(cursor.MySQLCursor):
         return [dict(zip(cols, row)) for row in rows]
 
 
-def process_queue(queue, msg, bucket):
-    
-    msg = message.get_body()
+def process_queue(queue, message, bucket):
+
+    msg = message[0].get_body()
     logging.info(msg)
 
     conn = mysql_connection()
@@ -52,7 +52,7 @@ def process_queue(queue, msg, bucket):
         map_id = msg[len('tile map '):]
         generate_map_tiles(mysql, bucket, map_id)
 
-    queue.delete_message(message)
+    queue.delete_message(message[0])
 
     conn.close()
     
@@ -77,21 +77,21 @@ if __name__ == '__main__':
         if force_queue == "create":
             message = queue_create.get_messages(visibility_timeout=5)
             if message:
-                process_queue(queue_create, message[0], bucket) 
+                process_queue(queue_create, message, bucket) 
                 
         elif force_queue == "tile":
             message = queue_tile.get_messages(visibility_timeout=5)
             if message:
-                process_queue(queue_tile, message[0], bucket) 
+                process_queue(queue_tile, message, bucket) 
                 
         else:
             message = queue_create.get_messages(visibility_timeout=5)
             if message:
-                process_queue(queue_create, message[0], bucket)
+                process_queue(queue_create, message, bucket)
             else:
                 message = queue_tile.get_messages(visibility_timeout=5)
                 if message:
-                    process_queue(queue_tile, message[0], bucket)  
+                    process_queue(queue_tile, message, bucket)  
                  
         """
         try:
