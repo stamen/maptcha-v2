@@ -69,7 +69,7 @@ def index():
     (atlas_count, latest) = mysql.fetchone()
 
     # get map numbers
-    mysql.execute('''SELECT COUNT(id), SUM(IF(status = 'placed-roughly', 1, 0)) FROM maps''')
+    mysql.execute('''SELECT COUNT(id), SUM(IF(status = 'rough-placed', 1, 0)) FROM maps''')
     total, placed = mysql.fetchone()
     map_totals = dict(total=total, placed=placed)
 
@@ -329,7 +329,7 @@ def get_maps():
         if m['tiles']:
             obj['geo']['vrt'] =  '/thing/maps/%s/image.vrt' %(m['id'])
             obj['geo']['tile_template'] = '/tile/map/%s/{Z}/{X}/{Y}.png' %(m['id'])
-            obj['geo']['tile_template_full'] = '/thing/maps/%s/%s/{Z}/{X}/{Y}.png' %(m['id'],m['tiles'])
+            obj['geo']['tile_template_full'] = '/thing/%s/{Z}/{X}/{Y}.png' %(m['tiles'])
             obj['geo']['map_sandwich'] = '/map-sandwich/map/%s' %(m['id'])
         else:
             pass
