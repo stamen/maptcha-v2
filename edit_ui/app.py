@@ -470,8 +470,9 @@ def tile_by_id(id,path):
     
     if items:
         for item in items:
-            if 'tiles' in item:
-                s3_path = 'maps/%s/%s/%s.png' % (item.name, item['tiles'], tms_path)
+            if 'tiles' in item and item['tiles'] != None:
+                #s3_path = 'maps/%s/%s/%s.png' % (item.name, item['tiles'], tms_path)
+                s3_path = '%s/%s.png' % ( item['tiles'], tms_path)
                 url = 'http://%(bucket)s.s3.amazonaws.com/%(s3_path)s' % locals()
         
                 try:
