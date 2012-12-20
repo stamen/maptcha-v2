@@ -73,7 +73,7 @@ if __name__ == '__main__':
     queue_tile = connect_queue(key, secret, prefix+'tile')
     
     while time() < due:
-        
+        #
         if force_queue == "create":
             message = queue_create.get_messages(visibility_timeout=5)
             if message:
