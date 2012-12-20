@@ -416,10 +416,11 @@ def tile(path):
     conn.close()
 
     for item in items:
-        if 'tiles' in item:
-            s3_path = 'maps/%s/%s/%s.png' % (item['id'], item['tiles'], tms_path)
+        if 'tiles' in item and item['tiles'] != None:
+            #s3_path = 'maps/%s/%s/%s.png' % (item['id'], item['tiles'], tms_path)
+            s3_path = '%s/%s.png' % ( item['tiles'], tms_path)
             url = 'http://%(bucket)s.s3.amazonaws.com/%(s3_path)s' % locals()
-        
+            #print url
             try:
                 tile_img = Image.open(StringIO(urlopen(url).read()))
             except IOError: 
@@ -435,6 +436,7 @@ def tile(path):
             break  
     
     if not opaque:
+        
         url = 'http://tile.stamen.com/toner-lite/%s.png' % tms_path
         tile_img = Image.open(StringIO(urlopen(url).read()))
         tile_img.paste(image, (0, 0), image)
