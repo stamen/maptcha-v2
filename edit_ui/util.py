@@ -21,7 +21,7 @@ def connect_queue(key, secret, name):
     '''
     '''
     sqs = connect_sqs(key, secret)
-    queue = sqs.get_queue(name)
+    queue = sqs.create_queue(name) #will create (and return) the requested queue if it does not exist or will return the existing queue if it does
     
     return queue
 

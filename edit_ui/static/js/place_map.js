@@ -681,7 +681,7 @@
     function checkMapsRemaining(){
         if(!maps_remaining) return; 
 
-        if(maps_remaining == "done"){
+        if(parseInt(maps_remaining) === 0){
             var v = document.getElementsByTagName("audio")[0];
             v.play();
             var congratsBox = $("#congratulations");

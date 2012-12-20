@@ -48,7 +48,8 @@ SimpleDB domain: *prefix* + “-rough_placements”
 Task Queue
 ==========
 
-Queue name: *prefix* + “jobs”
+Queue name: *prefix* + “create”
+Queue name: *prefix* + “tile”
 
 `populate atlas nnnnnn`
 -------------------------------

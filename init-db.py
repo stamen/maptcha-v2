@@ -48,14 +48,16 @@ if __name__ == '__main__':
             for item in domain.select('select * from `%s`' % table):
                 item.delete()
     
-    print 'Cleaning out queue', prefix+'jobs'
+    for suffix in ('create', 'tile')
+        q = prefix+suffix
+        print 'Cleaning out queue', q
     
-    queue = sqs.get_queue(prefix+'jobs')
+        queue = sqs.create_queue(q) #will create (and return) the requested queue if it does not exist or will return the existing queue if it does
     
-    while True:
-        messages = queue.get_messages(1)
+        while True:
+            messages = queue.get_messages(1)
         
-        if not messages:
-            break
+            if not messages:
+                break
 
-        queue.delete_message(messages[0])
+            queue.delete_message(messages[0])

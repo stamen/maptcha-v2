@@ -18,7 +18,8 @@ from relative_time import timesince
 
 aws_key, aws_secret, aws_prefix, mysql_hostname, mysql_username, mysql_database, mysql_password, mysql_port =  get_config_vars(dirname(__file__)) 
 
-queue = connect_queue(aws_key, aws_secret, aws_prefix+'jobs')
+queue_create = connect_queue(aws_key, aws_secret, aws_prefix+'create') 
+queue_tile = connect_queue(aws_key, aws_secret, aws_prefix+'tile')
 
 def mysql_connection():
     return connect(user=mysql_username, password=mysql_password, database=mysql_database, host=mysql_hostname, port=mysql_port, autocommit=True)
@@ -117,7 +118,7 @@ def place_rough_map(id):
             lr_lat = float(request.form.get('lr_lat', None))
             lr_lon = float(request.form.get('lr_lon', None))
             
-            place_roughly(mysql, queue, map, ul_lat, ul_lon, lr_lat, lr_lon)
+            place_roughly(mysql, queue_tile, map, ul_lat, ul_lon, lr_lat, lr_lon)
         
         elif request.form.get('action', None) == 'skip':
             # counting number of times the map has been skipped, possibly to track bad maps
@@ -193,7 +194,7 @@ def post_atlas(id=None):
     mysql = conn.cursor(cursor_class=MySQLCursorDict)
 
     # wrap in try/catch ???
-    rsp = create_atlas(mysql, queue, request.form['url'], request.form['atlas-name'], request.form['atlas-affiliation'])
+    rsp = create_atlas(mysql, queue_create, request.form['url'], request.form['atlas-name'], request.form['atlas-affiliation'])
     
     conn.close()
 
