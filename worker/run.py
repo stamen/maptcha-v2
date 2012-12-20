@@ -77,21 +77,21 @@ if __name__ == '__main__':
         if force_queue == "create":
             message = queue_create.get_messages(visibility_timeout=5)
             if message:
-                process_queue(queue_create, message, bucket) 
+                process_queue(queue_create, message[0], bucket) 
                 
         elif force_queue == "tile":
             message = queue_tile.get_messages(visibility_timeout=5)
             if message:
-                process_queue(queue_tile, message, bucket) 
+                process_queue(queue_tile, message[0], bucket) 
                 
         else:
             message = queue_create.get_messages(visibility_timeout=5)
             if message:
-                process_queue(queue_create, message, bucket)
+                process_queue(queue_create, message[0], bucket)
             else:
                 message = queue_tile.get_messages(visibility_timeout=5)
                 if message:
-                    process_queue(queue_tile, message, bucket)  
+                    process_queue(queue_tile, message[0], bucket)  
                  
         """
         try:
