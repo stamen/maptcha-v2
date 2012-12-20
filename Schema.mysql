@@ -60,7 +60,7 @@ CREATE TABLE maps
     -- Numeric aspect ratio, width/height.
     `aspect`        FLOAT,
 
-    `status`        ENUM('empty', 'uploaded', 'error', 'processing'),
+    `status`        ENUM('empty', 'uploaded', 'error', 'processing', 'rough-placed'),
 
     -- In addition, all values supplied during upload in the
     -- CSV file will be placed in this blob in JSON format.

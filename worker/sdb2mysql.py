@@ -1,11 +1,16 @@
 from util import connect_domain, get_config_vars
 from json import dumps
 
-key, secret, prefix = get_config_vars('.')
+key, secret, prefix, mysql_hostname, mysql_username, mysql_database, mysql_password, mysql_port = get_config_vars('.')
 map_dom = connect_domain(key, secret, prefix+'maps')
 atlas_dom = connect_domain(key, secret, prefix+'atlases')
 place_dom = connect_domain(key, secret, prefix+'rough_placements')
 
+def does_exist(m,k):
+    if k not in m:
+        m[k] = ''
+    return m[k]
+    
 def quote_string(value):
     return "'%s'" % value.replace("'", "\'")
 
@@ -28,12 +33,14 @@ if __name__ == '__main__':
     for map in map_dom.select('select * from `%s`' % map_dom.name):
         cols, vals = ['id'], [quote_string(map.name)]
         
-        cols += ['atlas', 'image', 'large', 'thumb', 'tiles', 'ul_lat']
+        cols += ['atlas', 'image_url', 'image', 'large', 'thumb', 'tiles', 'ul_lat']
         cols += ['ul_lon', 'lr_lat', 'lr_lon', 'aspect', 'status']
-        vals += [quote_string(map[key]) for key in cols[1:]]
+        vals += [quote_string(does_exist(map,key)) for key in cols[1:]]
         
         # update to reflect "atlas_id" in MySQL.
-        cols[1] = 'atlas_id'
+        cols[1] = 'atlas_id' 
+        # update to reflect "original" in MySQL. 
+        cols[2] = 'original'
         
         extras = dict([(key, map[key]) for key in map if key not in cols])
 

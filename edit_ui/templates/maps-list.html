@@ -16,7 +16,7 @@
     
     {% for map in maps %}  
     
-    <a class="map-list-item{% if map.status == 'rough-placed' %} placed{% endif %}" title="{{ map.map_title or map.title or map.name }}" href="/map/{{ map.name }}" style="background-image:url('/thing/{{ map.thumb }}');"></a>
+    <a class="map-list-item{% if map.status == 'rough-placed' %} placed{% endif %}" title="{{ map['extras_json']['map_title'] or map['extras_json']['title'] or map.id }}" href="/map/{{ map.id }}" style="background-image:url('/thing/{{ map.thumb }}');"></a>
     {% endfor %}
         
     <div class="footer" style="clear:both;">

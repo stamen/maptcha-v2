@@ -270,7 +270,10 @@ def get_atlas(id):
     
     if atlas:
         mysql.execute('SELECT * FROM maps WHERE atlas_id = %s', (atlas['id'], ))
-        maps = mysql.fetchdicts()
+        maps = mysql.fetchdicts() 
+        for map in maps:
+            if 'extras_json' in map:
+                map['extras_json'] = loads(map['extras_json'])
         
         conn.close()
         
@@ -363,6 +366,10 @@ def get_maps_list():
     mysql.execute('SELECT * FROM maps')
     
     maps = mysql.fetchdicts()
+    
+    for map in maps:
+        if 'extras_json' in map:
+            map['extras_json'] = loads(map['extras_json'])
     
     conn.close()
 
