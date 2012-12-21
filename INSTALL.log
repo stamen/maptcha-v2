@@ -1,0 +1,39 @@
+Also: SQS <aws prefix>-create, <aws prefix>-tile, <aws prefix>-jobs, S3 bucket <aws prefix>-stuff.
+
+    1  uptime
+    2  sudo apt-cache update
+    3  sudo apt-get update
+    4  sudo apt-get install -y python-pip vim screen htop git gdal-bin
+    5  apt-cache search gunicorn
+    6  apt-cache search flask
+    7  sudo apt-get install -y nginx gunicorn python-flask
+    8  ssh-keygen 
+    9  cat .ssh/id_rsa.pub 
+   10  which git
+   11  sudo apt-get install -y mysql-server
+   12  git clone git@github.com:stamen/yearofthebay.git
+   13  cd yearofthebay/
+   14  ls -l
+   15  which pip
+   16  cd ..
+   17  apt-cache search mysql-connector
+   18  sudo pip install ModestMaps  mysql-connector-python
+   19  sudo apt-get install python-imaging
+   20  mysql -u root
+   21  cd yearofthebay/
+   22  ls -l
+   23  vim config.ini 
+   24  cd edit_ui
+   25  ls -l
+   26  cd ../worker/
+   27  ls -l
+   28  cp ../config.ini ./
+   29  vim config.ini 
+   30  cp config.ini ../edit_ui/
+   31  mysql -u root
+   32  ls -l
+   33  cd ../
+   34  mysql -u root yotb < edit_ui/sch
+   35  mysql -u root yotb < Schema.mysql 
+   36  history 
+   37  history > INSTALL.log
