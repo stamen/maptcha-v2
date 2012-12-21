@@ -37,3 +37,18 @@ Also: SQS <aws prefix>-create, <aws prefix>-tile, <aws prefix>-jobs, S3 bucket <
    35  mysql -u root yotb < Schema.mysql 
    36  history 
    37  history > INSTALL.log
+   41  git commit -m "FIXME" INSTALL.log
+   42  git push
+   43  python worker/run.py 
+   44  sudo apt-get install python-shapely
+   45  history 5 >> INSTALL.log 
+   46  python worker/run.py 
+   47  vim worker/config.ini 
+   48  python worker/run.py 
+   49  vim edit_ui/config.ini 
+   50  python edit_ui/app.py 
+   51  python
+   52  sudo apt-get remove python-flask
+   53  sudo apt-get autoremove 
+   54  sudo pip install flask
+   55  history 10 >> INSTALL.log 
