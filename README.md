@@ -86,20 +86,28 @@ and create the following SQS queues:
 
 You'll also need to create an S3 bucket: `{prefix}stuff`
 
+`init-db.py` can do this for you:
+
+```bash
+$ python init-db.py <AWS_KEY> <AWS_SECRET> <prefix>
+```
+
 Edit `config.ini` with the prefix you chose as well as an [access key and
 secret](https://portal.aws.amazon.com/gp/aws/securityCredentials).
 
 Install required packages (this assumes Ubuntu 12.04):
 
 ```bash
-$ sudo apt-get install -y gdal-bin nginx gunicorn python-flask \
-  mysql-server python-imaging python-shapely python-mysql.connector
+$ sudo apt-get install -y gdal-bin nginx gunicorn mysql-server python-imaging \
+  python-shapely python-mysql.connector python-boto python-werkzeug python-jinja2
 ```
 
-Install Python modules:
+Install Python modules (note: flask is available from apt, but the version
+there isn't recent enough):
 
 ```bash
 $ sudo pip install ModestMaps
+$ sudo pip install flask
 ```
 
 Create a MySQL database:
@@ -114,20 +122,45 @@ Import the schema:
 $ mysql -u root yotb < Schema.mysql
 ```
 
-Edit `config.ini` with MySQL connection information.
-
-Run the Flask application using the `yotb.sh` script after placing it in
-`/etc/init.d`. You'll need to edit it first to correct the paths to point to
-your installation (_this could use some work_):
+Update `config.ini` with MySQL connection information (**don't check this in**):
 
 ```bash
+$ sensible-editor config.ini
+```
+
+Run the Flask application using the `yotb.sh` script after placing it in
+`/etc/init.d`. You'll need to change the path where `yearofthebay` is checked
+out by changing the value for `DIRNAME`:
+
+```bash
+sensible-editor edit_ui/yotb.sh
 sudo cp edit_ui/yotb.sh /etc/init.d
 sudo /etc/init.d/yotb.sh start
 ```
 
 You'll also need to configure `nginx` as a reverse proxy to connect to the
-Flask application. (_TODO: instructions on how to do this_)
+Flask application (this will overwrite nginx's default virtualhost):
 
-Add calls each minute to `python worker/run.py` in cron. `lockrun` can be used
-to ensure that they don't stomp on one another. Adjust the number of processes
-according to system capacity and demand.
+```bash
+sudo cp edit_ui/nginx.conf /etc/nginx/sites-available/default
+sudo /etc/init.d/nginx restart
+```
+
+The editor UI will now be available at [http://localhost/](http://localhost/).
+
+Finally, configure the workers to run out of cron.  The following snippet sets
+up 3 workers.  They are run minutely as they (should) complete after 50s (and
+include file locking to prevent more running than intended).  Paste it into
+`/etc/crontab`:
+
+```
+* * * * *	ubuntu	/path/to/yearofthebay/worker/run.sh 1
+* * * * *	ubuntu	/path/to/yearofthebay/worker/run.sh 2
+* * * * *	ubuntu	/path/to/yearofthebay/worker/run.sh 3
+```
+
+```bash
+sudo sensible-editor /etc/crontab
+```
+
+Adjust the number of processes according to system capacity and demand.

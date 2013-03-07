@@ -5,14 +5,11 @@
 # To make sure this runs at startup, do:
 # update-rc.d tilestache-gunicorn.sh defaults
 
-# Source the correct virtual environment
-source /home/migurski/venvs/yotb/bin/activate
-
 ADDRESS=0.0.0.0:8080
-DIRNAME=/var/www/com.stamen.studio/yearofthebay/show/recent/edit_ui
+DIRNAME=/path/to/yearofthebay/edit_ui
 
-PIDFILE="yotb-gunicorn.pid"
-LOGFILE="yotb-gunicorn.log"
+PIDFILE="/var/run/yotb-gunicorn.pid"
+LOGFILE="/var/log/yotb-gunicorn.log"
 COMMAND="gunicorn --daemon --user www-data --workers 4 --bind $ADDRESS --log-file $LOGFILE"
 COMMAND="gunicorn --daemon --workers 4 --bind $ADDRESS --log-file $LOGFILE"
 
