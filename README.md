@@ -138,6 +138,12 @@ sudo cp edit_ui/yotb.sh /etc/init.d
 sudo /etc/init.d/yotb.sh start
 ```
 
+Next, ensure that the Flask app restarts with the server:
+
+```bash
+sudo update-rc.d yotb.sh defaults
+```
+
 You'll also need to configure `nginx` as a reverse proxy to connect to the
 Flask application (this will overwrite nginx's default virtualhost):
 
