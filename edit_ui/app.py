@@ -466,7 +466,6 @@ def tile_by_id(id,path):
     image = Image.new('RGBA', (256, 256), (0, 0, 0, 0))
     
     if request.endpoint == "tilemap": 
-        items = map_dom.select("select tiles from `%s` where name = '%s'" % (map_dom.name,id))
         mysql.execute("SELECT tiles FROM maps WHERE id = '%s'" % id)
     elif request.endpoint == "tileatlas":
         mysql.execute("SELECT tiles FROM maps WHERE atlas_id = '%s' AND image IS NOT NULL ORDER BY image DESC" % id)
