@@ -455,18 +455,25 @@ def tile(path):
 def tile_by_id(id,path):
     '''
     ''' 
+
+    conn = mysql_connection()
+    mysql = conn.cursor(cursor_class=MySQLCursorDict)
     
     tms_path = '.'.join(path.split('.')[:-1])
     bucket = aws_prefix+'stuff'
     opaque = False
-    endpoint = request.endpoint
     
     image = Image.new('RGBA', (256, 256), (0, 0, 0, 0))
     
     if request.endpoint == "tilemap": 
         items = map_dom.select("select tiles from `%s` where name = '%s'" % (map_dom.name,id))
+        mysql.execute("SELECT tiles FROM maps WHERE id = '%s'" % id)
     elif request.endpoint == "tileatlas":
-        items = map_dom.select("select tiles from `%s` where atlas='%s' and image is not null order by image desc" % (map_dom.name,id))
+        mysql.execute("SELECT tiles FROM maps WHERE atlas_id = '%s' AND image IS NOT NULL ORDER BY image DESC" % id)
+
+    items = mysql.fetchdicts()
+
+    conn.close()
     
     if items:
         for item in items:
