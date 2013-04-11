@@ -323,7 +323,7 @@ def get_maps():
         obj['name'] = m['id']
         obj['atlas'] = m['atlas_id'] 
         obj['rough_href'] = '/place-rough/map/%s' % m['id']
-        obj['thumb'] = 'http://%sstuff.s3.amazonaws.com/%s' % (aws_prefix, bucket, m['thumb'])
+        obj['thumb'] = 'http://%sstuff.s3.amazonaws.com/%s' % (aws_prefix, m['thumb'])
         
         obj['geo'] = {}
         
