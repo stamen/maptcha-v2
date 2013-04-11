@@ -323,6 +323,7 @@ def get_maps():
         obj['name'] = m['id']
         obj['atlas'] = m['atlas_id'] 
         obj['rough_href'] = '/place-rough/map/%s' % m['id']
+        obj['thumb'] = m['thumb']
         
         obj['geo'] = {}
         
