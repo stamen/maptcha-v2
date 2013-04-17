@@ -22,7 +22,9 @@ queue_create = connect_queue(aws_key, aws_secret, aws_prefix+'create')
 queue_tile = connect_queue(aws_key, aws_secret, aws_prefix+'tile')
 
 def mysql_connection():
-    return connect(user=mysql_username, password=mysql_password, database=mysql_database, host=mysql_hostname, port=mysql_port, autocommit=True)
+    conn = connect(user=mysql_username, password=mysql_password, database=mysql_database, host=mysql_hostname, port=mysql_port, autocommit=True)
+    conn.autocommit = True
+    return conn
 
 class MySQLCursorDict(cursor.MySQLCursor):
     def fetchdict(self):
@@ -165,7 +167,7 @@ def place_rough_map(id):
     
     if maps_cookie:
         if maps_cookie == "done":
-            maps_remaining = 'done'
+            maps_remaining = '0'
         else:
             maps_cookie = maps_cookie.split("|")
             maps_remaining = int(atlas['map_count']) - len(maps_cookie)
@@ -323,6 +325,7 @@ def get_maps():
         obj['name'] = m['id']
         obj['atlas'] = m['atlas_id'] 
         obj['rough_href'] = '/place-rough/map/%s' % m['id']
+        obj['thumb'] = 'http://%sstuff.s3.amazonaws.com/%s' % (aws_prefix, m['thumb'])
         
         obj['geo'] = {}
         
@@ -517,6 +520,7 @@ def map_sandwich(id=None):
     """                                                                       
     
     tpl = '/tile/{Z}/{X}/{Y}.png'
+    show_header = request.args.get('hide_header', None) == None
     
     if id is not None:
         if request.endpoint ==  'map-sandwich-map':
@@ -524,7 +528,7 @@ def map_sandwich(id=None):
         elif request.endpoint ==  'map-sandwich-atlas':
             tpl = '/tile/atlas/%s/{Z}/{X}/{Y}.png' % id
     
-    return render_template('home.html',tpl=tpl)
+    return render_template('home.html',tpl=tpl,show_header=show_header)
 
 def faq():
     return render_template('faq.html')   
