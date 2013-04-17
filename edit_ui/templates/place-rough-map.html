@@ -5,35 +5,35 @@
 	<title>Year of the Bay (Map)</title>
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="">
-    <meta name="author" content=""> 
+    <meta name="author" content="">
     <link href="/static/styles/vendor/bootstrap.min.css" rel="stylesheet">
-    <link href="/static/styles/place_map.css" rel="stylesheet"> 
-     
-    <style> 
+    <link href="/static/styles/place_map.css" rel="stylesheet">
+
+    <style>
         .container-fluid{}
     </style>
     <!-- js -->
-    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script> 
-    <script type="text/javascript" src="http://maps.google.com/maps/api/js?sensor=false"></script>  
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
+    <script type="text/javascript" src="http://maps.google.com/maps/api/js?sensor=false"></script>
     <script type="text/javascript" src="/static/js/vendor/modestmaps.min.js"></script>
-    <script type="text/javascript" src="http://maps.stamen.com/js/tile.stamen.js?v1.2.0"></script> 
+    <script type="text/javascript" src="http://maps.stamen.com/js/tile.stamen.js?v1.2.0"></script>
     <script type="text/javascript" src="/static/js/vendor/paper.js"></script>
-    
-</head> 
+
+</head>
 
 
 <body>
     <div id="background-map-wrap">
-         <div id="background-map"></div> 
+         <div id="background-map"></div>
     </div>
     <div class="container-fluid">
-        
+
         <div id="main" class="row-fluid">
-            <div id="positioners-container" class="cf span11 box-wrap"> 
-                <div id="faq-box"> 
+            <div id="positioners-container" class="cf span11 box-wrap">
+                <div id="faq-box">
                     <div id="faq-box-inner">
-                        <a id="close-faq" href="#" class="std-btn">x</a>  
-                        <iframe src="/faq-public" frameborder="0" height="100%" width="100%"border="0" marginheight="0" marginwidth="0" scrolling="auto"></iframe> 
+                        <a id="close-faq" href="#" class="std-btn">x</a>
+                        <iframe src="/faq-public" frameborder="0" height="100%" width="100%"border="0" marginheight="0" marginwidth="0" scrolling="auto"></iframe>
                     </div>
                 </div>
                 <!-- original map -->
@@ -41,43 +41,43 @@
                     <canvas id="scan" width='480' height='550'></canvas>
                     <img id="scan_img" src="/thing/{{ map.large }}" style="display: none;">
 
-                    <div id="zoom-controls-canvas" class="zoom-controls">  
-                        <a href="#" class="std-btn zoom-in">+</a> 
-                        <a href="#" class="std-btn zoom-out">&ndash;</a>
-                    </div> 
-                </div>
-                
-                <!-- modestmap positioner -->
-                <div id="map-box" class="box right-box"> 
-                    <div id="map-pane"></div> 
-                
-                    <div id="zoom-controls-mm" class="zoom-controls">   
-                        <a href="#" class="std-btn zoom-in">+</a> 
+                    <div id="zoom-controls-canvas" class="zoom-controls">
+                        <a href="#" class="std-btn zoom-in">+</a>
                         <a href="#" class="std-btn zoom-out">&ndash;</a>
                     </div>
-                
-                    <div id="address-search" class="">  
+                </div>
+
+                <!-- modestmap positioner -->
+                <div id="map-box" class="box right-box">
+                    <div id="map-pane"></div>
+
+                    <div id="zoom-controls-mm" class="zoom-controls">
+                        <a href="#" class="std-btn zoom-in">+</a>
+                        <a href="#" class="std-btn zoom-out">&ndash;</a>
+                    </div>
+
+                    <div id="address-search" class="">
                         <div id="address-search-form">
                             <div id="address-search-form-inner">
-                                <a href="#" class="close">x</a> 
-                                <p id="explain-title" class="explain">Search for a cross street you can see on the old map…</p> 
+                                <a href="#" class="close">x</a>
+                                <p id="explain-title" class="explain">Search for a cross street you can see on the old map…</p>
                                 <div class="input-append">
                                     <input id="address_input" type="text" class="span5">
                                     <button id="address_input_submit" type="button" class="btn">Find</button>
                                 </div>
                                 <!--<label><input id="address_input" class="input-xlarge" type="search" name="geocode" size="28" placeholder="16th St &amp; Mission St"> Find</label>-->
                                 <p class="explain muted"><small id="explain-help">You only have to type the names, like “Milton &amp; Bosworth”</small></p>
-                            </div> 
+                            </div>
                         </div>
-                        
+
                     </div>
-                     
-                </div><!-- end #map-box -->      
-                
+
+                </div><!-- end #map-box -->
+
             </div> <!-- end #box-wrap -->
-            
-        </div>  
-        
+
+        </div>
+
         <div class="row-fluid">
             <div id="footer" class="cf span11">
                 <div class="first">
@@ -89,45 +89,45 @@
                 </div>
                 <!-- rest of footer bits -->
                 <ul>
-                    <li class="second"> 
+                    <li class="second">
                         <!-- polyfill: http://www.frequency-decoder.com/2010/11/18/unobtrusive-slider-control-html5-input-range-polyfill -->
                          <div id="slider">
-                             <label>Old Map Overlay <span id="slider-output-value"></span></label> 
+                             <label>Old Map Overlay <span id="slider-output-value"></span></label>
                              <div id="slide-wrap">
                                  <input id="slide" type="range" min="0" max="100" step="1" value="100"/>
-                                 <div id="slide-overlay"></div>     
+                                 <div id="slide-overlay"></div>
                              </div>
                          </div>
-                         
+
                     </li>
-                    
+
                     <li class="third">
-                        <form id="complete" action="/place-rough/map/{{ map.id }}" method="post"> 
+                        <form id="complete" action="/place-rough/map/{{ map.id }}" method="post">
                              <input name="action" id="action-type" type="hidden">
-                             <input name="ul_lat" id="ul_lat" type="hidden">  
+                             <input name="ul_lat" id="ul_lat" type="hidden">
                              <input name="ul_lon" id="ul_lon" type="hidden">
-                             <input name="lr_lat" id="lr_lat" type="hidden"> 
+                             <input name="lr_lat" id="lr_lat" type="hidden">
                              <input name="lr_lon" id="lr_lon" type="hidden">
-                             <button name="place" id="action-place" value="place" class="btn btn-large btn-success" type="button" title="Alignment look good?">Finished</button>        
-                             <button name="skip" id="action-skip" value="skip" class="btn btn-large" type="button" title="Unplaceable or difficult map?">Skip This Map</button> 
+                             <button name="place" id="action-place" value="place" class="btn btn-large btn-success" type="button" title="Alignment look good?">Finished</button>
+                             <button name="skip" id="action-skip" value="skip" class="btn btn-large" type="button" title="Unplaceable or difficult map?">Skip This Map</button>
                          </form>
                     </li>
                 </ul>
-                
+
             </div>
         </div>
-        
-        <audio src="/static/audio/drumroll.mp3" preload="auto"></audio> 
-        <div id="congratulations"> 
+
+        <audio src="/static/audio/drumroll.mp3" preload="auto"></audio>
+        <div id="congratulations">
             <h1>Congratulations!</h1>
-            <p>You've placed all the maps for this atlas</p> 
+            <p>You've placed all the maps for this atlas</p>
             <a id="close-congratulations" href="#" class="std-btn">x</a>
         </div>
     </div>
-    
-    <script type="text/javascript" src="/static/js/place_map.js"></script> 
-     
-    <script type="text/javascript" > 
+
+    <script type="text/javascript" src="/static/js/place_map.js"></script>
+
+    <script type="text/javascript" >
          var hint_attr = {
              'streets':{
                  'explain-title':'Search for a cross street you can see on the old map…',
@@ -160,59 +160,59 @@
               'has_cities': false,
               'has_streets': false
           }
-        
+
         {% if atlas.ul_lat %}atlas_hints['ul_lat'] = {{ atlas.ul_lat|float }};{% endif %}
         {% if atlas.ul_lon %}atlas_hints['ul_lon'] = {{ atlas.ul_lon|float }};{% endif %}
         {% if atlas.lr_lat %}atlas_hints['lr_lat'] = {{ atlas.lr_lat|float }};{% endif %}
         {% if atlas.lr_lon %}atlas_hints['lr_lon'] = {{ atlas.lr_lon|float }};{% endif %}
         {% if atlas.hint_features %}atlas_hints['has_features'] = {{ atlas.hint_features|lower|default(false,true) }};{% endif %}
         {% if atlas.hint_cities %}atlas_hints['has_cities'] = {{ atlas.hint_cities|lower|default(false,true) }};{% endif %}
-        {% if atlas.hint_streets %}atlas_hints['has_streets'] = {{ atlas.hint_streets|lower|default(false,true) }};{% endif %}  
-         
-         var maps_remaining = "{{ maps_remaining }}"; 
-         
-         window.onload = function(){  
-             
+        {% if atlas.hint_streets %}atlas_hints['has_streets'] = {{ atlas.hint_streets|lower|default(false,true) }};{% endif %}
+
+         var maps_remaining = "{{ maps_remaining }}";
+
+         window.onload = function(){
+
              var faqBox = $("#faq-box");
              $("#faq-toggler").on("click",function(e){
                  if(faqBox.is(':visible')){
                      faqBox.hide();
                  }else{
                      faqBox.show();
-                 } 
-                 
+                 }
+
              });
              $("#close-faq").on("click",function(e){
                  e.preventDefault();
                  faqBox.hide();
              });
-             
-             YTOB.PlaceMap.init();   
-             
+
+             YTOB.PlaceMap.init();
+
              var resize_ = YTOB.debounce(YTOB.PlaceMap.resize,80);
 
              $(window).on("resize",function(){
                  resize_();
              })
-             $(window).trigger("resize");   
-            
+             $(window).trigger("resize");
+
             // form handling
             var form = $("#complete");
             var btns = form.find(".btn");
             var actionField = $("#action-type");
-            btns.on('click',function(e){  
+            btns.on('click',function(e){
                 e.preventDefault();
                 if(!this.value)return false;
-                actionField.val(this.value); 
+                actionField.val(this.value);
                 form.submit();
                 return false;
             });
             //var submitFinish = $("#action-place");
             //var submitSkip = $("#action-skip");
-            
+
          }
-         
+
     </script>
-    
+
 </body>
 </html>

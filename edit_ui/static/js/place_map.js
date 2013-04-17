@@ -1,19 +1,19 @@
 (function(exports){
-    
+
     if(typeof YTOB === "undefined")YTOB = {};
-    YTOB.PlaceMap = {}; 
-    
-    var xform,canvas,image,arm,circle,pin,handle,imageHint,handleHint,canvasBg;  
-    
+    YTOB.PlaceMap = {};
+
+    var xform,canvas,image,arm,circle,pin,handle,imageHint,handleHint,canvasBg;
+
     var armLength = 250,
         baseScale = 1,
         padding = 15;
-    
+
     var downHandle = null,
         downMatrix = null,
         activeDrag = null,
-        lastClick = false; 
-        
+        lastClick = false;
+
     var oldmap = {
             opacity: 0.4,
             untouched: true,
@@ -23,19 +23,19 @@
         map = null,
         mapCanvas = null,
         slider = null;
-        
-        
+
+
     var mapSize = {
         w:480,
         h:550
-    } 
+    }
     var windowSize = {
         w:null,
         h:null
     }
     var geocoder = null;
     var ul_lat,ul_lon,lr_lat,lr_lon;
-   
+
     var options = {
         'zoom-out-class':'zoom-out',
         'zoom-in-class':'zoom-in',
@@ -60,12 +60,12 @@
             'ref-image-id':'scan_img'
         }
     }
-    
-    
-    
+
+
+
     // background map switching
     var backgroundMap = null,
-        backgroundMapLayer = null, 
+        backgroundMapLayer = null,
         backgroundMapProviderBasic = null,
         backgroundMapProviderComplete = null;
 
@@ -75,70 +75,70 @@
     var mapBox = null;
     var scanBox = null;
     var innerMapOffset = null;
-    
-    
+
+
     /* -------------------------------------------- */
-    
-    function setCanvasObjects(){ 
+
+    function setCanvasObjects(){
         var hintStyles = { fillColor: 'black', fontSize: '16', font: 'Helvetica, Arial, sans-serif' };
         $("#zoom-controls-canvas").find('.zoom-in').on('click',function(e){
             e.preventDefault();
-            zoomInAbout(paper.view.center); 
+            zoomInAbout(paper.view.center);
         });
         $("#zoom-controls-canvas").find('.zoom-out').on('click',function(e){
             e.preventDefault();
-            zoomOutAbout(paper.view.center); 
+            zoomOutAbout(paper.view.center);
         });
-        
+
         canvasBg.fillColor = '#ccc';
         canvasBg.strokeColor = "#ccc";
-        canvasBg.strokeWidth = 1;   
+        canvasBg.strokeWidth = 1;
         canvasBg.opacity = 1;
-        
+
         pin.fillColor = '#F8F801';
         pin.strokeColor = '#F8F801';
         pin.strokeWidth = 1;
 
         handle.fillColor = '#F8F801';
-        
+
         if(displayHints){
             imageHint.content = '(Drag to move)';
             imageHint.characterStyle = hintStyles;
 
             handleHint.content = '(Rotate & scale)';
-            handleHint.characterStyle = hintStyles; 
+            handleHint.characterStyle = hintStyles;
         }
-        
-        pin.position = paper.view.center;   
-        
+
+        pin.position = paper.view.center;
+
         handle.position = addPoints(paper.view.center , new paper.Point(armLength * Math.cos(-Math.PI/3), armLength * Math.sin(-Math.PI/3)));
     }
-    
+
     function createRotatorHandle(){
-        var handleBk = new paper.Path.Rectangle(paper.view.center.x - 13, paper.view.center.y - 13, 26, 26) 
-        
+        var handleBk = new paper.Path.Rectangle(paper.view.center.x - 13, paper.view.center.y - 13, 26, 26)
+
         // little markers in the handle
         var lineSize = 7;
         var mark1 = new paper.Path();
         var mark2 = new paper.Path();
-        
+
         mark1.strokeColor = "black";
         mark1.strokeWidth = 2;
         mark1.fillColor = "black";
         mark2.strokeColor = "black";
         mark2.strokeWidth = 2;
         mark2.fillColor = "black";
-        
+
         mark1.add( new paper.Point(paper.view.center.x ,paper.view.center.y - lineSize) );
         mark1.add( new paper.Point(paper.view.center.x + lineSize,paper.view.center.y - lineSize) );
         mark1.add( new paper.Point(paper.view.center.x + lineSize,paper.view.center.y ) );
         mark2.add( new paper.Point(paper.view.center.x - lineSize ,paper.view.center.y) );
         mark2.add( new paper.Point(paper.view.center.x - lineSize ,paper.view.center.y + lineSize) );
         mark2.add( new paper.Point(paper.view.center.x ,paper.view.center.y + lineSize) );
-        
+
         return new paper.Group([handleBk,mark1,mark2]);
-    } 
-    
+    }
+
     function updateArmAndCircle()
     {
         if(arm) {
@@ -154,17 +154,17 @@
         var newLength = 40;
         var newEndPt = new paper.Point(0,0);
         newEndPt.x = handle.position.x + (handle.position.x - pin.position.x) / lenAB * newLength;
-        newEndPt.y = handle.position.y + (handle.position.y - pin.position.y) / lenAB * newLength;    
-        //var angle =  Math.atan2((newEndPt.y - pin.position.y), (newEndPt.x - pin.position.x)) * (180/Math.PI); 
+        newEndPt.y = handle.position.y + (handle.position.y - pin.position.y) / lenAB * newLength;
+        //var angle =  Math.atan2((newEndPt.y - pin.position.y), (newEndPt.x - pin.position.x)) * (180/Math.PI);
 
-        arm = new paper.Path.Line(newEndPt, pin.position) 
-        
+        arm = new paper.Path.Line(newEndPt, pin.position)
+
         var rot = xform.getRotation();
 
         handle.rotate( rot - lastRot )
-        lastRot = rot; 
+        lastRot = rot;
 
-        
+
         rotator.insertChild(0, arm);
 
         arm.strokeColor = '#F8F801'; // yellow
@@ -176,7 +176,7 @@
             c = handle.position.rotate(180, pin.position),
             e = handle.position.rotate(-1, pin.position);
 
-        circle = new paper.Path.Arc(s, c, e); 
+        circle = new paper.Path.Arc(s, c, e);
 
         rotator.insertChild(0, circle);
 
@@ -185,25 +185,25 @@
         circle.opacity = 1;
         circle.dashArray = [14, 7];
 
-        if(displayHints)handleHint.position = addPoints(handle.position , new paper.Point(-170, 5)); 
+        if(displayHints)handleHint.position = addPoints(handle.position , new paper.Point(-170, 5));
     }
-    
+
     function clampArm(x,y){
-         
-        var w = Math.sqrt(Math.pow((pin.position.x - x),2) + Math.pow((pin.position.y - y),2)); 
+
+        var w = Math.sqrt(Math.pow((pin.position.x - x),2) + Math.pow((pin.position.y - y),2));
         var r = mapSize.w/2;
         if(w > r){
             var angle =  Math.atan2((y - pin.position.y), (x - pin.position.x)) ;
             x = paper.view.center.x + r * Math.cos(angle);
             y = paper.view.center.y + r * Math.sin(angle);
         }
-        
+
         return [x,y]
     }
-    
-    function subtractPoints(pt1,pt2){ 
+
+    function subtractPoints(pt1,pt2){
           return new paper.Point(pt1.x - pt2.x, pt1.y - pt2.y);
-    } 
+    }
     function addPoints(pt1,pt2){
           return new paper.Point(pt1.x + pt2.x, pt1.y + pt2.y);
     }
@@ -211,8 +211,8 @@
         var currentVector = subtractPoints(handle.position,pin.position),
         lastVector = subtractPoints(prevHandlePos, pin.position),
         angle = currentVector.angle - lastVector.angle,
-        scale = currentVector.length / lastVector.length;   
-        
+        scale = currentVector.length / lastVector.length;
+
         //handle.rotate( angle)
         if(scale > 0)
         {
@@ -221,34 +221,34 @@
             xform.preConcatenate(paper.Matrix.getRotateInstance(angle));
             xform.preConcatenate(paper.Matrix.getScaleInstance(scale, scale));
             xform.preConcatenate(paper.Matrix.getTranslateInstance(paper.view.center.x, paper.view.center.y));
-            
+
             image.setMatrix(xform);
         }
-    } 
+    }
     function scaleArmAndCircleIn(){
-        var w = Math.sqrt(Math.pow((pin.position.x - handle.position.x),2) + Math.pow((pin.position.y - handle.position.y),2)); 
+        var w = Math.sqrt(Math.pow((pin.position.x - handle.position.x),2) + Math.pow((pin.position.y - handle.position.y),2));
         w *= .9;
         var x = handle.position.x + (handle.position.x - pin.position.x) / w;
-        var y = handle.position.y + (handle.position.y - pin.position.y) / w; 
+        var y = handle.position.y + (handle.position.y - pin.position.y) / w;
         var pt = clampArm(x,y);
-        
+
         return new paper.Point(pt[0], pt[1]);
     }
     function scaleArmAndCircleOut(){
-        var w = Math.sqrt(Math.pow((pin.position.x - handle.position.x),2) + Math.pow((pin.position.y - handle.position.y),2)); 
+        var w = Math.sqrt(Math.pow((pin.position.x - handle.position.x),2) + Math.pow((pin.position.y - handle.position.y),2));
         w *= .9;
         var x = handle.position.x - (handle.position.x - pin.position.x) / w;
         var y = handle.position.y - (handle.position.y - pin.position.y) / w;
         var pt = clampArm(x,y);
-        
+
         return new paper.Point(pt[0], pt[1]);
     }
-    
+
     function rotateArmAndCircleBy(dir){
         dir = dir || 1;
         var w = Math.sqrt(Math.pow((pin.position.x - handle.position.x),2) + Math.pow((pin.position.y - handle.position.y),2));
         var angle =  Math.atan2((handle.position.y - pin.position.y), (handle.position.x - pin.position.x));
-       
+
         if(dir < 1){
             angle += .005;
         }else{
@@ -257,38 +257,38 @@
 
         var x = paper.view.center.x + w * Math.cos(angle);
         var y = paper.view.center.y + w * Math.sin(angle);
-        
+
         return new paper.Point(x,y);
     }
-    
+
     function onMouseDown(event)
     {
         if(event.point.isInside(handle.bounds)) {
             downHandle = handle.position.clone();
             downMatrix = xform.clone();
             activeDrag = handle;
-            if(displayHints)handleHint.visible = false; 
-            
+            if(displayHints)handleHint.visible = false;
+
 
         } else {
             activeDrag = image;
             if(displayHints)imageHint.visible = false;
             canvas.style.cursor = 'move';
         }
-    }  
+    }
 
 
     function onMouseMove(event)
     {
         var cursor = 'auto';
-        
-        
+
+
         cursor = event.point.isInside(handle.bounds) ? 'pointer' : cursor;
         canvas.style.cursor = cursor;
-        
+
         var x = Math.max(padding, Math.min(paper.view.bounds.right - padding, event.point.x));
         var y = Math.max(padding, Math.min(paper.view.bounds.bottom - padding, event.point.y));
-        
+
         if(!activeDrag) {
             return;
         }
@@ -296,46 +296,46 @@
         if(activeDrag == image) {
             canvas.style.cursor = 'move';
 
-            xform.preConcatenate(paper.Matrix.getTranslateInstance(event.delta)); 
-            
+            xform.preConcatenate(paper.Matrix.getTranslateInstance(event.delta));
+
             image.setMatrix(xform)
 
-        } else if(activeDrag == handle) { 
+        } else if(activeDrag == handle) {
             var pt = clampArm(x,y);
             var x = pt[0];
             var y = pt[1];
-            
+
             canvas.style.cursor = 'pointer';
 
             handle.position = new paper.Point(x, y);
 
             updateArmAndCircle();
-            
-            updateImageMatrix(downMatrix.clone(),downHandle);  
+
+            updateImageMatrix(downMatrix.clone(),downHandle);
         }
 
         updateImagePosition();
-    } 
+    }
 
     function zoomOutAbout(point)
-    {   var vec = subtractPoints(handle.position, pin.position); 
-        
-        
+    {   var vec = subtractPoints(handle.position, pin.position);
+
+
         if(vec.length < 2)
         {
             return;
         }
 
-        var zoomFactor = (1 - .7071);  
-        vec.x *= zoomFactor; 
-        vec.y *= zoomFactor; 
-        
-        
+        var zoomFactor = (1 - .7071);
+        vec.x *= zoomFactor;
+        vec.y *= zoomFactor;
+
+
         var oldVec = handle.position.clone();
-        var scale = vec.length / oldVec.length;  
+        var scale = vec.length / oldVec.length;
 
         //handle.position = subtractPoints(handle.position,vec);
-        
+
         updateArmAndCircle();
 
         xform.preConcatenate(paper.Matrix.getTranslateInstance(-point.x, -point.y));
@@ -343,15 +343,15 @@
         xform.preConcatenate(paper.Matrix.getTranslateInstance(point.x, point.y));
 
         image.setMatrix(xform);
-        paper.view.draw(); 
+        paper.view.draw();
         updateImagePosition();
     }
 
     function zoomInAbout(point)
-    {  
+    {
         var vec = subtractPoints(handle.position, pin.position);
-        var zoomFactor = (1.4142 - 1);  
-        vec.x *= zoomFactor; 
+        var zoomFactor = (1.4142 - 1);
+        vec.x *= zoomFactor;
         vec.y *= zoomFactor;
 
         //handle.position = addPoints(handle.position , vec);
@@ -362,8 +362,8 @@
         xform.preConcatenate(paper.Matrix.getScaleInstance(1.4142, 1.4142));
         xform.preConcatenate(paper.Matrix.getTranslateInstance(point.x, point.y));
 
-        image.setMatrix(xform);  
-        
+        image.setMatrix(xform);
+
         paper.view.draw();
         updateImagePosition();
     }
@@ -385,14 +385,14 @@
         canvas.style.cursor = 'auto';
 
         updateImagePosition();
-    } 
+    }
 
 
     function updateImagePosition()
     {
         var _xform = xform.clone();
         _xform.translate(-image.width/2, -image.height/2);
-        
+
         var vec = subtractPoints(handle.position , pin.position);
         var scale = vec.length / armLength;
         updateImageGeography(image.image, _xform, scale);
@@ -401,57 +401,57 @@
 
     function getContainerSizes(){
         windowSize.w = window.innerWidth,
-        windowSize.h = window.innerHeight; 
-        
+        windowSize.h = window.innerHeight;
+
         var box = boxContainer.width();
 
         mapSize.w = Math.floor(box/2) - 1;
         mapSize.h = Math.floor(windowSize.h - 90);
     }
-    
-    
-    YTOB.PlaceMap.updatePaperViewSize = function(w,h){ 
-        if(!paper)return; 
-        paper.view.viewSize = new paper.Size(w,h); 
-        paper.view.draw();
-    } 
-    
-    
-    YTOB.PlaceMap.resize = function(){ 
+
+
+    YTOB.PlaceMap.updatePaperViewSize = function(w,h){
         if(!paper)return;
-        getContainerSizes(); 
-        
+        paper.view.viewSize = new paper.Size(w,h);
+        paper.view.draw();
+    }
+
+
+    YTOB.PlaceMap.resize = function(){
+        if(!paper)return;
+        getContainerSizes();
+
         scanBox.css("height",mapSize.h+"px");
         innerMapOffset = mapBox.offset();
-        
+
         if(backgroundMap){
             backgroundMap.setSize(new MM.Point(windowSize.w,windowSize.h))
         }
-        
+
         if(map){
             map.setSize(new MM.Point(mapSize.w,mapSize.h));
-            updateBackgroundMap(); 
-            updateOldMap();  
+            updateBackgroundMap();
+            updateOldMap();
         }
-           
+
         if(image){
             var cx = (mapSize.w/2) - paper.view.center._x;
             var cy = (mapSize.h/2) - paper.view.center._y;
             var pt = new paper.Point(cx,cy);
-            
+
             YTOB.PlaceMap.updatePaperViewSize(mapSize.w,mapSize.h);
 
             canvasBg.setBounds(paper.view.bounds);
             xform.translate(pt);
-            image.setMatrix(xform);   
-        
+            image.setMatrix(xform);
+
             pin.position = paper.view.center;
-        
+
             handle.position.x += pt.x;
-        
+
             updateArmAndCircle();
             updateImagePosition();
-              
+
             paper.view.draw();
         }
     }
@@ -461,89 +461,89 @@
         rotator.visible = true;
         paper.view.draw();
     }
-    
-    YTOB.PlaceMap.initCanvas = function(){ 
+
+    YTOB.PlaceMap.initCanvas = function(){
         canvas = document.getElementById(options['old-map']['canvas-id']);
-        paper.setup(canvas);   
-        
+        paper.setup(canvas);
+
         YTOB.PlaceMap.updatePaperViewSize(mapSize.w,mapSize.h);
-        
+
         xform = paper.Matrix.getTranslateInstance(paper.view.center);
         xform.scale(baseScale);
-         
-        canvasBg = new paper.Path.Rectangle(paper.view.bounds);  
-        
-        image = new paper.Raster(options['old-map']['ref-image-id']); 
-        image.setMatrix(xform); 
 
-        pin = new paper.Path.Oval(new paper.Rectangle(paper.view.center.x - 13, paper.view.center.y - 13, 26, 26));  
+        canvasBg = new paper.Path.Rectangle(paper.view.bounds);
+
+        image = new paper.Raster(options['old-map']['ref-image-id']);
+        image.setMatrix(xform);
+
+        pin = new paper.Path.Oval(new paper.Rectangle(paper.view.center.x - 13, paper.view.center.y - 13, 26, 26));
 
         handle = createRotatorHandle();
-        
+
         var rotatorGroup = [pin, handle];
-        
+
         if(displayHints){
             imageHint = new paper.PointText(new paper.Point(60, 25));
-            handleHint = new paper.PointText(paper.view.center); 
+            handleHint = new paper.PointText(paper.view.center);
             rotatorGroup.push(handleHint);
         }
-        
-        
+
+
         rotator = new paper.Group(rotatorGroup);
         rotator.visible = false;
-        
+
         handle.rotate(45 - handle.position.angle);
-        
+
         setCanvasObjects();
-        
-        
+
+
         var tool = new paper.Tool();
-        tool.onMouseDown = onMouseDown; 
+        tool.onMouseDown = onMouseDown;
         tool.onMouseMove = onMouseMove;
         tool.onMouseUp = onMouseUp;
-        
-        updateImagePosition(); 
-        
+
+        updateImagePosition();
+
         updateArmAndCircle();
-        
+
         paper.view.draw();
-    } 
+    }
 
 
     YTOB.PlaceMap.initBackgroundMap = function(){
-        backgroundMapLayer = new MM.StamenTileLayer(options['background-map']['provider']);   
-        
-        backgroundMapProviderBasic = backgroundMapLayer.provider; 
-        
+        backgroundMapLayer = new MM.StamenTileLayer(options['background-map']['provider']);
+
+        backgroundMapProviderBasic = backgroundMapLayer.provider;
+
         if(options['background-map']['provider-alt']){
             backgroundMapProviderComplete = new MM.StamenTileLayer(options['background-map']['provider-alt']).provider;
-        } 
-        
-        var size = new MM.Point(windowSize.w,windowSize.h);
-        backgroundMap = new MM.Map(options['background-map']['id'], backgroundMapLayer,size,[new MM.DragHandler(map)]); 
+        }
 
-        backgroundMap.setCenterZoom(new MM.Location(37.7, -122.4), 12); 
+        var size = new MM.Point(windowSize.w,windowSize.h);
+        backgroundMap = new MM.Map(options['background-map']['id'], backgroundMapLayer,size,[new MM.DragHandler(map)]);
+
+        backgroundMap.setCenterZoom(new MM.Location(37.7, -122.4), 12);
     }
-    
-    
+
+
     YTOB.PlaceMap.initMap = function(){
-        var layer = new MM.StamenTileLayer("terrain-background"); 
-        
-        map = new MM.Map(options['placement-map']['map-id'], layer); 
+        var layer = new MM.StamenTileLayer("terrain-background");
+
+        map = new MM.Map(options['placement-map']['map-id'], layer);
 
         map.setSize(new MM.Point(mapSize.w,mapSize.h));
-    
+
         if(atlas_hints.ul_lat && atlas_hints.ul_lon && atlas_hints.lr_lat && atlas_hints.lr_lon){
             var ext = new MM.Extent( new MM.Location(atlas_hints.ul_lat,atlas_hints.lr_lon), new MM.Location(atlas_hints.lr_lat,atlas_hints.ul_lon) );
             map.setExtent(ext);
         }else{
-            map.setCenterZoom(new MM.Location(37.7, -122.4), 12); 
+            map.setCenterZoom(new MM.Location(37.7, -122.4), 12);
         }
-        
-        exports.ymap = map;   
+
+        exports.ymap = map;
 
         $(layer.parent).css("opacity",0);
-        
+
         $("#"+options['placement-map']['controls-id']).find('.' + options['zoom-in-class']).on('click',function(e){
             e.preventDefault();
             map.zoomIn();
@@ -551,65 +551,68 @@
         $("#"+options['placement-map']['controls-id']).find('.' + options['zoom-out-class']).on('click',function(e){
             e.preventDefault();
             map.zoomOut();
-        });   
-
-
-        map.addCallback('panned', function(m,offset) { 
-            if(backgroundMap){
-               backgroundMap.panBy(offset[0], offset[1]); 
-            }
-        
         });
-        
+
+
+        map.addCallback('panned', function(m,offset) {
+            if(backgroundMap){
+               backgroundMap.panBy(offset[0], offset[1]);
+            }
+
+        });
+
         map.addCallback("zoomed", mainMapZoomed);
         map.addCallback("extentset", updateBackgroundMap);
         map.addCallback("centered", updateBackgroundMap);
 
-        
+
         mapCanvas = document.createElement('canvas');
         mapCanvas.width = backgroundMap.dimensions.x;
         mapCanvas.height = backgroundMap.dimensions.y;
-        backgroundMap.parent.appendChild(mapCanvas);  
-        
+        backgroundMap.parent.appendChild(mapCanvas);
+
         createOpacitySlider();
-        
+
         mainMapZoomed();
         updateOldMap();
-        YTOB.PlaceMap.showRotator();  
+        YTOB.PlaceMap.showRotator();
 
         return map;
     }
-    
+
     function createOpacitySlider(){
+
         if(!slider){
             slider = $("#"+options['slider']['id']);
-            slider.attr("value",oldmap.opacity * 100);  
-            
+            slider.attr("value",oldmap.opacity * 100);
+
             var sliderOutput = $("#"+options['slider']['output']);
             var sliderOverlay = $("#"+options['slider']['overlay']);
-          
-             
-            slider.on('change',function(e){
+
+
+            slider.change(function(e){
                 this.value = this.value; // wierd
-                
-                sliderOutput.text(this.value + "%"); 
+
+                sliderOutput.text(this.value + "%");
                 sliderOverlay.css("width",(this.value + "%"));
                 changeOverlay( this.value / 100);
             });
-              
+
             slider.on("mousedown",function(){
                 oldmap.untouched = false;
-            }); 
+            });
+
             slider.trigger("change");
         }
+
     }
 
- 
-    
+
+
     function performKeyBoardAction(action){
         var preMatrix = xform.clone();
         var oldHandlePos =  handle.position.clone();
-        
+
         // get new handle positions based off action
         switch(action){
             case 'rotate-left':
@@ -624,25 +627,25 @@
             case 'zoom-out':
                 handle.position = scaleArmAndCircleOut();
             break;
-        }   
-        
-        updateArmAndCircle(); 
+        }
+
+        updateArmAndCircle();
         updateImageMatrix(preMatrix,oldHandlePos);
-        
+
         paper.view.draw();
         updateImagePosition();
     }
-    
-    
+
+
     function setKeyboardShortCuts(){
         $(window).on('keydown',function(e){
 
            if(!e.keyCode)return;
-           
+
            switch(e.keyCode){
                 case 37: // left (rotate left)
                     performKeyBoardAction('rotate-left');
-                break; 
+                break;
                 case 39: // right (rotate right)
                     performKeyBoardAction('rotate-right');
                 break;
@@ -652,34 +655,34 @@
                 case 40: // down (scale dwn)
                     performKeyBoardAction('zoom-out');
                 break;
-           } 
-           
-        }); 
+           }
+
+        });
     }
-    
+
     YTOB.PlaceMap.init = function(){
         scanBox =  $("#scan-box");
-        mapBox = $("#map-box"); 
+        mapBox = $("#map-box");
         boxContainer = $("#positioners-container");
-        
+
         // get some initial sizes...
-        getContainerSizes(); 
-        
+        getContainerSizes();
+
         YTOB.PlaceMap.initBackgroundMap();
         YTOB.PlaceMap.initCanvas();
         YTOB.PlaceMap.initMap();
-        
+
         geocoder = new YTOB.Geocoder();
-        setKeyboardShortCuts(); 
-        
-        setTimeout(function(){ 
+        setKeyboardShortCuts();
+
+        setTimeout(function(){
             checkMapsRemaining();
         },300);
-        
+
     }
-    
+
     function checkMapsRemaining(){
-        if(!maps_remaining) return; 
+        if(!maps_remaining) return;
 
         if(parseInt(maps_remaining) === 0){
             var v = document.getElementsByTagName("audio")[0];
@@ -688,76 +691,76 @@
             $("#close-congratulations").on("click",function(e){
                 e.preventDefault();
                 congratsBox.remove();
-            }); 
+            });
             congratsBox.fadeIn(500);
         }
-    } 
-    
+    }
+
     function changeOverlay(value)
     {
         oldmap.opacity = value;
         updateOldMap();
         return false;
-    } 
-    
-    function mainMapZoomed(){    
+    }
 
-        if(!backgroundMap)return; 
-        
+    function mainMapZoomed(){
+
+        if(!backgroundMap)return;
+
         if(backgroundMapProviderComplete){
-            if(map.getZoom() >= options['background-map']['provider-alt-zoom-switch']){   
-                backgroundMapLayer.setProvider(backgroundMapProviderComplete);   
+            if(map.getZoom() >= options['background-map']['provider-alt-zoom-switch']){
+                backgroundMapLayer.setProvider(backgroundMapProviderComplete);
             }else{
-                backgroundMapLayer.setProvider(backgroundMapProviderBasic); 
+                backgroundMapLayer.setProvider(backgroundMapProviderBasic);
             }
          }
-        
+
         updateBackgroundMap();
     }
-    
+
     function updateBackgroundMap(){
-        if(!backgroundMap)return; 
-        if(!innerMapOffset)innerMapOffset = mapBox.offset(); 
-        
+        if(!backgroundMap)return;
+        if(!innerMapOffset)innerMapOffset = mapBox.offset();
+
         var oft = innerMapOffset,
-            centerPt = map.locationPoint(map.getCenter());        
-            
-        backgroundMap.setCenterZoom(backgroundMap.pointLocation(centerPt),map.getZoom());  
-        
-        var backgroundMapCenterPt = backgroundMap.locationPoint(map.getCenter());  
-            
-        var ofx = (oft.left + mapSize.w/2) - windowSize.w/2 ; 
-        var ofy = (oft.top + mapSize.h/2) - windowSize.h/2; 
-                
-        backgroundMapCenterPt.x -= ofx; 
-        backgroundMapCenterPt.y -= ofy; 
-        
-        backgroundMap.setCenterZoom(backgroundMap.pointLocation(backgroundMapCenterPt),map.getZoom());   
+            centerPt = map.locationPoint(map.getCenter());
+
+        backgroundMap.setCenterZoom(backgroundMap.pointLocation(centerPt),map.getZoom());
+
+        var backgroundMapCenterPt = backgroundMap.locationPoint(map.getCenter());
+
+        var ofx = (oft.left + mapSize.w/2) - windowSize.w/2 ;
+        var ofy = (oft.top + mapSize.h/2) - windowSize.h/2;
+
+        backgroundMapCenterPt.x -= ofx;
+        backgroundMapCenterPt.y -= ofy;
+
+        backgroundMap.setCenterZoom(backgroundMap.pointLocation(backgroundMapCenterPt),map.getZoom());
         var dest = mapCanvas.getContext('2d');
     }
-    
+
     function updateOldMap()
     {
         if(!mapCanvas)
         {
             return;
-        } 
-        
+        }
+
         if(!innerMapOffset)innerMapOffset = mapBox.offset();
-        
+
         var dest = mapCanvas.getContext('2d'),
             matrix = oldmap.matrix,
             image = oldmap.image;
-        
+
         mapCanvas.width = windowSize.w;
         mapCanvas.height = windowSize.h;
         dest.clearRect(0, 0, windowSize.w, windowSize.h);
 
         dest.save();
-        
+
         dest.translate(innerMapOffset.left,20);
         dest.transform(matrix._a, matrix._c, matrix._b, matrix._d, matrix._tx, matrix._ty);
-        
+
         dest.globalAlpha = oldmap.opacity;
         dest.drawImage(image, 0, 0);
 
@@ -771,24 +774,24 @@
 
         var latlon = function(p) { return map.pointLocation(p) },
             point = function(l) { return l.lon.toFixed(8) + ' ' + l.lat.toFixed(8) };
-        
+
         var corners = {
             'ul':latlon(ul),
             'lr':latlon(lr)
         };
-        
+
         if(!ul_lat)ul_lat = $("#ul_lat");
         if(!ul_lon)ul_lon = $("#ul_lon");
         if(!lr_lat)lr_lat = $("#lr_lat");
-        if(!lr_lon)lr_lon = $("#lr_lon"); 
-        
+        if(!lr_lon)lr_lon = $("#lr_lon");
+
         ul_lat.attr("value",corners.ul.lat);
         ul_lon.attr("value",corners.ul.lon);
         lr_lat.attr("value",corners.lr.lat);
         lr_lon.attr("value",corners.lr.lon);
 
     }
-    
+
     function updateImageGeography(image, matrix, scale)
     {
         oldmap.image = image;
@@ -798,65 +801,65 @@
     }
 
     /* ------- GEOCODER --------- */
-    YTOB.Geocoder = function(){  
+    YTOB.Geocoder = function(){
         if(geocoder)return geocoder;
 
-        this.init(); 
+        this.init();
         geocoder = this;
     }
-    
+
     YTOB.Geocoder.prototype = {
         geocoder: null,
         southwest: null,
         northeast: null,
         bounds: null,
         input:null,
-        
-        init: function(){ 
-            var self = this; 
-            
+
+        init: function(){
+            var self = this;
+
             this.geocoder = new google.maps.Geocoder();
 
             if(atlas_hints.lr_lat && atlas_hints.ul_lon && atlas_hints.ul_lat && atlas_hints.lr_lon){
                 this.southwest = new google.maps.LatLng(atlas_hints.lr_lat,atlas_hints.ul_lon);
-                this.northeast = new google.maps.LatLng(atlas_hints.ul_lat,atlas_hints.lr_lon); 
+                this.northeast = new google.maps.LatLng(atlas_hints.ul_lat,atlas_hints.lr_lon);
             }else{
                 this.southwest = new google.maps.LatLng(37.7077, -122.5169);
                 this.northeast = new google.maps.LatLng(37.8153, -122.3559);
-            } 
+            }
 
             if(atlas_hints.has_streets){
                 $('#explain-title').html(hint_attr['streets']['explain-title']);
-                $('#explain-help').html(hint_attr['streets']['explain-help']);  
+                $('#explain-help').html(hint_attr['streets']['explain-help']);
                 $('#address_input').attr("placeholder",hint_attr['streets']['placeholder']);
             }else if(atlas_hints.has_cities){
                 $('#explain-title').html(hint_attr['cities']['explain-title']);
-                $('#explain-help').html(hint_attr['cities']['explain-help']);  
+                $('#explain-help').html(hint_attr['cities']['explain-help']);
                 $('#address_input').attr("placeholder",hint_attr['cities']['placeholder']);
             }else if(atlas_hints.has_features){
                 $('#explain-title').html(hint_attr['features']['explain-title']);
-                $('#explain-help').html(hint_attr['features']['explain-help']);  
+                $('#explain-help').html(hint_attr['features']['explain-help']);
                 $('#address_input').attr("placeholder",hint_attr['features']['placeholder']);
             }else{
                 $('#explain-title').html(hint_attr['default']['explain-title']);
-                $('#explain-help').html(hint_attr['default']['explain-help']);  
+                $('#explain-help').html(hint_attr['default']['explain-help']);
                 $('#address_input').attr("placeholder",hint_attr['default']['placeholder']);
             }
-            
-            this.bounds = new google.maps.LatLngBounds(this.southwest, this.northeast); 
+
+            this.bounds = new google.maps.LatLngBounds(this.southwest, this.northeast);
             this.input = $("#address_input");
-            
+
             this.input.on("change",function(e){
-                e.preventDefault(); 
-                
+                e.preventDefault();
+
                 self.jumpAddress(this.value);
-            }); 
+            });
 
             $("#address_input_submit").on('click',function(e){
-                e.preventDefault();  
+                e.preventDefault();
                 self.jumpAddress(self.input.val());
-            });  
-            
+            });
+
             $("#address-search-form .close").on('click',function(e){
                 e.preventDefault();
                 $("#address-search").removeClass("no-map");
@@ -868,8 +871,8 @@
                 return;
             }
             if(!map){
-                
-            }else{ 
+
+            }else{
                 $("#address-search").removeClass('no-map');
                 var viewport = results[0].geometry.viewport,
                     ne = viewport.getNorthEast(),
@@ -878,17 +881,17 @@
 
                 map.setExtent(locations);
                 map.zoomBy(1);
-            } 
-            
+            }
+
         },
-        jumpAddress: function(address){   
+        jumpAddress: function(address){
             this.geocoder.geocode({address: address, bounds: this.bounds}, this.onGeocoded);
             return false;
         }
-    } 
-    
+    }
+
     exports.YTOB = YTOB;
-    
+
     //http://unscriptable.com/2009/03/20/debouncing-javascript-methods/
     var debounce = function (func, threshold, execAsap) {
 
@@ -899,7 +902,7 @@
             function delayed () {
                 if (!execAsap)
                     func.apply(obj, args);
-                timeout = null; 
+                timeout = null;
             };
 
             if (timeout)
@@ -907,12 +910,12 @@
             else if (execAsap)
                 func.apply(obj, args);
 
-            timeout = setTimeout(delayed, threshold || 100); 
+            timeout = setTimeout(delayed, threshold || 100);
         };
 
     }
-    
-    exports.YTOB.debounce = debounce; 
-  
+
+    exports.YTOB.debounce = debounce;
+
 
 })(this)
