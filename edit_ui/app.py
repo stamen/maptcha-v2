@@ -167,7 +167,7 @@ def place_rough_map(id):
     
     if maps_cookie:
         if maps_cookie == "done":
-            maps_remaining = 'done'
+            maps_remaining = '0'
         else:
             maps_cookie = maps_cookie.split("|")
             maps_remaining = int(atlas['map_count']) - len(maps_cookie)
