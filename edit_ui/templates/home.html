@@ -105,9 +105,11 @@ a.zoom-out {
 
 <a name="top"></a>
 <div class="container-fluid">
+    {% if show_header %}
     <div id="header" class="row-fluid no-select"> 
         <div class="page-header span12"><a href="http://maptcha.org">maptcha.org</a> / <a href="/">Historypin</a> / <a href="/maps-list">Maps</a> / <strong>Map Sandwich</strong></div>  
     </div> 
+    {% endif %}
     
     <div id="search" class="span5 no-select">
         <div class="input-append">

@@ -518,6 +518,7 @@ def map_sandwich(id=None):
     """                                                                       
     
     tpl = '/tile/{Z}/{X}/{Y}.png'
+    show_header = request.args.get('hide_header', None) == None
     
     if id is not None:
         if request.endpoint ==  'map-sandwich-map':
@@ -525,7 +526,7 @@ def map_sandwich(id=None):
         elif request.endpoint ==  'map-sandwich-atlas':
             tpl = '/tile/atlas/%s/{Z}/{X}/{Y}.png' % id
     
-    return render_template('home.html',tpl=tpl)
+    return render_template('home.html',tpl=tpl,show_header=show_header)
 
 def faq():
     return render_template('faq.html')   
