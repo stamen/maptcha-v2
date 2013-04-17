@@ -22,7 +22,9 @@ queue_create = connect_queue(aws_key, aws_secret, aws_prefix+'create')
 queue_tile = connect_queue(aws_key, aws_secret, aws_prefix+'tile')
 
 def mysql_connection():
-    return connect(user=mysql_username, password=mysql_password, database=mysql_database, host=mysql_hostname, port=mysql_port, autocommit=True)
+    conn = connect(user=mysql_username, password=mysql_password, database=mysql_database, host=mysql_hostname, port=mysql_port, autocommit=True)
+    conn.autocommit = True
+    return conn
 
 class MySQLCursorDict(cursor.MySQLCursor):
     def fetchdict(self):
