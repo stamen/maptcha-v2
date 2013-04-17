@@ -348,6 +348,12 @@ def update_map_rough_consensus(mysql, map):
     
     sizes, thetas, polygons = zip(*roughs)
     
+    # defaults
+    ul_lat = float(placements[0][0])
+    ul_lon = float(placements[0][1])
+    lr_lat = float(placements[0][2])
+    lr_lon = float(placements[0][3])
+
     #
     # Using the area containing all pairwise-overlaps between polygons (i.e.
     # those places with two or more agreed votes), narrow the list of polygons
@@ -361,30 +367,23 @@ def update_map_rough_consensus(mysql, map):
         good_indexes = [index for (index, polygon) in enumerate(polygons)
                         if (polygon.area / union_pairs.area) > 0.9]
 
-        good_indexes = good_indexes[-3:]
+        if len(good_indexes) > 0:
+            good_sizes = [sizes[i] for i in good_indexes]
+            good_thetas = [thetas[i] for i in good_indexes]
+            good_centers = [polygons[i].centroid for i in good_indexes]
 
-        good_sizes = [sizes[i] for i in good_indexes]
-        good_thetas = [thetas[i] for i in good_indexes]
-        good_centers = [polygons[i].centroid for i in good_indexes]
+            #
+            # Determine average geometries for the good placements.
+            #
+            avg_size = sum(good_sizes) / len(good_sizes)
+            avg_theta = average_thetas(good_thetas)
+            avg_x = sum([c.x for c in good_centers]) / len(good_centers)
+            avg_y = sum([c.y for c in good_centers]) / len(good_centers)
 
-        #
-        # Determine average geometries for the good placements.
-        #
-        avg_size = sum(good_sizes) / len(good_sizes)
-        avg_theta = average_thetas(good_thetas)
-        avg_x = sum([c.x for c in good_centers]) / len(good_centers)
-        avg_y = sum([c.y for c in good_centers]) / len(good_centers)
-
-        #
-        # Combine the placements to come up with consensus.
-        #
-        ul_lat, ul_lon, lr_lat, lr_lon = calculate_corners(map['aspect'], avg_x, avg_y, avg_size, avg_theta)
-
-    else:
-        ul_lat = float(placements[0][0])
-        ul_lon = float(placements[0][1])
-        lr_lat = float(placements[0][2]) 
-        lr_lon = float(placements[0][3])
+            #
+            # Combine the placements to come up with consensus.
+            #
+            ul_lat, ul_lon, lr_lat, lr_lon = calculate_corners(map['aspect'], avg_x, avg_y, avg_size, avg_theta)
         
     consensus = dict(ul_lat='%.8f' % ul_lat, ul_lon='%.8f' % ul_lon,
                      lr_lat='%.8f' % lr_lat, lr_lon='%.8f' % lr_lon,
