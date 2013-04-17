@@ -206,14 +206,14 @@ def place_roughly(mysql, queue, map, ul_lat, ul_lon, lr_lat, lr_lon):
                      VALUES (%s, %s, %s, %s, %s, %s)''',
                   (map['id'], int(time()), ul_lat, ul_lon, lr_lat, lr_lon))
     
+    update_map_rough_consensus(mysql, map)
+
     #
     # Update the map item with current placement agreement.
     # Try a few times in case of race conditions.
     #
     for attempt in (1, 2, 3):
         try:
-            update_map_rough_consensus(mysql, map)
-
             message = queue.new_message('tile map %s' % map['id'])
             queue.write(message)
 
