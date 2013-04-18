@@ -601,7 +601,7 @@
                     changeOverlay(value / 100);
                }
             });
-
+            $("#slide-wrap").append(sliderOverlay )
             sliderOutput.text('40%');
             sliderOverlay.css("width","40%");
             /*
