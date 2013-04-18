@@ -583,11 +583,32 @@
     function createOpacitySlider(){
 
         if(!slider){
+            var sliderOutput = $("#"+options['slider']['output']);
+            var sliderOverlay = $("#"+options['slider']['overlay']);
+
+            slider = $("#slide-wrap").noUiSlider({
+                range: [0, 100]
+               ,start: 40
+               ,handles: 1
+               ,step: 1
+               //,connect: 'lower'
+               ,slide: function(){
+                    oldmap.untouched = false;
+                    var value = $(this).val();
+
+                    sliderOutput.text(value + "%");
+                    sliderOverlay.css("width",(value + "%"));
+                    changeOverlay(value / 100);
+               }
+            });
+
+            sliderOutput.text('40%');
+            sliderOverlay.css("width","40%");
+            /*
             slider = $("#"+options['slider']['id']);
             slider.attr("value",oldmap.opacity * 100);
 
-            var sliderOutput = $("#"+options['slider']['output']);
-            var sliderOverlay = $("#"+options['slider']['overlay']);
+
 
 
             slider.change(function(e){
@@ -603,6 +624,7 @@
             });
 
             slider.trigger("change");
+            */
         }
 
     }

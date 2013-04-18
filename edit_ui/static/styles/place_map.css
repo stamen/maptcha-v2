@@ -1,12 +1,12 @@
 body{
     margin:0;
-    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; 
+    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
 }
 
 #background-map-wrap{
     position:fixed;
     width:100%;
-    height:100%; 
+    height:100%;
     top:0;
 }
 #background-map{
@@ -26,7 +26,7 @@ body{
     height: 100%;
     z-index: 100;
     display:none;
-    
+
 }
 #faq-box-inner{
     position:relative;
@@ -34,23 +34,23 @@ body{
     height: 100%;
     margin:0;
     padding:0;
-} 
+}
 #faq-box iframe{
     width: 100% !important;
     height: 100% !important;
     overflow: auto;
-} 
- 
+}
+
 .container-fluid{
-    margin-top:20px; 
+    margin-top:20px;
 }
 
 
 .box{
-    position:relative;  
+    position:relative;
     float:left;
 }
- 
+
 #scan-box{
     z-index:10;
     overflow:hidden;
@@ -63,20 +63,20 @@ body{
     position:relative;
     width:480;
     height:550;
-}  
+}
 
-#map-box{ 
-    overflow:hidden; 
+#map-box{
+    overflow:hidden;
 }
 #map-pane{
     position:relative;
     width:100%;
-    height:550px; 
+    height:550px;
     /*border:1px solid #000;*/
     -webkit-box-sizing: border-box; /* Safari/Chrome, other WebKit */
     -moz-box-sizing: border-box;    /* Firefox, other Gecko */
-    box-sizing: border-box; 
-}  
+    box-sizing: border-box;
+}
 
 #background-map-wrap canvas
 {
@@ -84,13 +84,13 @@ body{
     top: 0;
     left: 0;
 }
-   
+
 .zoom-controls
 {
     position: absolute;
     top: 10px;
     left: 10px;
-} 
+}
 #map-box #zoom-controls-mm
 {
     right:10px;
@@ -110,10 +110,10 @@ a.std-btn
     font-size: 24px;
     font-weight: bold;
     margin-bottom: 5px;
-    
+
 }
 a.std-btn.zoom-out{line-height:30px}
-a.std-btn img { border: none; }  
+a.std-btn img { border: none; }
 
 a.std-btn:hover{
     color:#ccc;
@@ -134,13 +134,13 @@ a.std-btn:hover{
     display: block;
     text-align: left;
     width:100%;
-} 
+}
 #address-search-form{
     top:0;
     margin: 14px 10px 0px;
-} 
+}
 #address-search-form-inner{
-    
+
 }
 
 #address-search.no-map
@@ -149,13 +149,13 @@ a.std-btn:hover{
     top: 0;
     left: 0;
     width: 100%;
-    height: 100%; 
+    height: 100%;
     margin-bottom:0;
-   
+
 }
 #address-search.no-map #address-search-form{
     position: relative;
-    top: 45%;  
+    top: 45%;
     margin:0;
     background: rgba(255, 255, 255, .7 );
 }
@@ -165,34 +165,34 @@ a.std-btn:hover{
         float: none;
         margin: 10px 0;
     }
-    
+
     #address-search.no-map .explain
     {
         display: block;
         white-space: nowrap;
     }
-    
+
     #address-search.no-map .explain:last-child{
         margin-top:5px;
     }
-    
+
     #address-search .close{display:none;}
     #address-search.no-map .close{
         position: absolute;
-        right: 5px;  
-        display:block; 
+        right: 5px;
+        display:block;
         top:-25px;
     }
 
     #address-search input { /*width: 200px;*/ }
     #address-search.no-map input { /*width: 300px;*/ }
     #address-search .explain { display: none; }
-    
+
 #footer{
-    height:60px; 
+    height:60px;
     overflow:hidden;
-    margin-top:0; 
-    position:relative; 
+    margin-top:0;
+    position:relative;
 }
 
 #footer ul{
@@ -202,10 +202,10 @@ a.std-btn:hover{
     float: left;
     list-style: none;
     margin: 0;
-    padding:0; 
+    padding:0;
     background: white;
 }
-#footer ul li{ 
+#footer ul li{
     float:left;
     line-height:1;
     height:100%;
@@ -213,19 +213,19 @@ a.std-btn:hover{
     margin:0;
 }
 
-#footer div.first{  
+#footer div.first{
     position:relative;
     width: 30%;
     height: 60px;
     float: left;
     background:transparent;
 }
-#footer ul li.second {width: 50%;} 
+#footer ul li.second {width: 50%;}
 #footer ul li.third {width: 50%;}
 
 #footer #placement-actions{}
 
-#footer #logo{  
+#footer #logo{
     width:135px;
     display:block;
     height:60px;
@@ -247,70 +247,71 @@ a.std-btn:hover{
     top: 11px;
     margin-right: 8px;
 }
-        
+
 button#faq-toggler{
     position: relative;
     top: 17px;
     float:left;
 }
 
-
 #slider{
     position: relative;
     left: 0px;
     top: 0px;
-    margin: 12px 0 0; 
+    margin: 12px 0 0;
     width:100%;
-}  
+    z-index: 20;
+}
 #slider label{
     position: relative;
     top: 0;
     line-height: 14px;
-    font-weight: bold; 
+    font-weight: bold;
     margin-bottom:3px;
 }
 #slider label span{
     font-weight:normal;
 }
 #slider #slide-wrap{
-    position:relative;
-    top:3px;
-}
-#slider #slide{
-    width:100%;
-} 
-#slide-overlay{
-    position:absolute;
-    z-index:2;
-    background:blue;
-    height:10px; 
-    width:80%;
-    top:3px;
-    left:0; 
-    background-color: #6D6153;
+    margin-top: 9px;
 }
 
-input[type="range"] {
-    -webkit-appearance: none;
-    background-color: #EEEEE9;
-    border:1px solid #C8CCCC; 
+#slider #slide-overlay{
+    width: 0%;
     height: 10px;
-    border-radius:2px; 
-    
+    position: absolute;
+    background-color: #6D6153;
+    top: 23px;
+    pointer-events:none;
 }
- 
-input[type="range"]::-webkit-slider-thumb {
-    -webkit-appearance: none;
-    position: relative;
-    top: -1px;
-    z-index: 3;
-    width: 20px;
-    height: 20px;
-   
-    background:#F8F7F7; 
-    border-radius:5px; 
-    border:1px solid #C8CCCC;            
-    cursor:ew-resize;
+
+
+#slider .noUiSlider{
+    border:1px solid #C8CCCC;
+    border-radius: 0;
+    position:relative;
+    max-width: 100%;
+
+}
+
+#slider .noUiSlider a{
+    z-index:11 !important;
+}
+#slider .noUiSlider.horizontal {
+    width: 100%;
+}
+
+
+#slider .noUiSlider.connect a{
+    background-color: #F8F7F7;
+}
+
+#slider .noUiSlider.connect.lower {
+    background: #6D6153;
+}
+
+#slider .noUiSlider, #slider .noUiSlider.connect.lower a {
+    box-shadow: none;
 }
 
 
@@ -353,7 +354,7 @@ form#complete input.action-no:hover
 }
 
 
-form#complete input#action-ok { background-color: #090; }     
+form#complete input#action-ok { background-color: #090; }
 #congratulations{
     position:absolute;
     width:300px;
@@ -370,7 +371,7 @@ form#complete input#action-ok { background-color: #090; }
     -moz-box-shadow:    1px 1px 5px rgba(0, 0, 32, 0.24);
     box-shadow:         1px 1px 5px rgba(0, 0, 32, 0.24);
     display:none;
-} 
+}
 #congratulations h1 {
     margin-top: 25px;
 }
@@ -385,8 +386,8 @@ form#complete input#action-ok { background-color: #090; }
 /* clear fix */
 .cf:before,
 .cf:after {
-    content: " "; 
-    display: table; 
+    content: " ";
+    display: table;
 }
 
 .cf:after {
@@ -399,28 +400,28 @@ form#complete input#action-ok { background-color: #090; }
  */
 .cf {
     *zoom: 1;
-}    
+}
 
 
 
 /* Large desktop */
 @media (min-width: 980px) {
-    
+
 }
- 
+
 /* Portrait tablet to landscape and desktop */
 @media (min-width: 768px) and (max-width: 979px) { }
 
 
 /* rough placement design really doesn't function great smaller than 840px */
-@media (max-width: 840px) {  
+@media (max-width: 840px) {
     .container-fluid{
         min-width:840px;
     }
 }
- 
+
 /* Landscape phone to portrait tablet */
 @media (max-width: 767px) {  }
- 
+
 /* Landscape phones and down */
 @media (max-width: 480px) {  }
