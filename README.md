@@ -47,14 +47,14 @@ city-name clues to help determine a bounding box that contains all the maps in
 the atlas. This will come in handy later, for volunteers who are placing the
 maps to begin in the right general area.
 
-Getting Links To Editable Maps
+Getting Links to Editable Maps
 ------------------------------
 
 YOTB provides a list of maps in JSON form at
 [yotb.stamen.com/maps](http://yotb.stamen.com/maps). Historypin should use this
 feature to generate listings on a page, treating YOTB as an external service.
 
-Show Visitors A Single Map To Place
+Show Visitors a Single Map to Place
 -----------------------------------
 
 We have an interface written in Javascript and HTML to allow visitors to
@@ -63,7 +63,7 @@ rectify a single map, visible at URLs like
 for presentation in an iFrame, with Historypin framing around it to provide
 context.
 
-Map Tile For Use In Historypin
+Map Tile for Use in Historypin
 ------------------------------
 
 Georectified map data is available in the form of web mercator map tiles,
