@@ -1,6 +1,7 @@
-Year of the Bay
+Maptcha Version 2
 ===============
 
+We created Maptcha Version 2 specifically for a project called Year of the Bay (YOTB).
 YOTB is a map warping tool based on Maptcha and Stamen's previous work with
 NYPL/Stanford. Stamen has developed an independent application tailored to the
 needs of map collections, focusing on both the rectification interface and the
