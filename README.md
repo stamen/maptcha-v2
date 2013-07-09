@@ -1,21 +1,29 @@
 Maptcha Version 2
 ===============
 
-We created Maptcha Version 2 specifically for a project called Year of the Bay (YOTB).
-YOTB is a map warping tool based on Maptcha and Stamen's previous work with
+We created Maptcha Version 2 specifically for a project called Year of the Bay (YOTB) 
+in collaboration with Jon Christensen & Historypin, in order to georectify old maps of
+the San Francisco Bay Area.
+
+Maptcha Version 2 is a map warping tool based on Maptcha and Stamen's previous work with
 NYPL/Stanford. Stamen has developed an independent application tailored to the
 needs of map collections, focusing on both the rectification interface and the
-selection process. It’s possible for Year Of The Bay editors to decide which
-historic maps and atlases are a priority for rectification, and guide the
+old map selection process. It’s possible for editors of the Year Of The Bay project to 
+decide which historic maps and atlases are a priority for rectification, and guide the
 public toward just those maps. It’s simple for visitors to perform piecemeal,
 rapid, repetitive tasks to help, with simple scale and rotation controls
-skipping much of the GIS complexity of more complex rubbersheeting
+that skip much of the GIS complexity of more complex rubbersheeting
 applications. We think this will allow the maximum number of participants to
 make the most meaningful impact on the collections.
 
 The four API touchpoints below address Historypin’s desire to keep the map
 feature connected to their site, and make the end results available in a form
-that’s maximally compatible with their potential needs.
+that’s most compatible with their potential needs.
+
+For more information:
+* http://stamen.com
+* http://maptcha.org/
+* http://www.historypin.com/project/13839007-YearoftheBay/#|photos/gallery/
 
 Uploading Maps
 --------------
