@@ -68,7 +68,7 @@ Show Visitors a Single Map to Place
 
 We have an interface written in Javascript and HTML to allow visitors to
 rectify a single map, visible at URLs like
-`http://yotb.stamen.com/place-rough/map/{map ID}`. This interface is suitable
+`http://<instance>/place-rough/map/{map ID}`. This interface is suitable
 for presentation in an iFrame, with Historypin framing around it to provide
 context.
 
@@ -78,8 +78,8 @@ Map Tile for Use in Historypin
 Georectified map data is available in the form of web mercator map tiles,
 compatible with the majority of web mapping libraries including Google, Bing,
 Leaflet, OpenLayers and other similar tools. These tiles can be integrated
-using URLs like `yotb.stamen.com/tile/map/{map ID}/{z}/{x}/{y}.png`, and
-previewed at URLs like `yotb.stamen.com/map-sandwich/map/{map ID}`.
+using URLs like `<instance>/tile/map/{map ID}/{z}/{x}/{y}.png`, and
+previewed at URLs like `<instance>/map-sandwich/map/{map ID}`.
 
 Installation
 ============
