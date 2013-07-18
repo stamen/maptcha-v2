@@ -46,8 +46,7 @@ more information on what you need to include in the CSV.
  
 **Tell YOTB where that spreadsheet is.**
 
-Use the form a [yotb.stamen.com/upload](http://yotb.stamen.com/upload) to point
-YOTB at the CSV file's URL, and hit Next.
+Use the form at <instance>/upload to point Maptcha at the CSV file's URL, and hit Next.
  
 **Provide some simple geographical hints about the atlas.**
 
@@ -59,9 +58,9 @@ maps to begin in the right general area.
 Getting Links to Editable Maps
 ------------------------------
 
-YOTB provides a list of maps in JSON form at
-[yotb.stamen.com/maps](http://yotb.stamen.com/maps). Historypin should use this
-feature to generate listings on a page, treating YOTB as an external service.
+Maptcha provides a list of maps in JSON form at <instance>/maps. Historypin
+should use this feature to generate listings on a page, treating YOTB as an
+external service.
 
 Show Visitors a Single Map to Place
 -----------------------------------
