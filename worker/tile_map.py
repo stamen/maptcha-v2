@@ -142,7 +142,10 @@ def native_zoom(w, h, ul, lr):
     img_px_size = hypot(ul.x - lr.x, ul.y - lr.y) / hypot(w, h)
     
     # best native zoom level of image
-    return 12 + log(m12_px_size / img_px_size) / log(2)
+    if img_px_size > 0:
+        return 12 + log(m12_px_size / img_px_size) / log(2)
+        
+    return 12
 
 def cut_map_tiles(src_name, queue, ul, ur, lr, ll, max_zoom):
     '''
